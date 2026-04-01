@@ -1,0 +1,21 @@
+{
+	"name": "mallhub",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"format": "turbo run format",
+		"lint": "turbo run lint",
+		"type-check": "turbo run type-check"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"packageManager": "pnpm@10.30.0",
+	"devDependencies": {
+		"@biomejs/biome": "2.4.10",
+		"turbo": "^2.9.3"
+	}
+}

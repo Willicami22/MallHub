@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@mallhub/ui/global.css";
+@source "../../../packages/ui/src";
+
+html,
+body {
+	@media (prefers-color-scheme: dark) {
+		color-scheme: dark;
+	}
+}
