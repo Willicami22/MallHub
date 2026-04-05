@@ -1,6 +1,7 @@
 import { Button, Toaster } from '@mallhub/ui';
 import { ThemeProvider } from 'next-themes';
 import {
+	type MiddlewareFunction,
 	isRouteErrorResponse,
 	Links,
 	Meta,
@@ -10,13 +11,27 @@ import {
 } from 'react-router';
 import { TrpcQueryClientProvider } from '@/features/trpc/trpc.provider';
 import type { Route } from './+types/root';
+import * as m from './paraglide/messages.js';
+import { getLocale, localizeHref } from './paraglide/runtime.js';
+import { paraglideMiddleware } from './paraglide/server.js';
 import './app.css';
 
 export const links: Route.LinksFunction = () => [];
 
+export const middleware: MiddlewareFunction[] = [
+	(ctx, next) => {
+		const pathname = new URL(ctx.request.url).pathname;
+		if (pathname === '/api' || pathname.startsWith('/api/')) {
+			return next();
+		}
+
+		return paraglideMiddleware(ctx.request, () => next());
+	},
+];
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang={getLocale()} suppressHydrationWarning>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,12 +61,12 @@ export default function App() {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 	const title = isRouteErrorResponse(error)
 		? `Error ${error.status}`
-		: 'Ocurrió un error';
+		: m.error_title();
 	const message = isRouteErrorResponse(error)
-		? error.statusText || 'No se pudo completar la solicitud.'
+		? error.statusText || m.error_status_fallback()
 		: error instanceof Error
 			? error.message
-			: 'Error desconocido.';
+			: m.error_unknown();
 
 	return (
 		<div className="mx-auto flex min-h-dvh w-full max-w-xl items-center justify-center p-4">
@@ -60,10 +75,10 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 				<p className="text-sm text-muted-foreground">{message}</p>
 				<Button
 					onClick={() => {
-						window.location.href = '/';
+						window.location.href = localizeHref('/');
 					}}
 				>
-					Volver al inicio
+					{m.error_back_to_home()}
 				</Button>
 			</div>
 		</div>
