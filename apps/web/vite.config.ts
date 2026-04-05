@@ -7,6 +7,13 @@ export default defineConfig({
 	resolve: {
 		tsconfigPaths: true,
 	},
+	ssr: {
+		noExternal: ['@mallhub/ui'],
+	},
+	optimizeDeps: {
+		// También asegúrate de incluirlo en la optimización del cliente
+		include: ['@mallhub/ui'],
+	},
 	build: {
 		commonjsOptions: {
 			transformMixedEsModules: true,
