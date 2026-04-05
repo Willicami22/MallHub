@@ -1,7 +1,6 @@
 import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import * as authSchema from '@/features/.server/auth/better-auth.schema';
-import { db } from '@/features/.server/drizzle/drizzle.connection';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { prisma } from '@/features/.server/prisma/prisma.client';
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL,
@@ -9,10 +8,8 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 	},
-	database: drizzleAdapter(db, {
-		provider: 'sqlite',
-		schema: authSchema,
-		usePlural: true,
+	database: prismaAdapter(prisma, {
+		provider: 'postgresql',
 	}),
 });
 

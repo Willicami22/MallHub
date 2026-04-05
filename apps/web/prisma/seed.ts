@@ -1,7 +1,5 @@
-import { config } from 'dotenv';
+import 'dotenv/config';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
-
-config();
 
 async function seed() {
 	console.log('Starting database seeding...');
@@ -13,9 +11,11 @@ async function seed() {
 	if (!ADMIN_EMAIL) {
 		throw new Error('ADMIN_EMAIL environment variable is not set');
 	}
+
 	if (!ADMIN_NAME) {
 		throw new Error('ADMIN_NAME environment variable is not set');
 	}
+
 	if (!ADMIN_PASSWORD) {
 		throw new Error('ADMIN_PASSWORD environment variable is not set');
 	}
@@ -30,4 +30,4 @@ async function seed() {
 	});
 }
 
-seed();
+void seed();
