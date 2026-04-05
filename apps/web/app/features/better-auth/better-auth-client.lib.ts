@@ -1,4 +1,9 @@
+import { adminClient, organizationClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
+import {
+	betterAuthAdminRoles,
+	betterAuthOrganizationRoles,
+} from '@/features/better-auth/better-auth-access-control.lib';
 
 const getAuthBaseUrl = () => {
 	if (typeof window !== 'undefined') {
@@ -12,11 +17,19 @@ const getAuthBaseUrl = () => {
 	return 'http://localhost:5173/api/auth';
 };
 
-const authClient = createAuthClient({
+export const authClient = createAuthClient({
 	baseURL: getAuthBaseUrl(),
 	fetchOptions: {
 		credentials: 'include',
 	},
+	plugins: [
+		adminClient({
+			roles: betterAuthAdminRoles,
+		}),
+		organizationClient({
+			roles: betterAuthOrganizationRoles,
+		}),
+	],
 });
 
 export const useClientSession = authClient.useSession;

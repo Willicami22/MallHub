@@ -103,6 +103,7 @@ Table users {
 Table sessions {
   id uuid [pk]
   user_id uuid [not null, ref: > users.id]
+  active_organization_id uuid [ref: > organizations.id]
   expires_at timestamptz [not null]
   token varchar(255) [not null, unique]
   ip_address varchar(64)
@@ -113,6 +114,7 @@ Table sessions {
 
   indexes {
     user_id
+    active_organization_id
     (user_id, expires_at)
   }
 }
@@ -148,6 +150,48 @@ Table verifications {
 
   indexes {
     identifier
+  }
+}
+
+Table organizations {
+  id uuid [pk]
+  name varchar(150) [not null]
+  slug varchar(160) [not null, unique]
+  logo varchar(255)
+  metadata jsonb
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz
+}
+
+Table organization_members {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  user_id uuid [not null, ref: > users.id]
+  role varchar(100) [not null, default: 'member']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    organization_id
+    user_id
+    (organization_id, user_id) [unique]
+  }
+}
+
+Table organization_invitations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  email varchar(255) [not null]
+  role varchar(100) [not null]
+  status varchar(30) [not null, default: 'pending']
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  inviter_id uuid [not null, ref: > users.id]
+
+  indexes {
+    email
+    inviter_id
+    (organization_id, status)
+    (organization_id, email, status)
   }
 }
 

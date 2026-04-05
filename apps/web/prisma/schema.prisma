@@ -68,34 +68,36 @@ enum AiJobStatus {
 }
 
 model User {
-  id              String   @id
+  id              String    @id
   name            String
-  email           String   @unique
-  emailVerified   Boolean  @default(false) @map("email_verified")
+  email           String    @unique
+  emailVerified   Boolean   @default(false) @map("email_verified")
   image           String?
-  role            UserRole @default(CUSTOMER)
+  role            UserRole  @default(CUSTOMER)
   phone           String?
-  preferredMallId String?  @map("preferred_mall_id")
-  banned          Boolean? @default(false)
-  banReason       String?  @map("ban_reason")
+  preferredMallId String?   @map("preferred_mall_id")
+  banned          Boolean?  @default(false)
+  banReason       String?   @map("ban_reason")
   banExpires      DateTime? @map("ban_expires")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  sessions Session[]
-  accounts Account[]
+  sessions                    Session[]
+  accounts                    Account[]
+  organizationMemberships     Member[]
+  sentOrganizationInvitations Invitation[] @relation("OrganizationInvitationInviter")
 
   profile       UserProfile?
-  preferredMall Mall? @relation("PreferredMall", fields: [preferredMallId], references: [id], onDelete: SetNull)
+  preferredMall Mall?        @relation("PreferredMall", fields: [preferredMallId], references: [id], onDelete: SetNull)
 
-  managedMalls          Mall[]                   @relation("MallAdmin")
-  ownedStores           Store[]                  @relation("StoreOwner")
-  reservations          Reservation[]            @relation("ReservationCustomer")
+  managedMalls          Mall[]                     @relation("MallAdmin")
+  ownedStores           Store[]                    @relation("StoreOwner")
+  reservations          Reservation[]              @relation("ReservationCustomer")
   appliedStoreRequests  StoreRegistrationRequest[] @relation("StoreApplicant")
   reviewedStoreRequests StoreRegistrationRequest[] @relation("StoreReviewer")
-  createdPromotions     Promotion[]              @relation("PromotionCreator")
-  updatedPromotions     Promotion[]              @relation("PromotionUpdater")
-  aiRuns                AiRun[]                  @relation("AiRunRequester")
+  createdPromotions     Promotion[]                @relation("PromotionCreator")
+  updatedPromotions     Promotion[]                @relation("PromotionUpdater")
+  aiRuns                AiRun[]                    @relation("AiRunRequester")
 
   favoriteStores     FavoriteStore[]
   favoriteProducts   FavoriteProduct[]
@@ -111,18 +113,21 @@ model User {
 }
 
 model Session {
-  id             String   @id
-  expiresAt      DateTime @map("expires_at")
-  token          String   @unique
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
-  ipAddress      String?  @map("ip_address")
-  userAgent      String?  @map("user_agent")
-  userId         String   @map("user_id")
-  impersonatedBy String?  @map("impersonated_by")
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String        @id
+  expiresAt            DateTime      @map("expires_at")
+  token                String        @unique
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at")
+  ipAddress            String?       @map("ip_address")
+  userAgent            String?       @map("user_agent")
+  userId               String        @map("user_id")
+  impersonatedBy       String?       @map("impersonated_by")
+  activeOrganizationId String?       @map("active_organization_id")
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOrganization   Organization? @relation(fields: [activeOrganizationId], references: [id], onDelete: SetNull)
 
   @@index([userId], map: "sessions_userId_idx")
+  @@index([activeOrganizationId], map: "sessions_activeOrganizationId_idx")
   @@map("sessions")
 }
 
@@ -158,6 +163,58 @@ model Verification {
   @@map("verifications")
 }
 
+model Organization {
+  id        String    @id
+  name      String
+  slug      String    @unique
+  logo      String?
+  metadata  Json?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+
+  activeSessions Session[]
+  members        Member[]
+  invitations    Invitation[]
+
+  @@map("organizations")
+}
+
+model Member {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  userId         String   @map("user_id")
+  role           String   @default("member")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId], map: "members_organization_user_key")
+  @@index([organizationId], map: "members_organizationId_idx")
+  @@index([userId], map: "members_userId_idx")
+  @@map("organization_members")
+}
+
+model Invitation {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  email          String
+  role           String
+  status         String   @default("pending")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  inviterId      String   @map("inviter_id")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation("OrganizationInvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status], map: "invitations_organization_status_idx")
+  @@index([organizationId, email, status], map: "invitations_org_email_status_idx")
+  @@index([email], map: "invitations_email_idx")
+  @@index([inviterId], map: "invitations_inviterId_idx")
+  @@map("organization_invitations")
+}
+
 model UserProfile {
   userId                 String   @id @map("user_id")
   displayName            String?  @map("display_name")
@@ -182,16 +239,16 @@ model Mall {
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @default(now()) @updatedAt @map("updated_at")
 
-  adminCcUser      User?                    @relation("MallAdmin", fields: [adminCcUserId], references: [id], onDelete: SetNull)
-  preferredByUsers User[]                   @relation("PreferredMall")
-  stores           Store[]
-  products         Product[]
-  registrations    StoreRegistrationRequest[]
-  promotions       Promotion[]
-  reservations     Reservation[]
-  searchLogs       SearchLog[]
-  dailyMetrics     DailyMallMetric[]
-  aiRuns           AiRun[]
+  adminCcUser        User?                      @relation("MallAdmin", fields: [adminCcUserId], references: [id], onDelete: SetNull)
+  preferredByUsers   User[]                     @relation("PreferredMall")
+  stores             Store[]
+  products           Product[]
+  registrations      StoreRegistrationRequest[]
+  promotions         Promotion[]
+  reservations       Reservation[]
+  searchLogs         SearchLog[]
+  dailyMetrics       DailyMallMetric[]
+  aiRuns             AiRun[]
   adminCcAssignments AdminCcAssignment[]
 
   @@index([status], map: "malls_status_idx")
@@ -212,15 +269,15 @@ model Store {
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @default(now()) @updatedAt @map("updated_at")
 
-  mall    Mall  @relation(fields: [mallId], references: [id], onDelete: Cascade)
-  owner   User? @relation("StoreOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  mall  Mall  @relation(fields: [mallId], references: [id], onDelete: Cascade)
+  owner User? @relation("StoreOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
 
-  products             Product[]
-  promotions           Promotion[]
-  reservations         Reservation[]
-  aiRuns               AiRun[]
-  favoriteStores       FavoriteStore[]
-  approvedFromRequest  StoreRegistrationRequest? @relation("ApprovedStore")
+  products            Product[]
+  promotions          Promotion[]
+  reservations        Reservation[]
+  aiRuns              AiRun[]
+  favoriteStores      FavoriteStore[]
+  approvedFromRequest StoreRegistrationRequest? @relation("ApprovedStore")
 
   @@index([mallId], map: "stores_mallId_idx")
   @@index([ownerUserId], map: "stores_ownerUserId_idx")
@@ -245,9 +302,9 @@ model StoreRegistrationRequest {
   updatedAt        DateTime                       @default(now()) @updatedAt @map("updated_at")
   reviewedAt       DateTime?                      @map("reviewed_at")
 
-  mall        Mall   @relation(fields: [mallId], references: [id], onDelete: Cascade)
-  applicant   User   @relation("StoreApplicant", fields: [applicantUserId], references: [id], onDelete: Cascade)
-  reviewedBy  User?  @relation("StoreReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  mall         Mall   @relation(fields: [mallId], references: [id], onDelete: Cascade)
+  applicant    User   @relation("StoreApplicant", fields: [applicantUserId], references: [id], onDelete: Cascade)
+  reviewedBy   User?  @relation("StoreReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   createdStore Store? @relation("ApprovedStore", fields: [createdStoreId], references: [id], onDelete: SetNull)
 
   @@index([mallId, status], map: "store_registration_requests_mall_status_idx")
@@ -274,7 +331,7 @@ model Product {
   mall  Mall  @relation(fields: [mallId], references: [id], onDelete: Cascade)
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
-  reservations    Reservation[]
+  reservations     Reservation[]
   favoriteProducts FavoriteProduct[]
 
   @@index([mallId], map: "products_mallId_idx")
@@ -330,10 +387,10 @@ model Reservation {
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @default(now()) @updatedAt @map("updated_at")
 
-  mall         Mall   @relation(fields: [mallId], references: [id], onDelete: Cascade)
-  store        Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  mall         Mall    @relation(fields: [mallId], references: [id], onDelete: Cascade)
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  customerUser User   @relation("ReservationCustomer", fields: [customerUserId], references: [id], onDelete: Cascade)
+  customerUser User    @relation("ReservationCustomer", fields: [customerUserId], references: [id], onDelete: Cascade)
 
   @@index([customerUserId, status], map: "reservations_customer_status_idx")
   @@index([storeId, status], map: "reservations_store_status_idx")
@@ -427,20 +484,20 @@ model DailyPlatformMetric {
 }
 
 model AiRun {
-  id                String    @id @default(cuid())
-  mallId            String?   @map("mall_id")
-  storeId           String?   @map("store_id")
-  requestedByUserId String    @map("requested_by_user_id")
-  jobType           AiJobType @map("job_type")
+  id                String      @id @default(cuid())
+  mallId            String?     @map("mall_id")
+  storeId           String?     @map("store_id")
+  requestedByUserId String      @map("requested_by_user_id")
+  jobType           AiJobType   @map("job_type")
   jobStatus         AiJobStatus @default(QUEUED) @map("job_status")
-  promptText        String?   @map("prompt_text")
-  responseText      String?   @map("response_text")
-  errorMessage      String?   @map("error_message")
-  createdAt         DateTime  @default(now()) @map("created_at")
+  promptText        String?     @map("prompt_text")
+  responseText      String?     @map("response_text")
+  errorMessage      String?     @map("error_message")
+  createdAt         DateTime    @default(now()) @map("created_at")
 
-  mall            Mall? @relation(fields: [mallId], references: [id], onDelete: SetNull)
+  mall            Mall?  @relation(fields: [mallId], references: [id], onDelete: SetNull)
   store           Store? @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  requestedByUser User  @relation("AiRunRequester", fields: [requestedByUserId], references: [id], onDelete: Cascade)
+  requestedByUser User   @relation("AiRunRequester", fields: [requestedByUserId], references: [id], onDelete: Cascade)
 
   @@index([mallId, jobType], map: "ai_runs_mall_jobType_idx")
   @@index([storeId, jobType], map: "ai_runs_store_jobType_idx")
