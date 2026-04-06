@@ -1,32 +1,37 @@
 import 'dotenv/config';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
+import { serverEnv } from '@/features/.server/env/server-env.lib';
+import { prisma } from '@/features/.server/prisma/prisma.client';
+import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 
 async function seed() {
 	console.log('Starting database seeding...');
 
-	const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-	const ADMIN_NAME = process.env.ADMIN_NAME;
-	const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+	const { ADMIN_EMAIL, ADMIN_NAME, ADMIN_PASSWORD } = serverEnv;
 
-	if (!ADMIN_EMAIL) {
-		throw new Error('ADMIN_EMAIL environment variable is not set');
+	const existingAdmin = await prisma.user.findUnique({
+		where: { email: ADMIN_EMAIL },
+		select: { id: true },
+	});
+
+	if (!existingAdmin) {
+		await auth.api.signUpEmail({
+			body: {
+				email: ADMIN_EMAIL,
+				name: ADMIN_NAME,
+				password: ADMIN_PASSWORD,
+			},
+			asResponse: false,
+		});
 	}
 
-	if (!ADMIN_NAME) {
-		throw new Error('ADMIN_NAME environment variable is not set');
-	}
-
-	if (!ADMIN_PASSWORD) {
-		throw new Error('ADMIN_PASSWORD environment variable is not set');
-	}
-
-	await auth.api.signUpEmail({
-		body: {
-			email: ADMIN_EMAIL,
+	await prisma.user.update({
+		where: { email: ADMIN_EMAIL },
+		data: {
 			name: ADMIN_NAME,
-			password: ADMIN_PASSWORD,
+			role: appRoles.ADMIN_PLATFORM,
+			emailVerified: true,
 		},
-		asResponse: false,
 	});
 }
 

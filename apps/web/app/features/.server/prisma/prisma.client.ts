@@ -1,15 +1,10 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { serverEnv } from '@/features/.server/env/server-env.lib';
 import { PrismaClient } from '@/features/.server/prisma/generated/client';
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-	throw new Error('DATABASE_URL environment variable is not defined');
-}
-
 const createPrismaClient = () => {
-	const adapter = new PrismaPg({ connectionString });
+	const adapter = new PrismaPg({ connectionString: serverEnv.DATABASE_URL });
 
 	return new PrismaClient({
 		adapter,

@@ -4,17 +4,14 @@ import {
 	betterAuthAdminRoles,
 	betterAuthOrganizationRoles,
 } from '@/features/better-auth/better-auth-access-control.lib';
+import { clientEnv } from '@/features/env/client-env.lib';
 
 const getAuthBaseUrl = () => {
 	if (typeof window !== 'undefined') {
 		return `${window.location.origin}/api/auth`;
 	}
 
-	if (import.meta.env.VITE_APP_API_URL) {
-		return `${import.meta.env.VITE_APP_API_URL}/api/auth`;
-	}
-
-	return 'http://localhost:5173/api/auth';
+	return `${clientEnv.VITE_APP_API_URL}/api/auth`;
 };
 
 export const authClient = createAuthClient({

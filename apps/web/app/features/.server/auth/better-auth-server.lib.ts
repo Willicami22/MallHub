@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, organization } from 'better-auth/plugins';
+import { serverEnv } from '@/features/.server/env/server-env.lib';
 import { prisma } from '@/features/.server/prisma/prisma.client';
 import {
 	appRoles,
@@ -11,8 +12,8 @@ import {
 } from '@/features/better-auth/better-auth-access-control.lib';
 
 export const auth = betterAuth({
-	baseURL: process.env.BETTER_AUTH_URL,
-	secret: process.env.BETTER_AUTH_SECRET,
+	baseURL: serverEnv.BETTER_AUTH_URL,
+	secret: serverEnv.BETTER_AUTH_SECRET,
 	emailAndPassword: {
 		enabled: true,
 	},

@@ -3,6 +3,7 @@ import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { type ReactNode, useState } from 'react';
 import SuperJSON from 'superjson';
 import type { AppRouter } from '@/features/.server/trpc/trpc.router';
+import { clientEnv } from '@/features/env/client-env.lib';
 import { TRPCProvider } from '@/features/trpc/trpc.context';
 
 function makeQueryClient() {
@@ -34,11 +35,7 @@ function getBaseUrl() {
 		return window.location.origin;
 	}
 
-	if (import.meta.env.VITE_APP_API_URL) {
-		return import.meta.env.VITE_APP_API_URL;
-	}
-
-	return 'http://localhost:5173';
+	return clientEnv.VITE_APP_API_URL;
 }
 
 export function TrpcQueryClientProvider({ children }: { children: ReactNode }) {
