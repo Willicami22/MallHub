@@ -59,6 +59,29 @@ When needing lighter/transparent versions, use Tailwind opacity modifiers on sem
 - `text-foreground/60` — reduced emphasis text
 - `border-border/50` — subtle borders
 
+### Brand panel accent system (`bg-primary` context)
+
+Inside `bg-primary` panels, every element inherits `text-primary-foreground`. Use this **two-axis hierarchy** — opacity reduces emphasis, a frosted box *increases* it:
+
+| Role          | Pattern                                                   |
+| ------------- | --------------------------------------------------------- |
+| **Accent**    | `bg-primary-foreground/15 rounded-xl px-3 inline-block`   |
+| Hero          | `text-primary-foreground` (no modifier) — 100%            |
+| Label         | `opacity-75` — wordmark, prominent labels                 |
+| Secondary     | `opacity-50` — eyebrow, supporting copy                   |
+| Muted         | `opacity-40` — feature descriptions                       |
+| Ghost         | `opacity-25` — numbers, copyright                         |
+| Decorative    | `opacity-10` – `opacity-15` — lines, borders              |
+
+**Accent = frosted highlight**: `bg-primary-foreground/15` creates a semi-transparent white box that makes an element visually *elevated* compared to plain text. Use it when an inline phrase or line must feel featured — not faded.
+
+```tsx
+{/* Accented headline line — elevated, not de-emphasized */}
+<span className="inline-block rounded-xl bg-primary-foreground/15 px-3 opacity-90">
+  {m.auth_brand_headline_3()}
+</span>
+```
+
 ## 3. Typography
 
 **Font stack** (defined in theme):
@@ -222,24 +245,49 @@ import { HugeiconsIcon } from '@hugeicons/react';
 
 ## 7. Decorative Elements
 
-The brand panel uses decorative SVG for visual richness without relying on images:
+The brand panel uses layered SVG for visual richness without relying on images.
 
-- **Dot grid pattern**: Repeating `circle` elements with `opacity: 0.12`, subtle texture
-- **Floating circles**: Large circles (`r="80-160"`) with very low opacity (`0.04-0.08`), filled
-- **Ring outlines**: Unfilled circles with thin strokes (`strokeWidth="1-1.5"`) at `opacity: 0.10-0.12`
+### Pattern language — "Vertex" aesthetic
 
-All decorative SVG uses `currentColor` with `text-primary-foreground` to inherit theme colors.
+- **45° diagonal lines**: Single-direction stripes (`rotate(45)`), 64px spacing, `strokeWidth="0.6"`, `opacity="0.07"` — creates forward motion and energy
+- **Dot grid cluster**: Dense dot pattern (`r="0.8"`, `opacity="0.18"`) masked to the upper-right quadrant only — textural contrast without uniformity
+- **Atmospheric glow blob**: Large filled circle at a panel corner, `opacity="0.06"` — soft depth anchor
+- **Centered orbital rings**: 3 concentric circles (`r=140/220/310`) at panel center, unfilled strokes with graduated opacity (`0.09→0.05`) — radar/signal feel
+- **Radial corner lines**: 3 straight lines emanating from the bottom-right corner, graduated opacity — directional energy
+- **Horizontal accent rule**: Full-width line at 18% panel height, `opacity="0.12"` — architectural precision
+
+All decorative SVG uses `currentColor` with `text-primary-foreground` on the `<svg>` element.
 
 ```tsx
 <svg className="absolute inset-0 h-full w-full text-primary-foreground" aria-hidden="true">
-  {/* Dot grid */}
-  <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
-    <circle cx="2" cy="2" r="1" fill="currentColor" opacity="0.12" />
-  </pattern>
-  <rect width="100%" height="100%" fill="url(#dots)" />
-  {/* Floating shapes */}
-  <circle cx="15%" cy="20%" r="120" fill="currentColor" opacity="0.06" />
+  <defs>
+    {/* 45° diagonal field */}
+    <pattern id="auth-diagonal" width="64" height="64"
+             patternUnits="userSpaceOnUse" patternTransform="rotate(45 0 0)">
+      <line x1="0" y1="0" x2="64" y2="0" stroke="currentColor" strokeWidth="0.6" opacity="0.07" />
+    </pattern>
+    {/* Dense dot cluster */}
+    <pattern id="auth-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.8" fill="currentColor" opacity="0.18" />
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#auth-diagonal)" />
+  {/* Dot cluster — upper-right quadrant only */}
+  <rect x="55%" y="0" width="45%" height="40%" fill="url(#auth-dots)" />
 </svg>
+```
+
+### Ghosted letterform depth layer
+
+An absolutely positioned div with `opacity-5` places the words "MALL" and "HUB" stacked at `text-9xl font-black` — they function as texture, not readable content:
+
+```tsx
+<div className="pointer-events-none absolute inset-0 flex select-none flex-col
+                items-center justify-center overflow-hidden text-primary-foreground opacity-5"
+     aria-hidden="true">
+  <span className="text-9xl font-black uppercase leading-none tracking-tighter">MALL</span>
+  <span className="text-9xl font-black uppercase leading-none tracking-tighter">HUB</span>
+</div>
 ```
 
 ## 8. Internationalization (i18n)
@@ -345,99 +393,153 @@ apps/web/app/features/
 
 ## 16. Brand Panel Design (Auth Layout)
 
-The auth split-panel is one of the most visible surfaces in the app. Its brand panel **must not be minimal** — it communicates MallHub's value proposition at first glance.
+The auth split-panel is one of the most visible surfaces in the app. The brand panel communicates MallHub's energy and identity at first glance — bold, spatial, editorial.
+
+**Design language: "Vertex"** — diagonal energy, orbital depth, catalogue typography.
 
 ### Visual composition layers
 
 ```
 ┌─────────────────────────────────────────┐
-│  Layer 1: Rotated cross-hatch grid      │  Fine lines at 12°, opacity 0.09
-│  Layer 2: Concentric arcs (top-right)   │  5 rings r=460→100, opacity 0.05→0.14
-│  Layer 3: Diffuse glow (bottom-left)    │  Filled circle, opacity 0.05
-│  Layer 4: Horizontal accent line        │  At y=87%, w=62%, opacity 0.12
-│  Layer 5: Content (z-10)               │  Brand mark, headline, features, footer
+│  Layer 1: 45° diagonal lines            │  64px spacing, opacity 0.07
+│  Layer 2: Dot grid (upper-right only)   │  20px grid, dots r=0.8, opacity 0.18
+│  Layer 3: Top-left atmospheric glow     │  Filled circle r=280, opacity 0.06
+│  Layer 4: 3 centered orbital rings      │  r=140/220/310, opacity 0.09→0.05
+│  Layer 5: 3 radial lines (bottom-right) │  Graduated opacity 0.07→0.05
+│  Layer 6: Horizontal accent rule        │  At y=18%, opacity 0.12
+│  Layer 7: Ghosted letterforms (MALL/HUB)│  text-9xl, absolute, opacity-5
+│  Layer 8: Content (z-10)               │  Brand mark, headline, grid, footer
 └─────────────────────────────────────────┘
 ```
 
-### Grid texture — architectural precision feel
+### Diagonal field — motion & forward energy
 
 ```svg
-<pattern id="auth-crosshatch" width="52" height="52"
+<pattern id="auth-diagonal" width="64" height="64"
          patternUnits="userSpaceOnUse"
-         patternTransform="rotate(12 0 0)">
-  <line x1="0" y1="0" x2="52" y2="0" stroke="currentColor" strokeWidth="0.5" opacity="0.09" />
-  <line x1="0" y1="0" x2="0" y2="52" stroke="currentColor" strokeWidth="0.5" opacity="0.09" />
+         patternTransform="rotate(45 0 0)">
+  <line x1="0" y1="0" x2="64" y2="0" stroke="currentColor" strokeWidth="0.6" opacity="0.07" />
 </pattern>
 ```
 
-### Concentric arcs — compass / sonar feel
+Single-direction diagonal lines (not crosshatch) read as motion and momentum — appropriate for a commerce platform.
 
-Centered at the top-right corner (`cx="100%" cy="0"`), five rings at graduated opacity create depth without animation:
+### Orbital rings — radar / signal feel
+
+Centered in the panel body (`cx="50%" cy="52%"`), three rings at graduated opacity create depth without directional bias:
 
 ```svg
-<!-- 5 rings: radii 460, 360, 265, 178, 100 → opacity 0.05 to 0.14 -->
-<circle cx="100%" cy="0" r="460" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.05" />
+<!-- radii: 310, 220, 140 → opacity: 0.05, 0.07, 0.09 -->
+<circle cx="50%" cy="52%" r="310" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.05" />
 ...
-<circle cx="100%" cy="0" r="100" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.14" />
+<circle cx="50%" cy="52%" r="140" fill="none" stroke="currentColor" strokeWidth="0.6" opacity="0.09" />
 ```
 
-### Geometric brand mark
+### Ghosted letterform depth layer
 
-A 2×2 grid of rounded squares with cascading opacity — evokes a mall floor-plan directory:
-
-```svg
-<rect opacity="0.95" />  <!-- top-left: primary -->
-<rect opacity="0.55" />  <!-- top-right: secondary -->
-<rect opacity="0.55" />  <!-- bottom-left: secondary -->
-<rect opacity="0.18" />  <!-- bottom-right: ghost -->
+```tsx
+<div className="pointer-events-none absolute inset-0 flex select-none flex-col
+                items-center justify-center overflow-hidden text-primary-foreground opacity-5"
+     aria-hidden="true">
+  <span className="text-9xl font-black uppercase leading-none tracking-tighter">MALL</span>
+  <span className="text-9xl font-black uppercase leading-none tracking-tighter">HUB</span>
+</div>
 ```
 
-### Content structure (top → middle → bottom pattern)
+The brand words at 5% opacity act as pure atmosphere — visible as texture on close inspection, invisible as text.
+
+### Content structure (top → middle → bottom)
 
 ```
 TOP: brand mark + "MALLHUB" (tracking-widest, text-xs, uppercase, opacity-75)
 
-MIDDLE:
-  eyebrow: text-xs, tracking-widest, uppercase, opacity-35
-  h2: text-5xl, font-bold, leading-[1.08], tracking-tight
-      line 3 at opacity-35 (creates visual fade/depth)
-  decorative rule: h-px w-10 + h-px w-3 (two segments, different lengths)
-  feature callouts: 3 items
-    ├── icon container: size-9, rounded-xl, border border-current/15, bg-current/10
-    ├── title: text-sm, font-semibold, opacity-90
-    └── desc: text-xs, leading-relaxed, opacity-40
+MIDDLE (space-y-10):
+  ┌─ Headline block (space-y-4) ────────────────────────┐
+  │  eyebrow row: [h-px w-6 line] + [text-xs uppercase]  │
+  │  h2: text-6xl, font-bold, leading-[1.05], tracking-tight │
+  │      line 3 at opacity-30                            │
+  │  separator: [flex-1 h-px] + [size-1 dot] + [w-8 h-px]│
+  └──────────────────────────────────────────────────────┘
+  ┌─ Features (grid-cols-3, gap-4) ─────────────────────┐
+  │  Each column (space-y-3):                            │
+  │    ├── "01" label: text-2xs, uppercase, opacity-30   │
+  │    ├── icon container: size-9, rounded-xl, border/15 │
+  │    ├── title: text-xs, font-semibold, uppercase, /90 │
+  │    └── desc: text-xs, leading-relaxed, opacity-40    │
+  └──────────────────────────────────────────────────────┘
 
 BOTTOM: separator (h-px, opacity-10) + copyright (text-xs, opacity-25)
 ```
 
-### Opacity usage on primary-foreground (white)
-
-The panel creates depth using white at many opacity levels:
-- **0.95** → Brand mark primary square (near solid)
-- **0.90** → Feature titles
-- **0.80** → Wordmark text (close to full white)
-- **0.75** → Wordmark label
-- **0.55** → Brand mark secondary squares
-- **0.40** → Feature descriptions  
-- **0.35** → Headline line 3, eyebrow text
-- **0.30** → Decorative rule primary line
-- **0.25** → Copyright text, footer separator
-- **0.18** → Brand mark ghost square
-- **0.15** → Decorative rule secondary line, icon border
-- **0.14–0.05** → SVG arc rings (decreasing with radius)
-- **0.10** → Footer separator line
-
-### Icon container pattern (feature callouts)
+### Eyebrow treatment — line-prefixed
 
 ```tsx
-<div className="mt-px flex size-9 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-current/10">
-  <HugeiconsIcon icon={FeatureIcon} className="size-4" strokeWidth={1.5} />
+<div className="flex items-center gap-3">
+  <div className="h-px w-6 bg-current opacity-35" />
+  <p className="text-xs font-medium tracking-widest uppercase opacity-35">
+    {m.auth_brand_eyebrow()}
+  </p>
 </div>
 ```
 
-- `border-current/15` — inherits `text-primary-foreground`, so semi-transparent white border
-- `bg-current/10` — 10% white fill (subtle glass effect)
-- `strokeWidth={1.5}` — slightly thinner than default for refined look inside small container
+### Full-width separator with dot accent
+
+Replaces the previous two short lines. Creates a wider, more architectural visual beat:
+
+```tsx
+<div className="flex items-center gap-2.5 pt-1">
+  <div className="h-px flex-1 bg-current opacity-15" />
+  <div className="size-1 rounded-full bg-current opacity-30" />
+  <div className="h-px w-8 bg-current opacity-15" />
+</div>
+```
+
+### Feature callout pattern — catalogue grid
+
+Features arranged as a 3-column horizontal grid with editorial numbered labels (`01/02/03`) instead of a vertical list. This creates a visual rhythm closer to a product catalogue or wayfinding system:
+
+```tsx
+<div className="grid grid-cols-3 gap-4">
+  {features.map((feature, index) => (
+    <div key={feature.getTitle()} className="space-y-3">
+      <p className="text-2xs font-bold tracking-widest uppercase opacity-30">
+        {FEATURE_NUMBERS[index]}
+      </p>
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl
+                      border border-current/15 bg-current/10">
+        <HugeiconsIcon icon={feature.icon} className="size-4" strokeWidth={1.5} />
+      </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide leading-snug opacity-90">
+          {feature.getTitle()}
+        </p>
+        <p className="mt-1 text-xs leading-relaxed opacity-40">
+          {feature.getDesc()}
+        </p>
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+### Opacity usage on primary-foreground (white)
+
+See **Section 2 → Brand panel accent system** for the full hierarchy. Quick reference:
+
+- **`bg-primary-foreground/15` box** → Accent highlight (headline line 3, featured phrases)
+- **0.95** → Brand mark primary square
+- **0.90** → Accent text inside frosted box, feature titles
+- **0.75** → Wordmark label
+- **0.50** → Eyebrow text
+- **0.40** → Feature descriptions
+- **0.25** → Copyright, ghost labels
+- **0.18** → Brand mark ghost square, dot grid pattern
+- **0.15** → Separator lines, icon border
+- **0.12** → Horizontal accent rule
+- **0.10** → Footer separator
+- **0.09–0.05** → SVG orbital rings (inner→outer)
+- **0.07** → Diagonal field lines
+- **0.05** → Ghosted letterforms (`opacity-5` Tailwind class)
 
 
 | ✅ Do                                          | ❌ Don't                                        |
