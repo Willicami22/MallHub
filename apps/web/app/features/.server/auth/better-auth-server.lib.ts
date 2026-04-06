@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, organization } from 'better-auth/plugins';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
-import { prisma } from '@/features/.server/prisma/prisma.client';
+import { prisma } from '@/features/.server/prisma/prisma.server';
 import {
 	appRoles,
 	betterAuthAdminRoles,

@@ -5,6 +5,7 @@ import SuperJSON from 'superjson';
 import type { AppRouter } from '@/features/.server/trpc/trpc.router';
 import { clientEnv } from '@/features/env/client-env.lib';
 import { TRPCProvider } from '@/features/trpc/trpc.context';
+import { getLocale } from '@/paraglide/runtime.js';
 
 function makeQueryClient() {
 	return new QueryClient({
@@ -46,6 +47,9 @@ export function TrpcQueryClientProvider({ children }: { children: ReactNode }) {
 				httpBatchLink({
 					url: `${getBaseUrl()}/api/trpc`,
 					transformer: SuperJSON,
+					headers: () => ({
+						'x-paraglide-locale': getLocale(),
+					}),
 				}),
 			],
 		}),

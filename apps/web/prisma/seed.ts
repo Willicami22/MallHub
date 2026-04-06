@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
-import { prisma } from '@/features/.server/prisma/prisma.client';
+import { prisma } from '@/features/.server/prisma/prisma.server';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 
 async function seed() {
