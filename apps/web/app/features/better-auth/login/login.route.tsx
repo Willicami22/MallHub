@@ -23,10 +23,8 @@ import { useMutation } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
-import {
-	signOut,
-	useClientSession,
-} from '@/features/better-auth/better-auth-client.lib';
+import { signOut } from '@/features/better-auth/better-auth-client.lib';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { AuthLayout } from '@/features/better-auth/components/auth-layout';
 import {
 	LOGIN_FORM_OPTIONS,
@@ -190,7 +188,7 @@ const LoginFormWithOptions = withLoginForm({
 
 export default function LoginRoute() {
 	const navigate = useNavigate();
-	const session = useClientSession();
+	const session = useAppSession();
 	const trpc = useTRPC();
 	const loginMutation = useMutation(trpc.auth.signInEmail.mutationOptions());
 	const loginForm = useLoginForm({

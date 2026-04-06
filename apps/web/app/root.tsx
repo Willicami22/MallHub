@@ -9,6 +9,8 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from 'react-router';
+import { auth } from '@/features/.server/auth/better-auth-server.lib';
+import { SessionProvider } from '@/features/better-auth/better-auth-session.provider';
 import { TrpcQueryClientProvider } from '@/features/trpc/trpc.provider';
 import type { Route } from './+types/root';
 import * as m from './paraglide/messages.js';
@@ -29,6 +31,21 @@ export const middleware: MiddlewareFunction[] = [
 	},
 ];
 
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const sessionData = await auth.api.getSession({
+		headers: request.headers,
+	});
+
+	return {
+		session: sessionData
+			? {
+					session: sessionData.session,
+					user: sessionData.user,
+				}
+			: null,
+	};
+};
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang={getLocale()} suppressHydrationWarning>
@@ -48,11 +65,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export default function App() {
+export default function App({ loaderData }: Route.ComponentProps) {
 	return (
 		<ThemeProvider attribute="class" storageKey="theme" enableSystem>
 			<TrpcQueryClientProvider>
-				<Outlet />
+				<SessionProvider initialSession={loaderData.session}>
+					<Outlet />
+				</SessionProvider>
 			</TrpcQueryClientProvider>
 		</ThemeProvider>
 	);

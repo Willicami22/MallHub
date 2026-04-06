@@ -25,7 +25,7 @@ import { useMutation } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useClientSession } from '@/features/better-auth/better-auth-client.lib';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { AuthLayout } from '@/features/better-auth/components/auth-layout';
 import {
 	REGISTER_FORM_OPTIONS,
@@ -328,7 +328,7 @@ const RegisterFormWithOptions = withRegisterForm({
 
 export default function RegisterRoute() {
 	const navigate = useNavigate();
-	const session = useClientSession();
+	const session = useAppSession();
 	const trpc = useTRPC();
 	const registerMutation = useMutation(trpc.auth.signUpEmail.mutationOptions());
 	const registerForm = useRegisterForm({
