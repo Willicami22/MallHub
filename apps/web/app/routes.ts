@@ -6,5 +6,6 @@ export default [
 	...prefix(':locale?', [
 		index('features/home/route/home.route.tsx'),
 		route('auth/login', 'features/better-auth/login/login.route.tsx'),
+		route('auth/register', 'features/better-auth/register/register.route.tsx'),
 	]),
 ] satisfies RouteConfig;
