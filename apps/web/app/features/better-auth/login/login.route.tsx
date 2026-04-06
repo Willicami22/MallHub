@@ -1,4 +1,11 @@
 import {
+	LockPasswordIcon,
+	Mail01Icon,
+	ViewIcon,
+	ViewOffSlashIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
 	Button,
 	Field,
 	FieldError,
@@ -12,9 +19,6 @@ import {
 	Spinner,
 	toast,
 } from '@mallhub/ui';
-import { LockPasswordIcon, Mail01Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ViewIcon, ViewOffSlashIcon } from '@hugeicons/core-free-icons';
 import type { ChangeEvent } from 'react';
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -109,9 +113,7 @@ export default function LoginRoute() {
 				<form className="space-y-5" onSubmit={handleSubmit}>
 					<FieldGroup>
 						<Field>
-							<FieldLabel htmlFor="email">
-								{m.login_email_label()}
-							</FieldLabel>
+							<FieldLabel htmlFor="email">{m.login_email_label()}</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
 									<HugeiconsIcon icon={Mail01Icon} />

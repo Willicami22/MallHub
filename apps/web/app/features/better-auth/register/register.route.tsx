@@ -1,4 +1,13 @@
 import {
+	LockPasswordIcon,
+	Mail01Icon,
+	SmartPhone01Icon,
+	UserIcon,
+	ViewIcon,
+	ViewOffSlashIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
 	Button,
 	Field,
 	FieldError,
@@ -12,15 +21,6 @@ import {
 	Spinner,
 	toast,
 } from '@mallhub/ui';
-import {
-	LockPasswordIcon,
-	Mail01Icon,
-	SmartPhone01Icon,
-	UserIcon,
-	ViewIcon,
-	ViewOffSlashIcon,
-} from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 import type { ChangeEvent } from 'react';
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -75,8 +75,7 @@ export default function RegisterRoute() {
 
 		if (response.error) {
 			const message =
-				response.error.message ??
-				m.register_failed_toast({ message: '' });
+				response.error.message ?? m.register_failed_toast({ message: '' });
 			setError(message);
 			toast.error(m.register_failed_toast({ message }));
 			setIsSubmitting(false);
@@ -124,9 +123,7 @@ export default function RegisterRoute() {
 				<form className="space-y-5" onSubmit={handleSubmit}>
 					<FieldGroup>
 						<Field>
-							<FieldLabel htmlFor="name">
-								{m.register_name_label()}
-							</FieldLabel>
+							<FieldLabel htmlFor="name">{m.register_name_label()}</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
 									<HugeiconsIcon icon={UserIcon} />
@@ -243,15 +240,11 @@ export default function RegisterRoute() {
 								/>
 								<InputGroupAddon align="inline-end">
 									<InputGroupButton
-										onClick={() =>
-											setShowConfirmPassword(!showConfirmPassword)
-										}
+										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 										aria-label={m.auth_toggle_password()}
 									>
 										<HugeiconsIcon
-											icon={
-												showConfirmPassword ? ViewOffSlashIcon : ViewIcon
-											}
+											icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon}
 										/>
 									</InputGroupButton>
 								</InputGroupAddon>

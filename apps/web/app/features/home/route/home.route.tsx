@@ -1,9 +1,9 @@
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
+import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
-import { useTRPC } from '@/features/trpc/trpc.context';
 import type { Route } from './+types/home.route';
 
 export const meta = ({ location: _location }: Route.MetaArgs) => [

@@ -1,10 +1,10 @@
 import { Button, Toaster } from '@mallhub/ui';
 import { ThemeProvider } from 'next-themes';
 import {
-	type MiddlewareFunction,
 	isRouteErrorResponse,
 	Links,
 	Meta,
+	type MiddlewareFunction,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
