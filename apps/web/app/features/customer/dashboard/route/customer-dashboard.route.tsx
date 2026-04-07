@@ -203,6 +203,7 @@ export default function CustomerDashboardRoute() {
 						<Button
 							variant="outline"
 							size="sm"
+							nativeButton={false}
 							render={<Link to={localizeHref('/stores')} />}
 						>
 							{m.nav_stores()}

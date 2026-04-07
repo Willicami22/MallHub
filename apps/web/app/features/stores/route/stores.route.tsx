@@ -47,6 +47,7 @@ export default function StoresRoute() {
 				<Button
 					variant="outline"
 					size="sm"
+					nativeButton={false}
 					render={<Link to={localizeHref('/search')} />}
 				>
 					<HugeiconsIcon icon={Search01Icon} data-icon="inline-start" />

@@ -41,6 +41,7 @@ export function LandingHero() {
 					<div className="flex flex-col gap-3 sm:flex-row">
 						<Button
 							size="lg"
+							nativeButton={false}
 							render={<Link to={localizeHref('/auth/register')} />}
 						>
 							{m.landing_hero_cta_primary()}
@@ -48,6 +49,7 @@ export function LandingHero() {
 						<Button
 							variant="outline"
 							size="lg"
+							nativeButton={false}
 							render={
 								<Link
 									to="#how-it-works"

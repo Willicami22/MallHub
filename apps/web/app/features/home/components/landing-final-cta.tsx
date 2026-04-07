@@ -60,6 +60,7 @@ export function LandingFinalCta() {
 					variant="secondary"
 					size="lg"
 					className="mt-8"
+					nativeButton={false}
 					render={<Link to={localizeHref('/auth/register')} />}
 				>
 					{m.landing_cta_button()}

@@ -45,6 +45,7 @@ export default function MallsRoute() {
 				<Button
 					variant="outline"
 					size="sm"
+					nativeButton={false}
 					render={<Link to={localizeHref('/search')} />}
 				>
 					<HugeiconsIcon icon={Search01Icon} data-icon="inline-start" />
@@ -65,7 +66,7 @@ export default function MallsRoute() {
 									className="size-24 text-primary"
 								/>
 							</div>
-							<div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/20" />
+							<div className="absolute inset-0 bg-linear-to-b from-transparent to-background/20" />
 						</div>
 						<CardHeader className="pb-2 pt-4">
 							<div className="flex items-start justify-between gap-2">

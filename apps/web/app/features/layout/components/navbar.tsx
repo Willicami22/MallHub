@@ -39,6 +39,7 @@ import {
 } from '@mallhub/ui';
 import { useTheme } from 'next-themes';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 import { signOut } from '@/features/better-auth/better-auth-client.lib';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import * as m from '@/paraglide/messages.js';
@@ -52,6 +53,10 @@ function getInitials(name: string): string {
 		.map((n) => n[0])
 		.join('')
 		.toUpperCase();
+}
+
+function canAccessAdminPlatform(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_PLATFORM;
 }
 
 const NAV_LINKS = [
@@ -87,19 +92,21 @@ function ThemeToggleButton() {
 
 	return (
 		<Tooltip>
-			<TooltipTrigger>
-				<Button
-					variant="ghost"
-					size="icon"
-					aria-label={m.nav_toggle_theme()}
-					onClick={() => setTheme(isDark ? 'light' : 'dark')}
-				>
-					{isDark ? (
-						<HugeiconsIcon icon={SunIcon} className="size-4" />
-					) : (
-						<HugeiconsIcon icon={MoonIcon} className="size-4" />
-					)}
-				</Button>
+			<TooltipTrigger
+				render={
+					<Button
+						variant="ghost"
+						size="icon"
+						aria-label={m.nav_toggle_theme()}
+						onClick={() => setTheme(isDark ? 'light' : 'dark')}
+					/>
+				}
+			>
+				{isDark ? (
+					<HugeiconsIcon icon={SunIcon} className="size-4" />
+				) : (
+					<HugeiconsIcon icon={MoonIcon} className="size-4" />
+				)}
 			</TooltipTrigger>
 			<TooltipContent side="bottom">{m.nav_toggle_theme()}</TooltipContent>
 		</Tooltip>
@@ -134,6 +141,7 @@ function NavLink({
 				'justify-start gap-2',
 				isActive && 'bg-accent text-accent-foreground font-medium',
 			)}
+			nativeButton={false}
 			render={<Link to={localizedHref} onClick={onClick} />}
 		>
 			<HugeiconsIcon icon={Icon} className="size-4" />
@@ -152,11 +160,16 @@ function UserMenu() {
 				<Button
 					variant="ghost"
 					size="sm"
+					nativeButton={false}
 					render={<Link to={localizeHref('/auth/login')} />}
 				>
 					{m.nav_sign_in()}
 				</Button>
-				<Button size="sm" render={<Link to={localizeHref('/auth/register')} />}>
+				<Button
+					size="sm"
+					nativeButton={false}
+					render={<Link to={localizeHref('/auth/register')} />}
+				>
 					{m.nav_sign_up()}
 				</Button>
 			</div>
@@ -214,15 +227,22 @@ function UserMenu() {
 						{m.nav_settings()}
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem
-						onClick={() => navigate(localizeHref('/admin/dashboard'))}
-					>
-						<HugeiconsIcon icon={DashboardSquare01Icon} className="size-4" />
-						{m.nav_admin_platform()}
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
+				{canAccessAdminPlatform(user) && (
+					<>
+						<DropdownMenuSeparator />
+						<DropdownMenuGroup>
+							<DropdownMenuItem
+								onClick={() => navigate(localizeHref('/admin/dashboard'))}
+							>
+								<HugeiconsIcon
+									icon={DashboardSquare01Icon}
+									className="size-4"
+								/>
+								{m.nav_admin_platform()}
+							</DropdownMenuItem>
+						</DropdownMenuGroup>
+					</>
+				)}
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem
@@ -312,15 +332,20 @@ function MobileMenuSheet() {
 							<HugeiconsIcon icon={ShoppingCart01Icon} className="size-4" />
 							{m.nav_my_reservations()}
 						</Button>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="justify-start gap-2"
-							onClick={() => navigate(localizeHref('/admin/dashboard'))}
-						>
-							<HugeiconsIcon icon={DashboardSquare01Icon} className="size-4" />
-							{m.nav_admin_platform()}
-						</Button>
+						{canAccessAdminPlatform(session.data.user) && (
+							<Button
+								variant="ghost"
+								size="sm"
+								className="justify-start gap-2"
+								onClick={() => navigate(localizeHref('/admin/dashboard'))}
+							>
+								<HugeiconsIcon
+									icon={DashboardSquare01Icon}
+									className="size-4"
+								/>
+								{m.nav_admin_platform()}
+							</Button>
+						)}
 						<Separator className="my-1" />
 						<Button
 							variant="ghost"
@@ -337,11 +362,15 @@ function MobileMenuSheet() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-2 p-4">
-						<Button render={<Link to={localizeHref('/auth/login')} />}>
+						<Button
+							nativeButton={false}
+							render={<Link to={localizeHref('/auth/login')} />}
+						>
 							{m.nav_sign_in()}
 						</Button>
 						<Button
 							variant="outline"
+							nativeButton={false}
 							render={<Link to={localizeHref('/auth/register')} />}
 						>
 							{m.nav_sign_up()}
@@ -375,37 +404,38 @@ export function Navbar() {
 					</div>
 					<div className="flex items-center gap-1">
 						<Tooltip>
-							<TooltipTrigger>
-								<Button
-									variant="ghost"
-									size="icon"
-									aria-label={m.nav_open_search()}
-									render={<Link to={localizeHref('/search')} />}
-								>
-									<HugeiconsIcon icon={Search01Icon} className="size-4" />
-								</Button>
+							<TooltipTrigger
+								render={
+									<Button
+										variant="ghost"
+										size="icon"
+										aria-label={m.nav_open_search()}
+										nativeButton={false}
+										render={<Link to={localizeHref('/search')} />}
+									/>
+								}
+							>
+								<HugeiconsIcon icon={Search01Icon} className="size-4" />
 							</TooltipTrigger>
 							<TooltipContent side="bottom">{m.nav_search()}</TooltipContent>
 						</Tooltip>
 						{session.data && (
 							<Tooltip>
-								<TooltipTrigger>
-									<div className="relative">
+								<TooltipTrigger
+									render={
 										<Button
 											variant="ghost"
 											size="icon"
+											className="relative"
 											aria-label={m.nav_notifications()}
-										>
-											<HugeiconsIcon
-												icon={Notification01Icon}
-												className="size-4"
-											/>
-										</Button>
-										<span
-											className="pointer-events-none absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-background"
-											aria-hidden="true"
 										/>
-									</div>
+									}
+								>
+									<HugeiconsIcon icon={Notification01Icon} className="size-4" />
+									<span
+										className="pointer-events-none absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-background"
+										aria-hidden="true"
+									/>
 								</TooltipTrigger>
 								<TooltipContent side="bottom">
 									{m.nav_notifications()}

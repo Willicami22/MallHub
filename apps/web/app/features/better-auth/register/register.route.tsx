@@ -393,7 +393,11 @@ export default function RegisterRoute() {
 							{session.data.user.email}
 						</p>
 					</div>
-					<Button size="lg" render={<Link to={localizeHref('/')} />}>
+					<Button
+						size="lg"
+						nativeButton={false}
+						render={<Link to={localizeHref('/')} />}
+					>
 						{m.login_go_home()}
 					</Button>
 				</div>
@@ -423,6 +427,7 @@ export default function RegisterRoute() {
 						variant="link"
 						size="sm"
 						className="h-auto p-0"
+						nativeButton={false}
 						render={<Link to={localizeHref('/auth/login')} />}
 					>
 						{m.register_sign_in()}

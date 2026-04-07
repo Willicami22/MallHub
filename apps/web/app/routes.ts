@@ -27,6 +27,10 @@ export default [
 					'dashboard',
 					'features/admin-platform/dashboard/route/admin-dashboard.route.tsx',
 				),
+				route(
+					'users',
+					'features/admin-platform/users/route/admin-users.route.tsx',
+				),
 			]),
 		]),
 	]),

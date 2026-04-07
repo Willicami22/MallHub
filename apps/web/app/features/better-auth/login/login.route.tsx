@@ -249,7 +249,11 @@ export default function LoginRoute() {
 						</p>
 					</div>
 					<div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-						<Button size="lg" render={<Link to={localizeHref('/')} />}>
+						<Button
+							size="lg"
+							nativeButton={false}
+							render={<Link to={localizeHref('/')} />}
+						>
 							{m.login_go_home()}
 						</Button>
 						<Button
@@ -289,6 +293,7 @@ export default function LoginRoute() {
 						variant="link"
 						size="sm"
 						className="h-auto p-0"
+						nativeButton={false}
 						render={<Link to={localizeHref('/auth/register')} />}
 					>
 						{m.login_create_account()}
