@@ -25,6 +25,7 @@ import { useMutation } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { loadGuestOnlyAuthRoute } from '@/features/.server/auth/auth-route-guard.lib';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { AuthLayout } from '@/features/better-auth/components/auth-layout';
 import {
@@ -33,6 +34,7 @@ import {
 	useRegisterForm,
 	withRegisterForm,
 } from '@/features/better-auth/register/register.form';
+import { withReturnTo } from '@/features/better-auth/return-to.lib';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import {
 	hasFieldErrors,
@@ -46,6 +48,9 @@ export const meta = (_args: Route.MetaArgs) => [
 	{ title: m.register_meta_title() },
 	{ name: 'description', content: m.register_meta_description() },
 ];
+
+export const loader = async ({ request }: Route.LoaderArgs) =>
+	loadGuestOnlyAuthRoute(request);
 
 const REGISTER_ERROR_FIELDS = ['name', 'email', 'password'] as const;
 
@@ -326,11 +331,16 @@ const RegisterFormWithOptions = withRegisterForm({
 	},
 });
 
-export default function RegisterRoute() {
+export default function RegisterRoute({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const session = useAppSession();
 	const trpc = useTRPC();
 	const registerMutation = useMutation(trpc.auth.signUpEmail.mutationOptions());
+	const postAuthHref = loaderData.returnTo ?? localizeHref('/');
+	const loginHref = withReturnTo(
+		localizeHref('/auth/login'),
+		loaderData.returnTo,
+	);
 	const registerForm = useRegisterForm({
 		...REGISTER_FORM_OPTIONS,
 		onSubmit: async ({ value, formApi }) => {
@@ -347,7 +357,7 @@ export default function RegisterRoute() {
 					phone: submitData.phone || undefined,
 				});
 				toast.success(m.register_success_toast());
-				navigate(localizeHref('/'));
+				navigate(postAuthHref);
 			} catch (error) {
 				if (error instanceof TRPCClientError) {
 					const fields = pickFieldErrors(
@@ -428,7 +438,7 @@ export default function RegisterRoute() {
 						size="sm"
 						className="h-auto p-0"
 						nativeButton={false}
-						render={<Link to={localizeHref('/auth/login')} />}
+						render={<Link to={loginHref} />}
 					>
 						{m.register_sign_in()}
 					</Button>

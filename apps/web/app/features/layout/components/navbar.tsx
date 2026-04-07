@@ -11,6 +11,7 @@ import {
 	ShoppingBag01Icon,
 	ShoppingCart01Icon,
 	SunIcon,
+	UserGroupIcon,
 	UserIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -42,6 +43,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 import { signOut } from '@/features/better-auth/better-auth-client.lib';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
+import { withReturnTo } from '@/features/better-auth/return-to.lib';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import { BrandLogo } from './brand-mark';
@@ -150,7 +152,11 @@ function NavLink({
 
 function UserMenu() {
 	const session = useAppSession();
+	const location = useLocation();
 	const navigate = useNavigate();
+	const returnTo = `${location.pathname}${location.search}${location.hash}`;
+	const signInHref = withReturnTo(localizeHref('/auth/login'), returnTo);
+	const signUpHref = withReturnTo(localizeHref('/auth/register'), returnTo);
 
 	if (!session.data) {
 		return (
@@ -159,14 +165,14 @@ function UserMenu() {
 					variant="ghost"
 					size="sm"
 					nativeButton={false}
-					render={<Link to={localizeHref('/auth/login')} />}
+					render={<Link to={signInHref} />}
 				>
 					{m.nav_sign_in()}
 				</Button>
 				<Button
 					size="sm"
 					nativeButton={false}
-					render={<Link to={localizeHref('/auth/register')} />}
+					render={<Link to={signUpHref} />}
 				>
 					{m.nav_sign_up()}
 				</Button>
@@ -238,6 +244,12 @@ function UserMenu() {
 								/>
 								{m.nav_admin_platform()}
 							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => navigate(localizeHref('/admin/users'))}
+							>
+								<HugeiconsIcon icon={UserGroupIcon} className="size-4" />
+								{m.admin_users_title()}
+							</DropdownMenuItem>
 						</DropdownMenuGroup>
 					</>
 				)}
@@ -261,7 +273,11 @@ function UserMenu() {
 
 function MobileMenuSheet() {
 	const session = useAppSession();
+	const location = useLocation();
 	const navigate = useNavigate();
+	const returnTo = `${location.pathname}${location.search}${location.hash}`;
+	const signInHref = withReturnTo(localizeHref('/auth/login'), returnTo);
+	const signUpHref = withReturnTo(localizeHref('/auth/register'), returnTo);
 
 	return (
 		<Sheet>
@@ -331,18 +347,29 @@ function MobileMenuSheet() {
 							{m.nav_my_reservations()}
 						</Button>
 						{canAccessAdminPlatform(session.data.user) && (
-							<Button
-								variant="ghost"
-								size="sm"
-								className="justify-start gap-2"
-								onClick={() => navigate(localizeHref('/admin/dashboard'))}
-							>
-								<HugeiconsIcon
-									icon={DashboardSquare01Icon}
-									className="size-4"
-								/>
-								{m.nav_admin_platform()}
-							</Button>
+							<>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() => navigate(localizeHref('/admin/dashboard'))}
+								>
+									<HugeiconsIcon
+										icon={DashboardSquare01Icon}
+										className="size-4"
+									/>
+									{m.nav_admin_platform()}
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() => navigate(localizeHref('/admin/users'))}
+								>
+									<HugeiconsIcon icon={UserGroupIcon} className="size-4" />
+									{m.admin_users_title()}
+								</Button>
+							</>
 						)}
 						<Separator className="my-1" />
 						<Button
@@ -360,16 +387,13 @@ function MobileMenuSheet() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-2 p-4">
-						<Button
-							nativeButton={false}
-							render={<Link to={localizeHref('/auth/login')} />}
-						>
+						<Button nativeButton={false} render={<Link to={signInHref} />}>
 							{m.nav_sign_in()}
 						</Button>
 						<Button
 							variant="outline"
 							nativeButton={false}
-							render={<Link to={localizeHref('/auth/register')} />}
+							render={<Link to={signUpHref} />}
 						>
 							{m.nav_sign_up()}
 						</Button>

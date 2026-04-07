@@ -6,6 +6,7 @@ import {
 	DashboardSquare01Icon,
 	ShoppingBag01Icon,
 	UserAdd01Icon,
+	UserGroupIcon,
 	UserIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -27,7 +28,9 @@ import {
 	TableHeader,
 	TableRow,
 } from '@mallhub/ui';
+import { Link } from 'react-router';
 import * as m from '@/paraglide/messages.js';
+import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/admin-dashboard.route';
 
 export const meta = (_args: Route.MetaArgs) => [
@@ -103,10 +106,21 @@ export default function AdminDashboardRoute() {
 						</p>
 					</div>
 				</div>
-				<Button size="sm">
-					<HugeiconsIcon icon={UserAdd01Icon} data-icon="inline-start" />
-					{m.admin_dashboard_create_admin_cc()}
-				</Button>
+				<div className="flex items-center gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						nativeButton={false}
+						render={<Link to={localizeHref('/admin/users')} />}
+					>
+						<HugeiconsIcon icon={UserGroupIcon} data-icon="inline-start" />
+						{m.admin_users_title()}
+					</Button>
+					<Button size="sm">
+						<HugeiconsIcon icon={UserAdd01Icon} data-icon="inline-start" />
+						{m.admin_dashboard_create_admin_cc()}
+					</Button>
+				</div>
 			</div>
 
 			<div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -204,8 +218,14 @@ export default function AdminDashboardRoute() {
 						</TableBody>
 					</Table>
 					<CardFooter className="justify-center pt-3 pb-4">
-						<Button variant="ghost" size="sm" className="text-muted-foreground">
-							Ver todos los admins CC
+						<Button
+							variant="ghost"
+							size="sm"
+							className="text-muted-foreground"
+							nativeButton={false}
+							render={<Link to={localizeHref('/admin/users')} />}
+						>
+							{m.admin_users_title()}
 						</Button>
 					</CardFooter>
 				</Card>
