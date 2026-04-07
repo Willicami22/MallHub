@@ -232,7 +232,7 @@ export default function AdminUsersRoute() {
 							name: formData.name,
 							email: formData.email,
 							password: formData.password,
-							role: formData.role as UserRole,
+							role: formData.role,
 						});
 					}}
 					isSubmitting={createUserMutation.isPending}

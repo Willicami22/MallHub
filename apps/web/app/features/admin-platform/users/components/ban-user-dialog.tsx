@@ -7,11 +7,17 @@ import {
 	DialogHeader,
 	DialogTitle,
 	Field,
+	FieldError,
 	FieldLabel,
 	Input,
 	Spinner,
 } from '@mallhub/ui';
-import { useState } from 'react';
+import type { FormEvent } from 'react';
+import {
+	BAN_USER_FORM_OPTIONS,
+	toBanUserSubmitData,
+	useBanUserForm,
+} from '@/features/admin-platform/users/components/ban-user.form';
 import * as m from '@/paraglide/messages.js';
 
 type BanUserDialogProps = {
@@ -29,12 +35,22 @@ export function BanUserDialog({
 	onConfirm,
 	isSubmitting,
 }: BanUserDialogProps) {
-	const [reason, setReason] = useState('');
+	const banUserForm = useBanUserForm({
+		...BAN_USER_FORM_OPTIONS,
+		onSubmit: async ({ value, formApi }) => {
+			const submitData = toBanUserSubmitData(value);
+			if (!submitData) {
+				return;
+			}
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		await onConfirm(reason);
-		setReason('');
+			await onConfirm(submitData.reason);
+			formApi.reset();
+		},
+	});
+
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		void banUserForm.handleSubmit();
 	};
 
 	return (
@@ -42,7 +58,9 @@ export function BanUserDialog({
 			open={open}
 			onOpenChange={(nextOpen) => {
 				onOpenChange(nextOpen);
-				if (!nextOpen) setReason('');
+				if (!nextOpen) {
+					banUserForm.reset();
+				}
 			}}
 		>
 			<DialogContent className="sm:max-w-sm">
@@ -53,26 +71,47 @@ export function BanUserDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-5">
-					<Field>
-						<FieldLabel htmlFor="ban-reason">
-							{m.admin_users_ban_reason_label()}
-						</FieldLabel>
-						<Input
-							id="ban-reason"
-							value={reason}
-							onChange={(e) => setReason(e.target.value)}
-							placeholder={m.admin_users_ban_reason_placeholder()}
-						/>
-					</Field>
+					<banUserForm.Field name="reason">
+						{(reasonField) => {
+							const isInvalid =
+								reasonField.state.meta.isTouched &&
+								!reasonField.state.meta.isValid;
+
+							return (
+								<Field data-invalid={isInvalid}>
+									<FieldLabel htmlFor="ban-reason">
+										{m.admin_users_ban_reason_label()}
+									</FieldLabel>
+									<Input
+										id="ban-reason"
+										value={reasonField.state.value}
+										onChange={(event) =>
+											reasonField.handleChange(event.target.value)
+										}
+										onBlur={reasonField.handleBlur}
+										placeholder={m.admin_users_ban_reason_placeholder()}
+										aria-invalid={isInvalid}
+										disabled={isSubmitting}
+									/>
+									<FieldError errors={reasonField.state.meta.errors} />
+								</Field>
+							);
+						}}
+					</banUserForm.Field>
+
 					<DialogFooter>
-						<Button variant="outline" onClick={() => onOpenChange(false)}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+						>
 							{m.admin_users_cancel()}
 						</Button>
 						<Button type="submit" variant="destructive" disabled={isSubmitting}>
 							{isSubmitting ? (
 								<>
 									<Spinner />
-									{m.admin_users_ban_confirm()}
+									{m.admin_users_ban_confirming()}
 								</>
 							) : (
 								m.admin_users_ban_confirm()

@@ -171,6 +171,15 @@ Always wrap form fields with the Field component system:
 
 Group multiple fields with `<FieldGroup>` for consistent spacing.
 
+### Component granularity and state colocation (MANDATORY)
+
+- Avoid giant components for form-heavy UI. Split into smaller local components and keep each one focused on a single concern (field block, footer actions, filters, etc.).
+- Prefer splitting inside the same file first when components are small and only locally reused. Extract to new files only when reuse or file size justifies it.
+- Keep state physically close to the UI that reads/writes it. Do not centralize unrelated form UI state in a parent component.
+- For forms, use TanStack Form (`*.form.ts`) as the source of truth. Use `formControls` for UI-only state (dialog visibility, toggles, section state) when relevant.
+- In direct field input handlers, use `field.handleChange(...)`; reserve `form.setFieldValue(...)` for imperative orchestration (async flows, cross-field updates, resets).
+- Avoid broad subscriptions that read the entire form state; subscribe narrowly with `form.Field` or focused `form.Subscribe` selectors.
+
 ### Button patterns
 
 - **Primary CTA**: `<Button size="lg" className="w-full">` — full-width, large
@@ -370,6 +379,7 @@ When creating a new page, follow this checklist:
 6. **Icons**: Import from `@hugeicons/core-free-icons` + `@hugeicons/react`.
 7. **Links**: Use `localizeHref()` for all internal navigation.
 8. **Layout**: Reuse existing layout components (e.g., `AuthLayout` for auth flows).
+9. **Form composition**: Keep components small and colocate state near the changing UI. Prefer TanStack Form + `formControls` over ad-hoc `useState` for form UI state.
 
 ## 14. File Organization
 
