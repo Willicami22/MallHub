@@ -8,14 +8,23 @@
 		"dev": "turbo run dev",
 		"format": "turbo run format",
 		"lint": "turbo run lint",
-		"type-check": "turbo run type-check"
+		"commitlint": "commitlint --edit",
+		"type-check": "turbo run type-check",
+		"prepare": "husky"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"packageManager": "pnpm@10.30.0",
+	"lint-staged": {
+		"*": "pnpm exec biome check --write --unsafe --files-ignore-unknown=true"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.10",
+		"@commitlint/cli": "^20.5.0",
+		"@commitlint/config-conventional": "^20.5.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.4.0",
 		"turbo": "^2.9.3"
 	}
 }
