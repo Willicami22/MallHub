@@ -8,13 +8,16 @@ import { appRoles } from '@/features/better-auth/better-auth-access-control.lib'
 import * as m from '@/paraglide/messages.js';
 
 const createUserInputSchema = z.object({
-	name: z.string().trim().min(1, {
-		error: () =>
-			m.admin_users_validation_name_required(
-				{},
-				{ locale: getLocaleFromAsyncStorage() },
-			),
-	}),
+	name: z
+		.string()
+		.trim()
+		.min(1, {
+			error: () =>
+				m.admin_users_validation_name_required(
+					{},
+					{ locale: getLocaleFromAsyncStorage() },
+				),
+		}),
 	email: z.email({
 		error: () =>
 			m.admin_users_validation_email_invalid(

@@ -68,6 +68,14 @@ export default function AdminUsersRoute() {
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [roleFilter, setRoleFilter] = useState<string>('ALL');
+	const roleFilterItems = ROLE_FILTER_OPTIONS.map((opt) => ({
+		value: opt.value,
+		label: opt.label(),
+	}));
+	const pageSizeOptions = PAGE_SIZES.map((size) => ({
+		value: size.toString(),
+		label: `${size} ${m.admin_users_rows_per_page()}`,
+	}));
 	const [sorting, setSorting] = useState<SortingState>([
 		{ id: 'createdAt', desc: true },
 	]);
@@ -254,9 +262,10 @@ export default function AdminUsersRoute() {
 								className="size-4 text-muted-foreground"
 							/>
 							<Select
+								items={roleFilterItems}
 								value={roleFilter}
 								onValueChange={(val) => {
-									setRoleFilter(val);
+									setRoleFilter(val ?? 'ALL');
 									setPage(1);
 								}}
 							>
@@ -308,8 +317,10 @@ export default function AdminUsersRoute() {
 				</p>
 				<div className="flex items-center gap-2">
 					<Select
+						items={pageSizeOptions}
 						value={pageSize.toString()}
 						onValueChange={(val) => {
+							if (val === null) return;
 							setPageSize(Number(val));
 							setPage(1);
 						}}

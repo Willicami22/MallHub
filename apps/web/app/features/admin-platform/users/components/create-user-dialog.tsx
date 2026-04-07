@@ -63,6 +63,10 @@ export function CreateUserDialog({
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [role, setRole] = useState<string>(appRoles.ADMIN_CC);
+	const roleItems = ROLE_OPTIONS.map((opt) => ({
+		value: opt.value,
+		label: opt.label(),
+	}));
 
 	const resetForm = () => {
 		setName('');
@@ -165,7 +169,11 @@ export function CreateUserDialog({
 
 					<Field>
 						<FieldLabel>{m.admin_users_create_role_label()}</FieldLabel>
-						<Select value={role} onValueChange={setRole}>
+						<Select
+							items={roleItems}
+							value={role}
+							onValueChange={(value) => setRole(value ?? appRoles.ADMIN_CC)}
+						>
 							<SelectTrigger className="w-full">
 								<SelectValue />
 							</SelectTrigger>

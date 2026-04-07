@@ -9,9 +9,7 @@ const listUsersInputSchema = z.object({
 	roleFilter: z
 		.enum(['CUSTOMER', 'ADMIN_LOCAL', 'ADMIN_CC', 'ADMIN_PLATFORM'])
 		.optional(),
-	sortBy: z
-		.enum(['name', 'email', 'role', 'createdAt'])
-		.default('createdAt'),
+	sortBy: z.enum(['name', 'email', 'role', 'createdAt']).default('createdAt'),
 	sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 
@@ -20,8 +18,7 @@ export type ListUsersInput = z.infer<typeof listUsersInputSchema>;
 export const listUsersQuery = procedures.adminPlatform
 	.input(listUsersInputSchema)
 	.query(async ({ input }) => {
-		const { page, pageSize, search, roleFilter, sortBy, sortDirection } =
-			input;
+		const { page, pageSize, search, roleFilter, sortBy, sortDirection } = input;
 
 		const where = {
 			...(roleFilter ? { role: roleFilter } : {}),

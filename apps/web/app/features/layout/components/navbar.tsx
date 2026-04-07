@@ -87,8 +87,7 @@ const NAV_LINKS = [
 ] as const;
 
 function ThemeToggleButton() {
-	const { theme, setTheme } = useTheme();
-	const isDark = theme === 'dark';
+	const { resolvedTheme, setTheme } = useTheme();
 
 	return (
 		<Tooltip>
@@ -98,15 +97,14 @@ function ThemeToggleButton() {
 						variant="ghost"
 						size="icon"
 						aria-label={m.nav_toggle_theme()}
-						onClick={() => setTheme(isDark ? 'light' : 'dark')}
+						onClick={() =>
+							setTheme((resolvedTheme ?? 'light') === 'dark' ? 'light' : 'dark')
+						}
 					/>
 				}
 			>
-				{isDark ? (
-					<HugeiconsIcon icon={SunIcon} className="size-4" />
-				) : (
-					<HugeiconsIcon icon={MoonIcon} className="size-4" />
-				)}
+				<HugeiconsIcon icon={SunIcon} className="hidden size-4 dark:block" />
+				<HugeiconsIcon icon={MoonIcon} className="size-4 dark:hidden" />
 			</TooltipTrigger>
 			<TooltipContent side="bottom">{m.nav_toggle_theme()}</TooltipContent>
 		</Tooltip>

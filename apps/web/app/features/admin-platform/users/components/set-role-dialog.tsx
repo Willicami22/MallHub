@@ -51,6 +51,10 @@ export function SetRoleDialog({
 	isSubmitting,
 }: SetRoleDialogProps) {
 	const [selectedRole, setSelectedRole] = useState<string>(currentRole);
+	const roleItems = ALL_ROLES.map((opt) => ({
+		value: opt.value,
+		label: opt.label(),
+	}));
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -75,7 +79,11 @@ export function SetRoleDialog({
 				<form onSubmit={handleSubmit} className="space-y-5">
 					<Field>
 						<FieldLabel>{m.admin_users_create_role_label()}</FieldLabel>
-						<Select value={selectedRole} onValueChange={setSelectedRole}>
+						<Select
+							items={roleItems}
+							value={selectedRole}
+							onValueChange={(value) => setSelectedRole(value ?? currentRole)}
+						>
 							<SelectTrigger className="w-full">
 								<SelectValue />
 							</SelectTrigger>
