@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 
-/** Geometric brand mark — 2×2 grid of rounded squares */
 function BrandMark() {
 	return (
 		<svg
@@ -54,6 +53,7 @@ function BrandMark() {
 	);
 }
 
+// TODO-MOCK: Replace with real data
 const footerLinks = [
 	{ getMessage: m.landing_footer_privacy, href: '#' },
 	{ getMessage: m.landing_footer_terms, href: '#' },
@@ -65,7 +65,6 @@ export function LandingFooter() {
 		<footer className="border-t bg-background">
 			<div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
 				<div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
-					{/* Brand */}
 					<div className="space-y-3">
 						<Link to={localizeHref('/')} className="flex items-center gap-2">
 							<BrandMark />
@@ -78,7 +77,6 @@ export function LandingFooter() {
 						</p>
 					</div>
 
-					{/* Links */}
 					<nav className="flex flex-wrap gap-6">
 						{footerLinks.map((link) => (
 							<a

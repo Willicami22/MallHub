@@ -36,11 +36,7 @@ function DecorativeSvg() {
 			</defs>
 
 			<rect width="100%" height="100%" fill="url(#landing-biz-diagonal)" />
-
-			{/* Atmospheric glow — top-left corner */}
 			<circle cx="0" cy="0" r="280" fill="currentColor" opacity="0.06" />
-
-			{/* Orbital rings */}
 			<circle
 				cx="50%"
 				cy="50%"
@@ -79,8 +75,6 @@ export function LandingBusinessBenefits() {
 	return (
 		<section className="relative overflow-hidden bg-primary">
 			<DecorativeSvg />
-
-			{/* Ghosted letterforms */}
 			<div
 				className="pointer-events-none absolute inset-0 flex select-none flex-col items-center justify-center overflow-hidden text-primary-foreground opacity-5"
 				aria-hidden="true"
@@ -102,7 +96,6 @@ export function LandingBusinessBenefits() {
 				</div>
 
 				<div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
-					{/* Stores card */}
 					<div className="rounded-2xl border border-current/10 bg-primary-foreground/10 p-6 md:p-8">
 						<div className="flex items-center gap-3">
 							<div className="flex size-10 items-center justify-center rounded-xl border border-current/15 bg-current/10">
@@ -132,7 +125,6 @@ export function LandingBusinessBenefits() {
 						</Button>
 					</div>
 
-					{/* Malls card */}
 					<div className="rounded-2xl border border-current/10 bg-primary-foreground/10 p-6 md:p-8">
 						<div className="flex items-center gap-3">
 							<div className="flex size-10 items-center justify-center rounded-xl border border-current/15 bg-current/10">

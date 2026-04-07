@@ -7,8 +7,6 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import type { ReactNode } from 'react';
 import * as m from '@/paraglide/messages.js';
 
-/** 45° diagonal field + dot grid (upper-right) + radial lines from bottom-right
- *  + top-left atmospheric glow + centered orbital rings */
 function AuthBgSvg() {
 	return (
 		<svg
@@ -45,16 +43,9 @@ function AuthBgSvg() {
 				</pattern>
 			</defs>
 
-			{/* Full-panel diagonal field */}
 			<rect width="100%" height="100%" fill="url(#auth-diagonal)" />
-
-			{/* Dense dot cluster — upper-right quadrant */}
 			<rect x="55%" y="0" width="45%" height="40%" fill="url(#auth-dots)" />
-
-			{/* Atmospheric glow — top-left corner */}
 			<circle cx="0" cy="0" r="280" fill="currentColor" opacity="0.06" />
-
-			{/* Centered orbital rings — gentle depth */}
 			<circle
 				cx="50%"
 				cy="52%"
@@ -83,7 +74,6 @@ function AuthBgSvg() {
 				opacity="0.09"
 			/>
 
-			{/* Radial lines from bottom-right corner */}
 			<line
 				x1="100%"
 				y1="100%"
@@ -112,7 +102,6 @@ function AuthBgSvg() {
 				opacity="0.05"
 			/>
 
-			{/* Strong horizontal accent rule at 18% */}
 			<line
 				x1="0"
 				y1="18%"
@@ -126,8 +115,6 @@ function AuthBgSvg() {
 	);
 }
 
-/** Geometric brand mark: 2×2 grid of rounded squares with fading opacities,
- *  evoking a mall floor-plan / directory grid */
 function BrandMark({ className }: { className?: string }) {
 	return (
 		<svg
@@ -203,8 +190,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 		<div className="flex min-h-dvh">
 			<div className="relative hidden overflow-hidden bg-primary lg:flex lg:w-[45%]">
 				<AuthBgSvg />
-
-				{/* Ghosted letterforms — atmospheric depth layer */}
 				<div
 					className="pointer-events-none absolute inset-0 flex select-none flex-col items-center justify-center overflow-hidden text-primary-foreground opacity-5"
 					aria-hidden="true"
@@ -227,7 +212,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 
 					<div className="space-y-10">
 						<div className="space-y-4">
-							{/* Eyebrow with horizontal line accent */}
 							<div className="flex items-center gap-3">
 								<div className="h-px w-6 bg-current opacity-35" />
 								<p className="text-xs font-medium tracking-widest uppercase opacity-50">
@@ -245,7 +229,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 								</span>
 							</h2>
 
-							{/* Full-width rule with dot accent */}
 							<div className="flex items-center gap-2.5 pt-1">
 								<div className="h-px flex-1 bg-current opacity-15" />
 								<div className="size-1 rounded-full bg-current opacity-30" />
@@ -253,7 +236,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 							</div>
 						</div>
 
-						{/* Features: horizontal 3-column catalogue grid */}
 						<div className="grid grid-cols-3 gap-4">
 							{features.map((feature, index) => (
 								<div key={feature.getTitle()} className="space-y-3">

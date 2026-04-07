@@ -32,11 +32,7 @@ function DecorativeSvg() {
 			</defs>
 
 			<rect width="100%" height="100%" fill="url(#landing-cta-diagonal)" />
-
-			{/* Atmospheric glow — bottom-right */}
 			<circle cx="100%" cy="100%" r="320" fill="currentColor" opacity="0.06" />
-
-			{/* Orbital ring */}
 			<circle
 				cx="50%"
 				cy="50%"

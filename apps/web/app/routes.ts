@@ -1,5 +1,6 @@
 import {
 	index,
+	layout,
 	prefix,
 	type RouteConfig,
 	route,
@@ -10,8 +11,23 @@ export default [
 	route('api/trpc/*', 'features/trpc/trpc.handler.ts'),
 	route('api/auth/*', 'features/better-auth/better-auth.handler.ts'),
 	...prefix(':locale?', [
-		index('features/home/route/home.route.tsx'),
 		route('auth/login', 'features/better-auth/login/login.route.tsx'),
 		route('auth/register', 'features/better-auth/register/register.route.tsx'),
+		layout('features/layout/main-layout.route.tsx', [
+			index('features/home/route/home.route.tsx'),
+			route('malls', 'features/malls/route/malls.route.tsx'),
+			route('stores', 'features/stores/route/stores.route.tsx'),
+			route('search', 'features/search/route/search.route.tsx'),
+			route(
+				'dashboard',
+				'features/customer/dashboard/route/customer-dashboard.route.tsx',
+			),
+			...prefix('admin', [
+				route(
+					'dashboard',
+					'features/admin-platform/dashboard/route/admin-dashboard.route.tsx',
+				),
+			]),
+		]),
 	]),
 ] satisfies RouteConfig;

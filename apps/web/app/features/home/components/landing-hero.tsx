@@ -49,9 +49,8 @@ export function LandingHero() {
 							variant="outline"
 							size="lg"
 							render={
-								// biome-ignore lint/a11y/useAnchorContent: Button injects children into rendered anchor
-								<a
-									href="#how-it-works"
+								<Link
+									to="#how-it-works"
 									aria-label={m.landing_hero_cta_secondary()}
 								/>
 							}
