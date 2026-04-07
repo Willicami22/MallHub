@@ -1,43 +1,36 @@
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@mallhub/ui';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router';
-import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
-import { localizeHref } from '@/paraglide/runtime.js';
+import { LandingBusinessBenefits } from '../components/landing-business-benefits';
+import { LandingBuyerBenefits } from '../components/landing-buyer-benefits';
+import { LandingFaq } from '../components/landing-faq';
+import { LandingFeatures } from '../components/landing-features';
+import { LandingFinalCta } from '../components/landing-final-cta';
+import { LandingFooter } from '../components/landing-footer';
+import { LandingHero } from '../components/landing-hero';
+import { LandingHowItWorks } from '../components/landing-how-it-works';
+import { LandingProblemSolution } from '../components/landing-problem-solution';
+import { LandingStats } from '../components/landing-stats';
+import { LandingTrust } from '../components/landing-trust';
 import type { Route } from './+types/home.route';
 
 export const meta = ({ location: _location }: Route.MetaArgs) => [
-	{ title: m.home_meta_title() },
-	{ name: 'description', content: m.home_meta_description() },
+	{ title: m.landing_meta_title() },
+	{ name: 'description', content: m.landing_meta_description() },
 ];
 
 export default function HomeRoute() {
-	const trpc = useTRPC();
-	const { data, isLoading, error } = useQuery(trpc.health.queryOptions());
-
 	return (
-		<div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-3xl items-center justify-center p-4">
-			<Card className="w-full">
-				<CardHeader>
-					<CardTitle>{m.home_title()}</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<p className="text-muted-foreground">{m.home_intro()}</p>
-					<p className="text-sm text-muted-foreground">
-						{m.home_trpc_status_label()}{' '}
-						{isLoading
-							? m.home_trpc_status_loading()
-							: error
-								? m.home_trpc_status_error()
-								: (data?.status ?? m.home_trpc_status_no_response())}
-					</p>
-					<div className="flex flex-wrap gap-2">
-						<Button render={<Link to={localizeHref('/auth/login')} />}>
-							{m.home_login_cta()}
-						</Button>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
+		<>
+			<LandingHero />
+			<LandingStats />
+			<LandingProblemSolution />
+			<LandingHowItWorks />
+			<LandingBuyerBenefits />
+			<LandingBusinessBenefits />
+			<LandingFeatures />
+			<LandingTrust />
+			<LandingFaq />
+			<LandingFinalCta />
+			<LandingFooter />
+		</>
 	);
 }
