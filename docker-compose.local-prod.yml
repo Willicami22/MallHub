@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: mallhub-postgres-local-prod
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-mallhub}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mallhub}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - mallhub-local-prod
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: mallhub-minio-local-prod
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - mallhub-local-prod
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: mallhub-minio-init-local-prod
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        set -eu
+        mc alias set local http://minio:9000 "${MINIO_ROOT_USER:-minioadmin}" "${MINIO_ROOT_PASSWORD:-minioadmin}"
+        mc mb --ignore-existing "local/${AWS_S3_BUCKET:-mallhub-dev}"
+    networks:
+      - mallhub-local-prod
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mallhub-app-local-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "${APP_HOST_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:-CHANGE_ME_WITH_A_LONG_RANDOM_SECRET}"
+      BETTER_AUTH_URL: "${BETTER_AUTH_URL:-http://localhost:3000/api/auth}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mallhub}?schema=public"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-root@mallhub.local}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
+      ADMIN_NAME: "${ADMIN_NAME:-Administrador del sistema}"
+      AWS_S3_REGION: "${AWS_S3_REGION:-us-east-1}"
+      AWS_S3_BUCKET: "${AWS_S3_BUCKET:-mallhub-dev}"
+      AWS_S3_ENDPOINT: "http://minio:9000"
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_S3_SIGNED_URL_TTL_SECONDS: "${AWS_S3_SIGNED_URL_TTL_SECONDS:-900}"
+      AWS_S3_MAX_UPLOAD_SIZE_BYTES: "${AWS_S3_MAX_UPLOAD_SIZE_BYTES:-26214400}"
+    networks:
+      - mallhub-local-prod
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  mallhub-local-prod:
+    driver: bridge

@@ -1,0 +1,455 @@
+Project mallhub_mvp_core {
+  database_type: 'PostgreSQL'
+  Note: '''
+  Data schema for MallHub MVP Core v1.0 (reduced scope).
+  Includes only core capabilities by role:
+  - Guest: browsing and filtered search of malls, stores, products, promotions.
+  - Registered Customer: auth, profile, Pick & Collect reservations with QR, optional favorites.
+  - Store Admin: onboarding, basic store profile, product CRUD, promotions, reservation management, AI product assistance.
+  - Mall Admin: mall profile, approve/reject store onboarding, basic dashboard, AI reports.
+  - Platform Admin: create Mall Admin users, global metrics dashboard.
+  '''
+}
+
+Enum user_role {
+  customer
+  admin_local
+  admin_cc
+  admin_platform
+}
+
+Enum account_status {
+  pending_verification
+  active
+  suspended
+}
+
+Enum mall_status {
+  active
+  inactive
+  suspended
+}
+
+Enum store_status {
+  draft
+  pending_approval
+  active
+  rejected
+  suspended
+}
+
+Enum store_registration_request_status {
+  pending
+  approved
+  rejected
+}
+
+Enum product_status {
+  draft
+  active
+  inactive
+  archived
+}
+
+Enum promotion_status {
+  draft
+  active
+  inactive
+  expired
+}
+
+Enum reservation_status {
+  pending
+  confirmed
+  completed
+  rejected
+  canceled
+}
+
+Enum ai_job_type {
+  product_draft
+  mall_report
+}
+
+Enum ai_job_status {
+  queued
+  success
+  failed
+}
+
+Table users {
+  id uuid [pk]
+  name varchar(150) [not null]
+  email varchar(255) [not null, unique]
+  email_verified boolean [not null, default: false]
+  image_url varchar(255)
+  role user_role [not null, default: 'customer']
+  status account_status [not null, default: 'pending_verification']
+  phone varchar(30)
+  preferred_mall_id uuid [ref: > malls.id]
+  banned boolean [not null, default: false]
+  ban_reason text
+  ban_expires timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    role
+    status
+    preferred_mall_id
+  }
+}
+
+Table sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  active_organization_id uuid [ref: > organizations.id]
+  expires_at timestamptz [not null]
+  token varchar(255) [not null, unique]
+  ip_address varchar(64)
+  user_agent varchar(255)
+  impersonated_by uuid [ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    user_id
+    active_organization_id
+    (user_id, expires_at)
+  }
+}
+
+Table accounts {
+  id uuid [pk]
+  account_id varchar(255) [not null]
+  provider_id varchar(80) [not null]
+  user_id uuid [not null, ref: > users.id]
+  access_token text
+  refresh_token text
+  id_token text
+  access_token_expires_at timestamptz
+  refresh_token_expires_at timestamptz
+  scope varchar(255)
+  password varchar(255)
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    user_id
+    (provider_id, account_id) [unique]
+  }
+}
+
+Table verifications {
+  id uuid [pk]
+  identifier varchar(255) [not null]
+  value text [not null]
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    identifier
+  }
+}
+
+Table organizations {
+  id uuid [pk]
+  name varchar(150) [not null]
+  slug varchar(160) [not null, unique]
+  logo varchar(255)
+  metadata jsonb
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz
+}
+
+Table organization_members {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  user_id uuid [not null, ref: > users.id]
+  role varchar(100) [not null, default: 'member']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    organization_id
+    user_id
+    (organization_id, user_id) [unique]
+  }
+}
+
+Table organization_invitations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  email varchar(255) [not null]
+  role varchar(100) [not null]
+  status varchar(30) [not null, default: 'pending']
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  inviter_id uuid [not null, ref: > users.id]
+
+  indexes {
+    email
+    inviter_id
+    (organization_id, status)
+    (organization_id, email, status)
+  }
+}
+
+Table user_profiles {
+  user_id uuid [pk, ref: > users.id]
+  display_name varchar(150)
+  avatar_url varchar(255)
+  high_contrast_enabled boolean [not null, default: false]
+  font_scale_pct int [not null, default: 100]
+  favorite_feature_enabled boolean [not null, default: true]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table malls {
+  id uuid [pk]
+  name varchar(150) [not null]
+  city varchar(120) [not null]
+  address varchar(255) [not null]
+  description text
+  status mall_status [not null, default: 'active']
+  admin_cc_user_id uuid [ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    status
+    admin_cc_user_id
+    (city, name)
+  }
+}
+
+Table stores {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  owner_user_id uuid [ref: > users.id]
+  name varchar(150) [not null]
+  category varchar(100)
+  description text
+  phone varchar(30)
+  contact_email varchar(255)
+  status store_status [not null, default: 'pending_approval']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    mall_id
+    owner_user_id
+    status
+    (mall_id, status)
+  }
+}
+
+Table store_registration_requests {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  applicant_user_id uuid [not null, ref: > users.id]
+  store_name varchar(150) [not null]
+  category varchar(100)
+  description text
+  contact_email varchar(255)
+  contact_phone varchar(30)
+  status store_registration_request_status [not null, default: 'pending']
+  review_notes text
+  reviewed_by_user_id uuid [ref: > users.id]
+  created_store_id uuid [unique, ref: > stores.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  reviewed_at timestamptz
+
+  indexes {
+    (mall_id, status)
+    applicant_user_id
+    reviewed_by_user_id
+  }
+}
+
+Table products {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  store_id uuid [not null, ref: > stores.id]
+  name varchar(150) [not null]
+  category varchar(100)
+  description text
+  status product_status [not null, default: 'draft']
+  price_original numeric(12,2) [not null]
+  price_discount numeric(12,2)
+  stock int [not null, default: 0]
+  is_reservable boolean [not null, default: true]
+  ai_assisted boolean [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    mall_id
+    store_id
+    status
+    (store_id, status)
+  }
+}
+
+Table promotions {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  store_id uuid [not null, ref: > stores.id]
+  title varchar(150) [not null]
+  description text
+  status promotion_status [not null, default: 'draft']
+  starts_at timestamptz
+  ends_at timestamptz
+  created_by_user_id uuid [ref: > users.id]
+  updated_by_user_id uuid [ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (mall_id, status)
+    (store_id, status)
+    ends_at
+  }
+}
+
+Table reservations {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  store_id uuid [not null, ref: > stores.id]
+  product_id uuid [not null, ref: > products.id]
+  customer_user_id uuid [not null, ref: > users.id]
+  status reservation_status [not null, default: 'pending']
+  quantity int [not null, default: 1]
+  pickup_full_name varchar(150) [not null]
+  pickup_phone varchar(30) [not null]
+  pickup_note varchar(200)
+  qr_code_value varchar(255) [not null, unique]
+  requested_at timestamptz [not null, default: `now()`]
+  confirmed_at timestamptz
+  completed_at timestamptz
+  canceled_at timestamptz
+  status_reason text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (customer_user_id, status, requested_at)
+    (store_id, status, requested_at)
+    mall_id
+  }
+}
+
+Table favorite_stores {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  store_id uuid [not null, ref: > stores.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Optional feature in MVP Core.'
+
+  indexes {
+    (user_id, store_id) [unique]
+  }
+}
+
+Table favorite_products {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  product_id uuid [not null, ref: > products.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Optional feature in MVP Core.'
+
+  indexes {
+    (user_id, product_id) [unique]
+  }
+}
+
+Table favorite_promotions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  promotion_id uuid [not null, ref: > promotions.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Optional feature in MVP Core.'
+
+  indexes {
+    (user_id, promotion_id) [unique]
+  }
+}
+
+Table search_logs {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  user_id uuid [ref: > users.id]
+  is_guest boolean [not null, default: false]
+  query_text varchar(255) [not null]
+  filters_json jsonb
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (mall_id, created_at)
+    user_id
+  }
+}
+
+Table daily_mall_metrics {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  metric_date date [not null]
+  searches_count int [not null, default: 0]
+  reservations_total int [not null, default: 0]
+  reservations_completed int [not null, default: 0]
+  active_stores int [not null, default: 0]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (mall_id, metric_date) [unique]
+    metric_date
+  }
+}
+
+Table daily_platform_metrics {
+  id uuid [pk]
+  metric_date date [not null, unique]
+  active_malls int [not null, default: 0]
+  active_stores int [not null, default: 0]
+  active_customers int [not null, default: 0]
+  searches_count int [not null, default: 0]
+  reservations_total int [not null, default: 0]
+  reservations_completed int [not null, default: 0]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table ai_runs {
+  id uuid [pk]
+  mall_id uuid [ref: > malls.id]
+  store_id uuid [ref: > stores.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  job_type ai_job_type [not null]
+  job_status ai_job_status [not null, default: 'queued']
+  prompt_text text
+  response_text text
+  error_message text
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (mall_id, job_type, created_at)
+    (store_id, job_type, created_at)
+    requested_by_user_id
+  }
+}
+
+Table admin_cc_assignments {
+  id uuid [pk]
+  mall_id uuid [not null, ref: > malls.id]
+  admin_cc_user_id uuid [not null, ref: > users.id]
+  created_by_user_id uuid [not null, ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (mall_id, admin_cc_user_id) [unique]
+    created_by_user_id
+  }
+}

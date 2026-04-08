@@ -1,20 +1,19 @@
 {
 	"name": "@mallhub/ui",
+	"type": "module",
+	"main": "./src/index.ts",
+	"module": "./src/index.ts",
+	"types": "./dist/src/index.d.ts",
 	"version": "0.0.0",
 	"private": true,
 	"sideEffects": false,
-	"type": "module",
 	"exports": {
 		".": {
 			"types": "./dist/src/index.d.ts",
-			"import": "./dist/index.es.js",
-			"require": "./dist/index.cjs.js"
+			"default": "./src/index.ts"
 		},
 		"./global.css": "./src/global.css"
 	},
-	"main": "./dist/index.cjs.js",
-	"module": "./dist/index.es.js",
-	"types": "./dist/src/index.d.ts",
 	"files": [
 		"dist",
 		"src/global.css"

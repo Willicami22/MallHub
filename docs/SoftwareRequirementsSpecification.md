@@ -249,15 +249,17 @@ Este documento especifica los requisitos de software de MallHub v1.0, la platafo
 ### 1.2 Alcance del producto
 <!-- el producto (nombre/versión), su propósito principal, capacidades clave y límites. mantener breve y enfocado en el "qué" y el "por qué", no en el "cómo" -->
 
-**MallHub v1.0** es una plataforma SaaS + marketplace vertical que convierte centros comerciales físicos en ecosistemas digitales completos. Su propósito es eliminar la brecha entre la experiencia de compra física y digital: los compradores descubren tiendas y productos antes de visitar el mall; los locales obtienen presencia digital y canal de ventas sin inversión tecnológica propia; y los administradores acceden a inteligencia de negocio basada en comportamiento real de compra.
+**MallHub v1.0 (MVP Core recortado)** es una plataforma orientada a validar el flujo comercial base entre compradores, tiendas y administración del centro comercial. El objetivo del MVP Core es habilitar navegación comercial, reservas Pick & Collect con QR, operación mínima de tiendas y visibilidad básica de métricas administrativas.
  
-La plataforma opera en tres módulos complementarios:
+La plataforma opera en tres módulos:
  
-- **MallHub App** — Aplicación móvil (iOS + Android) para compradores: directorio de tiendas, catálogos, ofertas, mapa interactivo y compra con recogida en tienda (click & collect).
-- **MallHub Store** — Panel web para locales comerciales: gestión de catálogo, pedidos entrantes, analítica básica/avanzada y herramientas de marketing en-mall.
-- **MallHub Insights** — Dashboard de inteligencia de negocio para administradores del mall: tráfico digital, conversión por zona, productos tendencia y ROI de eventos.
+- **MallHub App** — Navegación de centros comerciales, tiendas, productos y promociones; búsqueda y filtros; registro/inicio de sesión; personalización de perfil; reservas Pick & Collect con confirmación por QR; favoritos opcionales.
+- **MallHub Store** — Registro de tienda, personalización de información básica, CRUD de productos, generación de promociones, gestión de reservas de usuarios y creación asistida de productos con IA.
+- **MallHub Insights** — Para Admin CC: personalización de información del mall, aprobación/rechazo de tiendas, dashboard básico y reportes asistidos por IA. Para Super Admin: creación de usuarios Admin CC y dashboard global de métricas.
  
-El mercado inicial es Colombia (Bogotá, Medellín, Cali), con expansión regional a LATAM en fases posteriores. Quedan **fuera del alcance de v1.0**: entrega a domicilio, pagos diferidos/crédito, integración con ERPs de tiendas y white-label para operadores externos.
+El mercado inicial continúa siendo Colombia (Bogotá, Medellín y Cali). Quedan **fuera del alcance del MVP Core**: eventos y recordatorios, mapa interior avanzado, campañas publicitarias, facturación/suscripciones avanzadas, moderación extendida y funcionalidades no listadas en `docs/use-cases-by-role.md`.
+ 
+> **Nota de vigencia de alcance:** el recorte MVP Core prevalece sobre descripciones históricas más amplias del documento. Los casos fuera del alcance core se consideran diferidos.
  
 
 ### 1.3 Definiciones, acrónimos y abreviaturas
@@ -392,16 +394,15 @@ La plataforma se relaciona con los siguientes sistemas externos:
 
 MallHub ofrece las siguientes áreas funcionales principales:
  
-- **Directorio digital de mall:** listado de tiendas filtrable por categoría, piso y horario; incluye perfil de tienda con logo, descripción, ubicación y catálogo de productos.
-- **Búsqueda de productos cross-tienda:** motor de búsqueda que permite a los compradores encontrar un producto específico entre todos los locales activos de un mall, con filtros de precio, categoría, piso y disponibilidad.
-- **Click & Collect nativo:** flujo completo de reserva de producto en la app, confirmación por la tienda, generación de código QR y recogida física en el local.
-- **Gestión de catálogo para tiendas:** panel web para que los locales publiquen, editen y retiren productos; incluye soporte para variantes (talla, color), imágenes múltiples y control básico de stock.
-- **Gestión de pedidos y reservas:** bandeja de pedidos entrantes para la tienda con notificaciones en tiempo real, confirmación de disponibilidad y seguimiento del estado hasta la recogida.
-- **Promociones y ofertas flash:** herramienta para que las tiendas creen y programen promociones con fecha de vigencia; soporte para ofertas flash con contador de tiempo visible en la app del comprador.
-- **Eventos del mall:** calendario de eventos del centro comercial gestionado por el administrador, visible para compradores con opción de activar recordatorio vía push notification.
-- **Dashboard de inteligencia de negocio:** métricas en tiempo real para administradores del mall: tráfico digital, búsquedas frecuentes, productos más vistos, tiendas con mayor conversión, heatmap de zonas y ROI de eventos.
-- **Gestión de suscripciones y planes:** administración de los niveles de servicio Free y Pro para tiendas, y del Mall Plan para administradores; incluye control de funcionalidades por tier.
-- **Panel de administración de plataforma (Backoffice):** herramientas internas del equipo MallHub para activar malls, aprobar tiendas, moderar contenido y gestionar facturación.
+- **Navegación comercial pública:** exploración de malls, tiendas, productos y promociones para usuarios invitados.
+- **Búsqueda y filtros de descubrimiento:** búsqueda de tiendas, productos y promociones con filtros del dominio.
+- **Pick & Collect con QR:** reserva de productos por cliente registrado, confirmación por tienda y validación con código QR.
+- **Perfil del cliente:** registro, autenticación y personalización básica de cuenta.
+- **Operación de tienda:** registro de tienda, perfil básico, CRUD de productos y gestión de promociones.
+- **Gestión de reservas en tienda:** confirmación, rechazo y cierre de reservas de clientes.
+- **Operación administrativa del mall:** aprobación/rechazo de tiendas, edición de información del mall y consulta de estadísticas básicas.
+- **Soporte IA en operaciones clave:** creación asistida de productos (Admin Local) y generación de reportes (Admin CC).
+- **Backoffice de plataforma mínimo:** creación de usuarios Admin CC y dashboard global de métricas.
  
 ---
 
@@ -444,7 +445,7 @@ Las siguientes restricciones limitan el espacio de solución técnica y de negoc
 ### 2.4 Características de los usuarios
 <!-- tipos de usuario, roles, nivel de experiencia, niveles de acceso, frecuencia de uso y necesidades de accesibilidad o localización -->
 
-MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance de v1.0 (MVP). Los roles se agrupan en dos audiencias: consumidores finales (acceden desde MallHub App móvil) y administradores (acceden desde MallHub Store o Insights en escritorio).
+MallHub opera con **cinco roles de usuario** en el alcance del **MVP Core v1.0**. Los roles se agrupan en dos audiencias: consumidores finales (acceden desde MallHub App móvil) y administradores (acceden desde MallHub Store o Insights en escritorio).
  
 ---
  
@@ -456,8 +457,8 @@ MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance d
 | **Perfil** | Cualquier persona que descarga o abre la app sin crear cuenta; primer contacto con la plataforma |
 | **Nivel técnico** | Básico; familiarizado con apps de consumo cotidiano |
 | **Frecuencia de uso** | Puntual o exploratoria; se convierte en Cliente Registrado al completar el onboarding |
-| **Objetivos clave** | Explorar el directorio de tiendas, consultar catálogos y ver ofertas y eventos sin fricción de registro |
-| **Nivel de acceso** | Solo lectura: directorio de malls, perfiles de tienda, catálogos públicos, ofertas activas y eventos. **No puede** realizar reservas, guardar favoritos ni recibir notificaciones personalizadas |
+| **Objetivos clave** | Navegar centros comerciales, tiendas, productos y promociones; buscar y filtrar contenido sin fricción de registro |
+| **Nivel de acceso** | Solo lectura: navegación y búsqueda de contenido comercial público. **No puede** realizar reservas ni ejecutar acciones transaccionales |
 | **Conversión esperada** | El sistema debe invitar al registro en el momento de la primera acción restringida (reserva, favorito) sin bloquear la navegación previa |
 | **Necesidades especiales** | Flujo de onboarding opcional y sin fricción; soporte de lectores de pantalla (VoiceOver / TalkBack) |
  
@@ -470,9 +471,9 @@ MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance d
 | **Superficie** | MallHub App — Tauri Mobile (iOS + Android) |
 | **Perfil demográfico** | 18–45 años, smartphone user, visitante frecuente de centros comerciales en Colombia |
 | **Nivel técnico** | Básico a medio; familiarizado con apps de e-commerce (Rappi, MercadoLibre) |
-| **Frecuencia de uso** | Esporádica a semanal, con picos en fines de semana y durante eventos del mall |
-| **Objetivos clave** | Descubrir tiendas y productos, reservar para recoger (click & collect), guardar favoritos, recibir notificaciones de ofertas y confirmación de reservas |
-| **Nivel de acceso** | Acceso completo a funcionalidades de consumidor: reservas, favoritos, historial de pedidos, push notifications personalizadas y calificaciones |
+| **Frecuencia de uso** | Esporádica a semanal, con picos en temporadas de alta demanda comercial |
+| **Objetivos clave** | Descubrir tiendas y productos, reservar para recoger (Pick & Collect), gestionar perfil y usar favoritos (si está habilitado) |
+| **Nivel de acceso** | Acceso a funcionalidades de consumidor autenticado: reservas con QR, historial de reservas, personalización de perfil y favoritos opcionales |
 | **Necesidades especiales** | Soporte para modo de alto contraste; tamaños de fuente ajustables; compatible con VoiceOver (iOS) y TalkBack (Android) |
  
 ---
@@ -485,8 +486,8 @@ MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance d
 | **Perfil** | Dueño o encargado operativo de un local comercial dentro del mall; puede tener baja experiencia con herramientas digitales |
 | **Nivel técnico** | Bajo a medio; puede requerir asistencia durante el onboarding inicial (agente de campo) |
 | **Frecuencia de uso** | Diaria: gestión de pedidos entrantes, actualización de stock y confirmación de reservas |
-| **Objetivos clave** | Publicar y gestionar catálogo, confirmar y gestionar reservas de compradores, publicar promociones y ofertas flash |
-| **Nivel de acceso** | Scope limitado a su propio local: CRUD de productos, bandeja de pedidos, perfil de tienda y (Plan Pro) analytics básicos. No accede a datos de otros locales ni del mall |
+| **Objetivos clave** | Registrar su tienda, mantener información básica, gestionar catálogo y promociones, administrar reservas y crear productos con IA |
+| **Nivel de acceso** | Scope limitado a su propio local: perfil de tienda, CRUD de productos, promociones y reservas. No accede a datos de otros locales ni a configuración global del mall |
 | **Necesidades especiales** | Interfaz simplificada para gestión rápida de pedidos; onboarding asistido presencialmente por agente de campo para locales con baja alfabetización digital |
  
 ---
@@ -499,9 +500,9 @@ MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance d
 | **Perfil** | Gerente de marketing, operaciones o dirección del centro comercial; perfil ejecutivo orientado a datos |
 | **Nivel técnico** | Medio a avanzado; familiarizado con dashboards de BI y reportes ejecutivos |
 | **Frecuencia de uso** | Diaria (monitoreo de KPIs en tiempo real) y semanal (generación de reportes para presentaciones) |
-| **Objetivos clave** | Consultar KPIs del mall, gestionar el calendario de eventos, supervisar y aprobar tiendas activas, exportar reportes ejecutivos |
-| **Nivel de acceso** | Scope limitado a su propio mall: dashboard de analytics, gestión de eventos, configuración del perfil del mall, aprobación de tiendas y exportación de reportes. No accede a datos de otros malls |
-| **Necesidades especiales** | Exportación de reportes en PDF y Excel; compatibilidad con pantallas de alta resolución y monitores externos habituales en entornos de oficina ejecutiva |
+| **Objetivos clave** | Mantener información pública del mall, aprobar/rechazar tiendas, consultar dashboard básico y generar reportes con IA |
+| **Nivel de acceso** | Scope limitado a su propio mall: gestión de perfil del mall, revisión de onboarding de tiendas, dashboard básico y reportes asistidos por IA |
+| **Necesidades especiales** | Resúmenes ejecutivos claros y exportables para toma de decisiones operativas del centro comercial |
  
 ---
  
@@ -513,9 +514,9 @@ MallHub opera con **cinco roles de usuario**, todos contemplados en el alcance d
 | **Perfil** | Miembro del equipo de operaciones, customer success o ingeniería de MallHub |
 | **Nivel técnico** | Alto; dominio completo de la plataforma |
 | **Frecuencia de uso** | Diaria |
-| **Objetivos clave** | Activar y configurar nuevos malls, aprobar o rechazar registros de tiendas, moderar contenido, gestionar suscripciones y facturación, monitorear la salud técnica de la plataforma |
-| **Nivel de acceso** | Superadmin: acceso transversal a todos los malls, tiendas y datos de la plataforma sin restricción de tenant |
-| **Necesidades especiales** | Trazabilidad de acciones (audit log); autenticación de doble factor (2FA) obligatoria |
+| **Objetivos clave** | Crear usuarios Admin CC y monitorear métricas globales de la plataforma |
+| **Nivel de acceso** | Superadmin: acceso transversal para gestión de usuarios administrativos y visibilidad consolidada de métricas |
+| **Necesidades especiales** | Vista global simple, consistente y trazable para gobernanza operativa |
  
 ---
  
@@ -570,48 +571,32 @@ Los requisitos del sistema se distribuyen entre los tres módulos principales de
  
 | ID | Área funcional | Subsistema | Rol principal | Prioridad MVP | Fase |
 |---|---|---|---|---|---|
-| REQ-APP-00 | Navegación pública sin registro (directorio, catálogos, ofertas) | MallHub App · Mobile | Invitado | **[M] Core** | v1.0 |
-| REQ-APP-01 | Onboarding y autenticación | MallHub App · Mobile | Invitado → Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-02 | Home feed y directorio de tiendas | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-03 | Búsqueda y filtros de productos | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-04 | Perfil de tienda y catálogo de productos | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-05 | Flujo de Click & Collect (reserva + QR) | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-06 | Mis reservas y seguimiento de pedidos | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 |
-| REQ-APP-07 | Ofertas y promociones activas | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Importante** | v1.0 |
-| REQ-APP-08 | Calendario de eventos del mall | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Importante** | v1.0 |
-| REQ-APP-09 | Mapa interactivo del mall | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Importante** | v1.0 |
-| REQ-APP-10 | Favoritos (tiendas y productos) | MallHub App · Mobile | Cliente Registrado | **[M] Importante** | v1.0 |
-| REQ-APP-11 | Calificaciones y reseñas de tiendas | MallHub App · Mobile | Cliente Registrado | **[F]** | v2.0 |
-| REQ-APP-12 | Regateo / negociación de precios | MallHub App · Mobile | Cliente Registrado | **[F]** | v2.0 |
-| REQ-STR-01 | Onboarding y perfil de tienda | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 |
-| REQ-STR-02 | Gestión de catálogo (CRUD de productos) | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 |
-| REQ-STR-03 | Gestión de reservas entrantes | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 |
-| REQ-STR-04 | Publicación de promociones y ofertas flash | MallHub Store · Desktop | Admin Local | **[M] Importante** | v1.0 |
-| REQ-STR-05 | Dashboard básico de tienda (visitas, reservas) | MallHub Store · Desktop | Admin Local | **[M] Importante** | v1.0 |
-| REQ-STR-06 | Analytics avanzados (Plan Pro) | MallHub Store · Desktop | Admin Local | **[F]** | v2.0 |
-| REQ-STR-07 | Gestión de plan y facturación (autoservicio) | MallHub Store · Desktop | Admin Local | **[F]** | v2.0 |
-| REQ-INS-01 | Dashboard principal de KPIs del mall | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 |
-| REQ-INS-02 | Gestión de eventos del mall | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 |
-| REQ-INS-03 | Gestión y aprobación de tiendas del mall | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 |
-| REQ-INS-04 | Configuración del perfil del mall | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 |
-| REQ-INS-05 | Inteligencia de tiendas (comparativa, heatmap) | MallHub Insights · Desktop | Admin CC | **[M] Importante** | v1.0 |
-| REQ-INS-06 | Exportación de reportes (PDF / Excel) | MallHub Insights · Desktop | Admin CC | **[M] Importante** | v1.0 |
-| REQ-INS-07 | Gestión de publicidad y banners | MallHub Insights · Desktop | Admin CC | **[F]** | v3.0 |
-| REQ-INS-08 | Reportes avanzados y personalizados | MallHub Insights · Desktop | Admin CC | **[F]** | v3.0 |
-| REQ-ADM-01 | Activación de malls y onboarding de tenants | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Core** | v1.0 |
-| REQ-ADM-02 | Aprobación / rechazo de registros de tiendas | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Core** | v1.0 |
-| REQ-ADM-03 | Moderación de contenido (catálogos, imágenes) | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Core** | v1.0 |
-| REQ-ADM-04 | Gestión de suscripciones y facturación | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Importante** | v1.0 |
-| REQ-ADM-05 | Monitoreo de salud de la plataforma (audit log) | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Importante** | v1.0 |
-| REQ-ADM-06 | Gestión de campañas publicitarias y anunciantes | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[F]** | v3.0 |
-| REQ-INF-01 | Autenticación y autorización multi-rol (JWT / OAuth 2.0) | Infraestructura transversal | Todos | **[M] Core** | v1.0 |
-| REQ-INF-02 | Sistema de notificaciones push | Infraestructura transversal | Cliente Registrado / Admin Local | **[M] Core** | v1.0 |
-| REQ-INF-03 | Integración con pasarela de pagos | Infraestructura transversal | Cliente Registrado / Admin Local | **[M] Core** | v1.0 |
-| REQ-INF-04 | Almacenamiento y CDN de medios (imágenes) | Infraestructura transversal | Todos | **[M] Core** | v1.0 |
-| REQ-INF-05 | Motor de analytics y pipeline de datos | Infraestructura transversal | Admin CC / Admin Plataforma | **[M] Core** | v1.0 |
-| REQ-INF-06 | Internacionalización (i18n) | Infraestructura transversal | Todos | **[F]** | v2.0 |
+| REQ-APP-01 | Navegación de centros comerciales | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-02 | Navegación de tiendas, productos y promociones | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-03 | Búsqueda y filtros de descubrimiento comercial | MallHub App · Mobile | Invitado / Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-04 | Registro, inicio/cierre de sesión | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-05 | Personalización de perfil de cliente | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-06 | Pick & Collect (reserva + confirmación QR) | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-07 | Historial y gestión de reservas | MallHub App · Mobile | Cliente Registrado | **[M] Core** | v1.0 Core |
+| REQ-APP-08 | Favoritos (tiendas, productos y promociones) | MallHub App · Mobile | Cliente Registrado | **[O]** | v1.0 Core |
+| REQ-STR-01 | Registro de tienda y solicitud de aprobación | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-STR-02 | Personalización de información básica de tienda | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-STR-03 | CRUD de productos | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-STR-04 | Generación de promociones | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-STR-05 | Gestión de reservas de usuarios | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-STR-06 | Creación de productos asistida por IA | MallHub Store · Desktop | Admin Local | **[M] Core** | v1.0 Core |
+| REQ-INS-01 | Personalización de información del centro comercial | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 Core |
+| REQ-INS-02 | Aprobación/rechazo de registro de tiendas | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 Core |
+| REQ-INS-03 | Dashboard con estadísticas básicas del mall | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 Core |
+| REQ-INS-04 | Generación de reportes ejecutivos con IA | MallHub Insights · Desktop | Admin CC | **[M] Core** | v1.0 Core |
+| REQ-ADM-01 | Creación de usuarios Admin CC | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Core** | v1.0 Core |
+| REQ-ADM-02 | Dashboard global de métricas de plataforma | MallHub Insights · Backoffice Desktop | Admin Plataforma | **[M] Core** | v1.0 Core |
+| REQ-INF-01 | Autenticación y autorización multi-rol (RBAC) | Infraestructura transversal | Todos | **[M] Core** | v1.0 Core |
+| REQ-INF-02 | Modelo transaccional de reservas con QR | Infraestructura transversal | Cliente Registrado / Admin Local | **[M] Core** | v1.0 Core |
+| REQ-INF-03 | Captura de métricas básicas para dashboards | Infraestructura transversal | Admin CC / Admin Plataforma | **[M] Core** | v1.0 Core |
+| REQ-INF-04 | Orquestación de flujos IA (catálogo/reportes) | Infraestructura transversal | Admin Local / Admin CC | **[M] Core** | v1.0 Core |
  
-> **Leyenda:** `[M]` = incluido en MVP (v1.0) · `[F]` = diferido a fase posterior · **Core** = sin esto el MVP no es viable · **Importante** = añade valor significativo, puede simplificarse en v1.0.
+> **Leyenda:** `[M]` = incluido en MVP Core · `[O]` = opcional dentro del MVP Core · `[F]` = diferido a fase posterior.
  
 
 ## 3. Requisitos
@@ -782,7 +767,9 @@ Las siguientes interfaces describen las dependencias con sistemas de terceros qu
  
 ### 3.2 Funciones
 <!-- comportamientos observables externamente organizados por característica/caso de uso -->
-
+ 
+> **Nota de alcance MVP Core (abril 2026):** para implementación v1.0 Core solo aplican los casos definidos en `docs/use-cases-by-role.md` y en la matriz de §2.6. Los casos adicionales de esta sección quedan como referencia histórica y backlog diferido.
+ 
 #### US-INV-01 · Continuar como invitado desde el onboarding
 
 

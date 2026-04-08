@@ -28,7 +28,12 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			// Keep React external so the app and UI package share a single React instance.
-			external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+			external: [
+				'react',
+				'react-dom',
+				'react/jsx-runtime',
+				'react/jsx-dev-runtime',
+			],
 		},
 
 		commonjsOptions: {

@@ -1,18 +1,37 @@
 import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import * as authSchema from '@/features/.server/auth/better-auth.schema';
-import { db } from '@/features/.server/drizzle/drizzle.connection';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { admin, organization } from 'better-auth/plugins';
+import { serverEnv } from '@/features/.server/env/server-env.lib';
+import { prisma } from '@/features/.server/prisma/prisma.server';
+import {
+	appRoles,
+	betterAuthAdminRoles,
+	betterAuthOrganizationRoles,
+	defaultAppRole,
+	organizationCreatorRole,
+} from '@/features/better-auth/better-auth-access-control.lib';
 
 export const auth = betterAuth({
-	baseURL: process.env.BETTER_AUTH_URL,
-	secret: process.env.BETTER_AUTH_SECRET,
+	baseURL: serverEnv.BETTER_AUTH_URL,
+	secret: serverEnv.BETTER_AUTH_SECRET,
 	emailAndPassword: {
 		enabled: true,
 	},
-	database: drizzleAdapter(db, {
-		provider: 'sqlite',
-		schema: authSchema,
-		usePlural: true,
+	plugins: [
+		admin({
+			roles: betterAuthAdminRoles,
+			defaultRole: defaultAppRole,
+			adminRoles: [appRoles.ADMIN_PLATFORM],
+		}),
+		organization({
+			roles: betterAuthOrganizationRoles,
+			creatorRole: organizationCreatorRole,
+			allowUserToCreateOrganization: (user) =>
+				user.role === appRoles.ADMIN_PLATFORM,
+		}),
+	],
+	database: prismaAdapter(prisma, {
+		provider: 'postgresql',
 	}),
 });
 
