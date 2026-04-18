@@ -67,6 +67,11 @@ enum AiJobStatus {
   FAILED
 }
 
+enum AuditEventOutcome {
+  SUCCESS
+  FAILURE
+}
+
 model User {
   id              String    @id
   name            String
@@ -106,6 +111,7 @@ model User {
 
   createdAdminCcAssignments AdminCcAssignment[] @relation("AdminCcAssignmentCreator")
   adminCcAssignments        AdminCcAssignment[] @relation("AdminCcAssignmentAssignee")
+  auditEvents               AuditEvent[]        @relation("AuditEventActor")
 
   @@index([preferredMallId], map: "users_preferredMallId_idx")
   @@index([role], map: "users_role_idx")
@@ -519,4 +525,22 @@ model AdminCcAssignment {
   @@unique([mallId, adminCcUserId], map: "admin_cc_assignments_mall_admin_key")
   @@index([createdByUserId], map: "admin_cc_assignments_createdByUserId_idx")
   @@map("admin_cc_assignments")
+}
+
+model AuditEvent {
+  id          String            @id @default(cuid())
+  actorUserId String?           @map("actor_user_id")
+  action      String
+  targetType  String            @map("target_type")
+  targetId    String?           @map("target_id")
+  outcome     AuditEventOutcome @default(SUCCESS)
+  metadataJson Json?            @map("metadata_json")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  actorUser User? @relation("AuditEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt], map: "audit_events_actor_created_at_idx")
+  @@index([action, createdAt], map: "audit_events_action_created_at_idx")
+  @@index([targetType, targetId, createdAt], map: "audit_events_target_created_at_idx")
+  @@map("audit_events")
 }

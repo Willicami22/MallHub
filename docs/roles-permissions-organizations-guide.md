@@ -13,6 +13,8 @@ Use these files as the authoritative implementation:
 4. `apps/web/app/features/.server/auth/app-ability.lib.ts`
 5. `apps/web/app/features/.server/trpc/trpc.init.ts`
 6. `apps/web/prisma/schema.prisma` (organization-compatible data model)
+7. `apps/web/app/features/admin-platform/users/admin-users-policy.lib.ts`
+8. `apps/web/app/features/.server/auth/super-admin-auth-foundation.lib.ts`
 
 If this document and code differ, **code is authoritative**.
 
@@ -139,8 +141,20 @@ CASL subjects include:
 - `read|update` `User`
 - `read|update` `Mall`
 - `create` `AdminCcAssignment` where `createdByUserId = actor.id`
-- `read` `AdminCcAssignment|DailyPlatformMetric|DailyMallMetric|StoreRegistrationRequest`
+- `read` `AdminCcAssignment|DailyPlatformMetric|DailyMallMetric|StoreRegistrationRequest|AuditEvent`
 - `manage` `Organization|Member|Invitation`
+
+### 4.5 Operational hardening contracts (admin user management)
+
+These contracts are enforced server-side in admin-platform mutations:
+
+1. User creation from backoffice only accepts `ADMIN_CC`.
+2. Role updates from backoffice only accept `CUSTOMER | ADMIN_LOCAL | ADMIN_CC`.
+3. Sensitive actions (`ban`, `unban`, `setRole`) reject self-targeting.
+4. Sensitive actions reject target users with protected role `ADMIN_PLATFORM`.
+5. `createUser` and `AdminCcAssignment` remain separate operations by contract:
+   - creating an `ADMIN_CC` user does **not** auto-assign a mall
+   - assignment is explicit through `adminCcAssignments.create`
 
 ## 5. Runtime enforcement flow
 
@@ -155,6 +169,26 @@ CASL subjects include:
    - `procedures.role([...])` -> role gate
    - `procedures.can(action, subjectType)` -> subject-type gate
    - aliases: `customer`, `adminLocal`, `adminCc`, `adminPlatform`
+
+Admin-platform foundations now expose these backoffice routers:
+
+- `adminUsers.*`
+- `adminCcAssignments.list`
+- `adminCcAssignments.create`
+- `adminDashboard.metrics`
+- `adminAudit.listRecent`
+
+## 5.1 Super Admin secure-auth foundation contract
+
+The technical contract for future mandatory secure access is codified in:
+
+- `apps/web/app/features/.server/auth/super-admin-auth-foundation.lib.ts`
+
+Current decision baseline:
+
+1. Prefer Better Auth native primitives for 2FA and password recovery.
+2. Enforce 2FA for `ADMIN_PLATFORM` before granting backoffice access.
+3. Persist encrypted TOTP secret + hashed backup codes + hashed reset tokens with expiration and one-time use semantics.
 
 ## 6. Recommended usage patterns
 
@@ -267,6 +301,7 @@ roles:
       - { action: [read, update], subject: Mall }
       - { action: create, subject: AdminCcAssignment, where: { createdByUserId: "$actor.id" } }
       - { action: read, subject: AdminCcAssignment }
+      - { action: read, subject: AuditEvent }
       - { action: read, subject: DailyPlatformMetric }
       - { action: read, subject: DailyMallMetric }
       - { action: read, subject: StoreRegistrationRequest }

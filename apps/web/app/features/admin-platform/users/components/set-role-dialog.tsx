@@ -19,6 +19,10 @@ import {
 import type { FormEvent } from 'react';
 import type { UserRole } from '@/features/.server/prisma/generated/client';
 import {
+	ADMIN_PLATFORM_ASSIGNABLE_USER_ROLES,
+	type AdminPlatformAssignableUserRole,
+} from '@/features/admin-platform/users/admin-users-policy.lib';
+import {
 	getSetRoleFormDefaultValues,
 	SET_ROLE_FORM_OPTIONS,
 	toSetRoleSubmitData,
@@ -32,7 +36,7 @@ type SetRoleDialogProps = {
 	onOpenChange: (open: boolean) => void;
 	userName: string;
 	currentRole: UserRole;
-	onConfirm: (role: UserRole) => Promise<void>;
+	onConfirm: (role: AdminPlatformAssignableUserRole) => Promise<void>;
 	isSubmitting: boolean;
 };
 
@@ -43,19 +47,15 @@ const ALL_ROLES = [
 		label: () => m.admin_users_role_admin_local(),
 	},
 	{ value: appRoles.ADMIN_CC, label: () => m.admin_users_role_admin_cc() },
-	{
-		value: appRoles.ADMIN_PLATFORM,
-		label: () => m.admin_users_role_admin_platform(),
-	},
 ] as const;
 
-const isUserRole = (value: string): value is UserRole =>
-	value === appRoles.CUSTOMER ||
-	value === appRoles.ADMIN_LOCAL ||
-	value === appRoles.ADMIN_CC ||
-	value === appRoles.ADMIN_PLATFORM;
+const isUserRole = (value: string): value is AdminPlatformAssignableUserRole =>
+	ADMIN_PLATFORM_ASSIGNABLE_USER_ROLES.some((role) => role === value);
 
-const toUserRole = (value: string | null, fallbackRole: UserRole): UserRole => {
+const toUserRole = (
+	value: string | null,
+	fallbackRole: AdminPlatformAssignableUserRole,
+): AdminPlatformAssignableUserRole => {
 	if (!value) {
 		return fallbackRole;
 	}
@@ -71,9 +71,10 @@ function SetRoleDialogContent({
 	onConfirm,
 	isSubmitting,
 }: SetRoleDialogProps) {
+	const safeCurrentRole = toUserRole(currentRole, appRoles.CUSTOMER);
 	const setRoleForm = useSetRoleForm({
 		...SET_ROLE_FORM_OPTIONS,
-		defaultValues: getSetRoleFormDefaultValues(currentRole),
+		defaultValues: getSetRoleFormDefaultValues(safeCurrentRole),
 		onSubmit: async ({ value, formApi }) => {
 			const submitData = toSetRoleSubmitData(value);
 			if (!submitData) {
@@ -125,7 +126,7 @@ function SetRoleDialogContent({
 										items={roleItems}
 										value={roleField.state.value}
 										onValueChange={(value) =>
-											roleField.handleChange(toUserRole(value, currentRole))
+											roleField.handleChange(toUserRole(value, safeCurrentRole))
 										}
 										disabled={isSubmitting}
 									>

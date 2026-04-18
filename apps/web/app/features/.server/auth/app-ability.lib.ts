@@ -157,6 +157,7 @@ const rolePermissions: Record<AppRole, DefinePermissions> = {
 		can('update', 'Mall');
 		can('create', 'AdminCcAssignment', { createdByUserId: actor.id });
 		can('read', 'AdminCcAssignment');
+		can('read', 'AuditEvent');
 		can('read', 'DailyPlatformMetric');
 		can('read', 'DailyMallMetric');
 		can('read', 'StoreRegistrationRequest');

@@ -27,8 +27,11 @@ import {
 	Spinner,
 } from '@mallhub/ui';
 import type { FormEvent } from 'react';
-import type { UserRole } from '@/features/.server/prisma/generated/client';
 import type { TanStackZodError } from '@/features/.server/trpc/trpc.init';
+import {
+	ADMIN_PLATFORM_CREATABLE_USER_ROLES,
+	type AdminPlatformCreatableUserRole,
+} from '@/features/admin-platform/users/admin-users-policy.lib';
 import {
 	CREATE_USER_FORM_OPTIONS,
 	toCreateUserSubmitData,
@@ -43,7 +46,7 @@ type CreateUserDialogProps = {
 		name: string;
 		email: string;
 		password: string;
-		role: UserRole;
+		role: AdminPlatformCreatableUserRole;
 	}) => Promise<void>;
 	isSubmitting: boolean;
 	fieldErrors?: TanStackZodError | null;
@@ -51,19 +54,12 @@ type CreateUserDialogProps = {
 
 const ROLE_OPTIONS = [
 	{ value: appRoles.ADMIN_CC, label: () => m.admin_users_role_admin_cc() },
-	{
-		value: appRoles.ADMIN_LOCAL,
-		label: () => m.admin_users_role_admin_local(),
-	},
-	{ value: appRoles.CUSTOMER, label: () => m.admin_users_role_customer() },
 ] as const;
 
 type CreateUserRole = (typeof ROLE_OPTIONS)[number]['value'];
 
 const isCreateUserRole = (value: string): value is CreateUserRole =>
-	value === appRoles.ADMIN_CC ||
-	value === appRoles.ADMIN_LOCAL ||
-	value === appRoles.CUSTOMER;
+	ADMIN_PLATFORM_CREATABLE_USER_ROLES.some((role) => role === value);
 
 const toCreateUserRole = (
 	value: string | null,

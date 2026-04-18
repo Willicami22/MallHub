@@ -24,6 +24,7 @@ import {
 } from '@mallhub/ui';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { UserRole } from '@/features/.server/prisma/generated/client';
+import { isAdminPlatformProtectedUserRole } from '@/features/admin-platform/users/admin-users-policy.lib';
 import * as m from '@/paraglide/messages.js';
 
 export type UserRow = {
@@ -194,6 +195,7 @@ export function getUserColumns({
 			enableHiding: false,
 			cell: ({ row }) => {
 				const user = row.original;
+				const isProtected = isAdminPlatformProtectedUserRole(user.role);
 
 				return (
 					<DropdownMenu>
@@ -217,26 +219,35 @@ export function getUserColumns({
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />
 							<DropdownMenuGroup>
-								<DropdownMenuItem onClick={() => onSetRole(user)}>
-									<HugeiconsIcon icon={ShieldKeyIcon} className="size-4" />
-									{m.admin_users_set_role_action()}
-								</DropdownMenuItem>
-								{user.banned ? (
-									<DropdownMenuItem onClick={() => onUnban(user)}>
-										<HugeiconsIcon
-											icon={SecurityCheckIcon}
-											className="size-4"
-										/>
-										{m.admin_users_unban_action()}
+								{isProtected ? (
+									<DropdownMenuItem disabled>
+										<HugeiconsIcon icon={ShieldKeyIcon} className="size-4" />
+										{m.admin_users_actions_restricted()}
 									</DropdownMenuItem>
 								) : (
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() => onBan(user)}
-									>
-										<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
-										{m.admin_users_ban_action()}
-									</DropdownMenuItem>
+									<>
+										<DropdownMenuItem onClick={() => onSetRole(user)}>
+											<HugeiconsIcon icon={ShieldKeyIcon} className="size-4" />
+											{m.admin_users_set_role_action()}
+										</DropdownMenuItem>
+										{user.banned ? (
+											<DropdownMenuItem onClick={() => onUnban(user)}>
+												<HugeiconsIcon
+													icon={SecurityCheckIcon}
+													className="size-4"
+												/>
+												{m.admin_users_unban_action()}
+											</DropdownMenuItem>
+										) : (
+											<DropdownMenuItem
+												variant="destructive"
+												onClick={() => onBan(user)}
+											>
+												<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
+												{m.admin_users_ban_action()}
+											</DropdownMenuItem>
+										)}
+									</>
 								)}
 							</DropdownMenuGroup>
 						</DropdownMenuContent>
