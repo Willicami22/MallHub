@@ -3,6 +3,7 @@ export interface EmailNotificationPayload {
 	subject: string;
 	text: string;
 	html?: string;
+	idempotencyKey?: string;
 	metadata?: Record<string, string>;
 }
 

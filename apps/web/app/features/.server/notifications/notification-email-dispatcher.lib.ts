@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
 	closeEmailNotificationInfrastructure,
 	createEmailNotificationQueue,
@@ -6,7 +7,7 @@ import {
 	type EmailNotificationPayload,
 	enqueueEmailNotification,
 } from '@mallhub/notifications';
-import { createTransport } from 'nodemailer';
+import { Resend } from 'resend';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 
 interface NotificationRuntime {
@@ -26,24 +27,10 @@ const createNotificationRuntime = (): NotificationRuntime => {
 		connection: redisConnection,
 	});
 
-	const smtpAuth =
-		serverEnv.SMTP_USER && serverEnv.SMTP_PASSWORD
-			? {
-					user: serverEnv.SMTP_USER,
-					pass: serverEnv.SMTP_PASSWORD,
-				}
-			: undefined;
-
-	const smtpTransport = createTransport({
-		host: serverEnv.SMTP_HOST,
-		port: serverEnv.SMTP_PORT,
-		secure: serverEnv.SMTP_SECURE,
-		auth: smtpAuth,
-	});
-
-	const fromAddress = serverEnv.SMTP_FROM_NAME
-		? `"${serverEnv.SMTP_FROM_NAME}" <${serverEnv.SMTP_FROM_EMAIL}>`
-		: serverEnv.SMTP_FROM_EMAIL;
+	const resend = new Resend(serverEnv.RESEND_API_KEY);
+	const fromAddress = serverEnv.RESEND_FROM_NAME
+		? `${serverEnv.RESEND_FROM_NAME} <${serverEnv.RESEND_FROM_EMAIL}>`
+		: serverEnv.RESEND_FROM_EMAIL;
 
 	const notificationWorker = createEmailNotificationWorker({
 		connection: redisConnection,
@@ -53,13 +40,24 @@ const createNotificationRuntime = (): NotificationRuntime => {
 			duration: serverEnv.NOTIFICATIONS_WORKER_LIMIT_DURATION_MS,
 		},
 		processor: async (payload) => {
-			await smtpTransport.sendMail({
-				from: fromAddress,
-				to: payload.to,
-				subject: payload.subject,
-				text: payload.text,
-				html: payload.html,
-			});
+			const { error } = await resend.emails.send(
+				{
+					from: fromAddress,
+					to: payload.to,
+					subject: payload.subject,
+					text: payload.text,
+					html: payload.html,
+				},
+				payload.idempotencyKey
+					? {
+							idempotencyKey: payload.idempotencyKey,
+						}
+					: undefined,
+			);
+
+			if (error) {
+				throw new Error(`[${error.name}] ${error.message}`);
+			}
 		},
 	});
 
@@ -69,6 +67,19 @@ const createNotificationRuntime = (): NotificationRuntime => {
 		notificationWorker,
 		shutdownRegistered: false,
 		isShuttingDown: false,
+	};
+};
+
+const withIdempotencyKey = (
+	payload: EmailNotificationPayload,
+): EmailNotificationPayload => {
+	if (payload.idempotencyKey) {
+		return payload;
+	}
+
+	return {
+		...payload,
+		idempotencyKey: `notification-email/${randomUUID()}`,
 	};
 };
 
@@ -112,13 +123,16 @@ if (!notificationRuntime.shutdownRegistered) {
 export const dispatchNotificationEmail = (
 	payload: EmailNotificationPayload,
 ): void => {
+	const queuedPayload = withIdempotencyKey(payload);
+
 	void enqueueEmailNotification({
 		queue: notificationRuntime.notificationQueue,
-		payload,
+		payload: queuedPayload,
 	}).catch((error) => {
 		console.error('[notifications.dispatch] Failed to enqueue email', {
-			to: payload.to,
-			subject: payload.subject,
+			to: queuedPayload.to,
+			subject: queuedPayload.subject,
+			idempotencyKey: queuedPayload.idempotencyKey,
 			error,
 		});
 	});

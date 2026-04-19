@@ -8,20 +8,14 @@ const requiredServerEnvKeys = [
 	'ADMIN_NAME',
 	'ADMIN_PASSWORD',
 	'REDIS_URL',
-	'SMTP_HOST',
-	'SMTP_PORT',
-	'SMTP_SECURE',
-	'SMTP_FROM_EMAIL',
+	'RESEND_API_KEY',
+	'RESEND_FROM_EMAIL',
 	'NOTIFICATIONS_WORKER_CONCURRENCY',
 	'NOTIFICATIONS_WORKER_LIMIT_MAX',
 	'NOTIFICATIONS_WORKER_LIMIT_DURATION_MS',
 ] as const;
 
-const optionalServerEnvKeys = [
-	'SMTP_USER',
-	'SMTP_PASSWORD',
-	'SMTP_FROM_NAME',
-] as const;
+const optionalServerEnvKeys = ['RESEND_FROM_NAME'] as const;
 
 type RequiredServerEnvKey = (typeof requiredServerEnvKeys)[number];
 type OptionalServerEnvKey = (typeof optionalServerEnvKeys)[number];
@@ -74,20 +68,6 @@ const parseIntegerEnv = (key: RequiredServerEnvKey): number => {
 	return parsedValue;
 };
 
-const parseBooleanEnv = (key: RequiredServerEnvKey): boolean => {
-	const value = readRequiredStringEnv(key);
-	if (value === 'true') {
-		return true;
-	}
-	if (value === 'false') {
-		return false;
-	}
-
-	throw new Error(
-		`Invalid boolean environment variable: ${key}. Expected "true" or "false".`,
-	);
-};
-
 export const serverEnv = Object.freeze({
 	DATABASE_URL: readRequiredStringEnv('DATABASE_URL'),
 	BETTER_AUTH_URL: readRequiredStringEnv('BETTER_AUTH_URL'),
@@ -96,13 +76,9 @@ export const serverEnv = Object.freeze({
 	ADMIN_NAME: readRequiredStringEnv('ADMIN_NAME'),
 	ADMIN_PASSWORD: readRequiredStringEnv('ADMIN_PASSWORD'),
 	REDIS_URL: readRequiredStringEnv('REDIS_URL'),
-	SMTP_HOST: readRequiredStringEnv('SMTP_HOST'),
-	SMTP_PORT: parseIntegerEnv('SMTP_PORT'),
-	SMTP_SECURE: parseBooleanEnv('SMTP_SECURE'),
-	SMTP_USER: readOptionalStringEnv('SMTP_USER'),
-	SMTP_PASSWORD: readOptionalStringEnv('SMTP_PASSWORD'),
-	SMTP_FROM_EMAIL: readRequiredStringEnv('SMTP_FROM_EMAIL'),
-	SMTP_FROM_NAME: readOptionalStringEnv('SMTP_FROM_NAME'),
+	RESEND_API_KEY: readRequiredStringEnv('RESEND_API_KEY'),
+	RESEND_FROM_EMAIL: readRequiredStringEnv('RESEND_FROM_EMAIL'),
+	RESEND_FROM_NAME: readOptionalStringEnv('RESEND_FROM_NAME'),
 	NOTIFICATIONS_WORKER_CONCURRENCY: parseIntegerEnv(
 		'NOTIFICATIONS_WORKER_CONCURRENCY',
 	),

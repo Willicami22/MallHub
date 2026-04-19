@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, organization } from 'better-auth/plugins';
@@ -23,6 +24,16 @@ const resolveNotificationLocale = (request?: Request) => {
 	return resolveLocaleFromRequest(request);
 };
 
+const createNotificationIdempotencyKey = (
+	eventType: string,
+	email: string,
+	url: string,
+): string => {
+	const digest = createHash('sha256').update(`${email}:${url}`).digest('hex');
+
+	return `${eventType}/${digest}`;
+};
+
 const queueVerificationEmail = ({
 	email,
 	url,
@@ -38,6 +49,11 @@ const queueVerificationEmail = ({
 		to: email,
 		subject: m.auth_email_verification_subject({}, { locale }),
 		text: m.auth_email_verification_text({ url }, { locale }),
+		idempotencyKey: createNotificationIdempotencyKey(
+			'auth-email-verification',
+			email,
+			url,
+		),
 	});
 };
 
@@ -56,6 +72,11 @@ const queueResetPasswordEmail = ({
 		to: email,
 		subject: m.auth_email_reset_password_subject({}, { locale }),
 		text: m.auth_email_reset_password_text({ url }, { locale }),
+		idempotencyKey: createNotificationIdempotencyKey(
+			'auth-password-reset',
+			email,
+			url,
+		),
 	});
 };
 
