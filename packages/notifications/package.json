@@ -24,6 +24,10 @@
 		"lint": "biome check .",
 		"type-check": "tsc --noEmit"
 	},
+	"dependencies": {
+		"bullmq": "^5.62.0",
+		"ioredis": "^5.8.1"
+	},
 	"devDependencies": {
 		"@types/node": "^25.6.0",
 		"tsdown": "^0.21.9",

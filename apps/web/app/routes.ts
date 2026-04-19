@@ -5,7 +5,6 @@ import {
 	type RouteConfig,
 	route,
 } from '@react-router/dev/routes';
-import './features/.server/env/server-env.lib';
 
 export default [
 	route('api/trpc/*', 'features/trpc/trpc.handler.ts'),

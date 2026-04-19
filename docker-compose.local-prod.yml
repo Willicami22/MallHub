@@ -67,6 +67,31 @@ services:
     networks:
       - mallhub-local-prod
 
+  redis:
+    image: redis:7-alpine
+    container_name: mallhub-redis-local-prod
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - mallhub-local-prod
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mallhub-mailpit-local-prod
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+    networks:
+      - mallhub-local-prod
+
   app:
     build:
       context: .
@@ -78,6 +103,8 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     ports:
       - "${APP_HOST_PORT:-3000}:3000"
     environment:
@@ -89,6 +116,17 @@ services:
       ADMIN_EMAIL: "${ADMIN_EMAIL:-root@mallhub.local}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
       ADMIN_NAME: "${ADMIN_NAME:-Administrador del sistema}"
+      REDIS_URL: "redis://redis:6379"
+      SMTP_HOST: "${SMTP_HOST:-mailpit}"
+      SMTP_PORT: "${SMTP_PORT:-1025}"
+      SMTP_SECURE: "${SMTP_SECURE:-false}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM_EMAIL: "${SMTP_FROM_EMAIL:-no-reply@mallhub.local}"
+      SMTP_FROM_NAME: "${SMTP_FROM_NAME:-MallHub}"
+      NOTIFICATIONS_WORKER_CONCURRENCY: "${NOTIFICATIONS_WORKER_CONCURRENCY:-5}"
+      NOTIFICATIONS_WORKER_LIMIT_MAX: "${NOTIFICATIONS_WORKER_LIMIT_MAX:-60}"
+      NOTIFICATIONS_WORKER_LIMIT_DURATION_MS: "${NOTIFICATIONS_WORKER_LIMIT_DURATION_MS:-60000}"
       AWS_S3_REGION: "${AWS_S3_REGION:-us-east-1}"
       AWS_S3_BUCKET: "${AWS_S3_BUCKET:-mallhub-dev}"
       AWS_S3_ENDPOINT: "http://minio:9000"
