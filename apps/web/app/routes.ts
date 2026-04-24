@@ -41,6 +41,34 @@ export default [
 						'users',
 						'features/admin-platform/users/route/admin-users.route.tsx',
 					),
+					route(
+						'malls',
+						'features/admin-platform/malls/route/admin-malls.route.tsx',
+					),
+					route(
+						'stores',
+						'features/admin-platform/stores/route/admin-stores.route.tsx',
+					),
+					route(
+						'moderation',
+						'features/admin-platform/moderation/route/admin-moderation.route.tsx',
+					),
+					route(
+						'audit',
+						'features/admin-platform/audit/route/admin-audit.route.tsx',
+					),
+					route(
+						'health',
+						'features/admin-platform/health/route/admin-health.route.tsx',
+					),
+					route(
+						'billing',
+						'features/admin-platform/billing/route/admin-billing.route.tsx',
+					),
+					route(
+						'campaigns',
+						'features/admin-platform/campaigns/route/admin-campaigns.route.tsx',
+					),
 				]),
 			]),
 		]),

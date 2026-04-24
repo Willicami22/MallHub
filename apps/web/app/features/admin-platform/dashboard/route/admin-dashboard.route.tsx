@@ -146,6 +146,11 @@ export default function AdminDashboardRoute() {
 		},
 	] as const;
 
+	const isEmptyPlatform =
+		!metricsQuery.isLoading &&
+		(metricsQuery.data?.trend.length ?? 0) === 0 &&
+		(assignmentsQuery.data?.assignments.length ?? 0) === 0;
+
 	return (
 		<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
 			<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -203,6 +208,34 @@ export default function AdminDashboardRoute() {
 					</Button>
 				</div>
 			</div>
+
+			{isEmptyPlatform ? (
+				<Card className="mb-6 border-dashed">
+					<CardHeader>
+						<CardTitle>{m.admin_dashboard_empty_title()}</CardTitle>
+						<CardDescription>
+							{m.admin_dashboard_empty_description()}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="flex flex-wrap gap-2">
+						<Button
+							size="sm"
+							nativeButton={false}
+							render={<Link to={localizeHref('/admin/users')} />}
+						>
+							{m.admin_dashboard_empty_cta_users()}
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={<Link to={localizeHref('/admin/malls')} />}
+						>
+							{m.admin_dashboard_empty_cta_malls()}
+						</Button>
+					</CardContent>
+				</Card>
+			) : null}
 
 			<div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{statCards.map((stat) => (

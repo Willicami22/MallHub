@@ -1,6 +1,7 @@
 import {
 	ArrowDown01Icon,
 	ArrowUp01Icon,
+	Building04Icon,
 	Cancel01Icon,
 	MoreHorizontalIcon,
 	SecurityCheckIcon,
@@ -25,6 +26,7 @@ import {
 import type { ColumnDef } from '@tanstack/react-table';
 import type { UserRole } from '@/features/.server/prisma/generated/client';
 import { isAdminPlatformProtectedUserRole } from '@/features/admin-platform/users/admin-users-policy.lib';
+import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 import * as m from '@/paraglide/messages.js';
 
 export type UserRow = {
@@ -68,12 +70,14 @@ type UserColumnsOptions = {
 	onBan: (user: UserRow) => void;
 	onUnban: (user: UserRow) => void;
 	onSetRole: (user: UserRow) => void;
+	onAssignMall: (user: UserRow) => void;
 };
 
 export function getUserColumns({
 	onBan,
 	onUnban,
 	onSetRole,
+	onAssignMall,
 }: UserColumnsOptions): ColumnDef<UserRow>[] {
 	return [
 		{
@@ -226,6 +230,18 @@ export function getUserColumns({
 									</DropdownMenuItem>
 								) : (
 									<>
+										{user.role === appRoles.ADMIN_CC && !user.banned ? (
+											<>
+												<DropdownMenuItem onClick={() => onAssignMall(user)}>
+													<HugeiconsIcon
+														icon={Building04Icon}
+														className="size-4"
+													/>
+													{m.admin_users_assign_mall_action()}
+												</DropdownMenuItem>
+												<DropdownMenuSeparator />
+											</>
+										) : null}
 										<DropdownMenuItem onClick={() => onSetRole(user)}>
 											<HugeiconsIcon icon={ShieldKeyIcon} className="size-4" />
 											{m.admin_users_set_role_action()}

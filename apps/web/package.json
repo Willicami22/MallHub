@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "pnpm run i18n:compile && prisma generate && react-router build",
+		"admin:aggregate-metrics": "tsx app/features/.server/analytics/platform-metrics-aggregation.command.ts",
 		"dev": "pnpm run i18n:compile && prisma generate && react-router dev --host",
 		"format": "biome check --write --unsafe .",
 		"i18n:compile": "paraglide-js compile --project ../../project.inlang --outdir ./app/paraglide --strategy url,baseLocale",
