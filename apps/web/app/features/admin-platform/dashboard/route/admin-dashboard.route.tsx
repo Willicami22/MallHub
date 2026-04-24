@@ -71,6 +71,10 @@ const ACTIVITY_ACTION_LABELS = {
 		m.admin_dashboard_activity_action_admin_user_unbanned(),
 	'admin.cc.assignment.created': () =>
 		m.admin_dashboard_activity_action_admin_cc_assignment_created(),
+	'admin.platform.password-reset.completed': () =>
+		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
+	'admin.platform.session.expired': () =>
+		m.admin_dashboard_activity_action_admin_platform_session_expired(),
 } as const;
 
 const numberFormatter = new Intl.NumberFormat();

@@ -9,6 +9,9 @@ import { createUserMutation } from '@/features/.server/admin-platform/users/crea
 import { listUsersQuery } from '@/features/.server/admin-platform/users/list-users.query';
 import { setRoleMutation } from '@/features/.server/admin-platform/users/set-role.mutation';
 import { listRecentAuditEventsQuery } from '@/features/.server/audit/list-recent-audit-events.query';
+import { expireAdminSessionMutation } from '@/features/.server/better-auth/expire-admin-session.mutation';
+import { requestPasswordResetMutation } from '@/features/.server/better-auth/request-password-reset.mutation';
+import { resetPasswordMutation } from '@/features/.server/better-auth/reset-password.mutation';
 import { signInEmailMutation } from '@/features/.server/better-auth/sign-in-email.mutation';
 import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-email.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
@@ -18,6 +21,9 @@ export const appRouter = t.router({
 	auth: t.router({
 		signInEmail: signInEmailMutation,
 		signUpEmail: signUpEmailMutation,
+		requestPasswordReset: requestPasswordResetMutation,
+		resetPassword: resetPasswordMutation,
+		expireAdminSession: expireAdminSessionMutation,
 	}),
 	me: procedures.auth.query(({ ctx }) => ({
 		id: ctx.user.id,

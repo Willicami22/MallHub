@@ -10,6 +10,14 @@ export default [
 	route('api/trpc/*', 'features/trpc/trpc.handler.ts'),
 	route('api/auth/*', 'features/better-auth/better-auth.handler.ts'),
 	...prefix(':locale?', [
+		route(
+			'auth/reset-password',
+			'features/better-auth/reset-password-request/reset-password-request.route.tsx',
+		),
+		route(
+			'auth/reset-password/confirm',
+			'features/better-auth/reset-password-confirm/reset-password-confirm.route.tsx',
+		),
 		route('auth/login', 'features/better-auth/login/login.route.tsx'),
 		route('auth/register', 'features/better-auth/register/register.route.tsx'),
 		layout('features/layout/main-layout.route.tsx', [
