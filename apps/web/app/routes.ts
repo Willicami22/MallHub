@@ -46,6 +46,10 @@ export default [
 						'features/admin-platform/malls/route/admin-malls.route.tsx',
 					),
 					route(
+						'malls/:mallId',
+						'features/admin-platform/malls/route/admin-mall-detail.route.tsx',
+					),
+					route(
 						'stores',
 						'features/admin-platform/stores/route/admin-stores.route.tsx',
 					),

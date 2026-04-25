@@ -71,6 +71,16 @@ const ACTIVITY_ACTION_LABELS = {
 		m.admin_dashboard_activity_action_admin_user_unbanned(),
 	'admin.cc.assignment.created': () =>
 		m.admin_dashboard_activity_action_admin_cc_assignment_created(),
+	'admin.mall.created': () =>
+		m.admin_dashboard_activity_action_admin_mall_created(),
+	'admin.mall.updated': () =>
+		m.admin_dashboard_activity_action_admin_mall_updated(),
+	'admin.mall.activated': () =>
+		m.admin_dashboard_activity_action_admin_mall_activated(),
+	'admin.mall.suspended': () =>
+		m.admin_dashboard_activity_action_admin_mall_suspended(),
+	'admin.mall.reactivated': () =>
+		m.admin_dashboard_activity_action_admin_mall_reactivated(),
 	'admin.platform.password-reset.completed': () =>
 		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
 	'admin.platform.session.expired': () =>

@@ -7,6 +7,11 @@ export const auditEventActions = {
 	ADMIN_USER_BANNED: 'admin.user.banned',
 	ADMIN_USER_UNBANNED: 'admin.user.unbanned',
 	ADMIN_CC_ASSIGNMENT_CREATED: 'admin.cc.assignment.created',
+	ADMIN_MALL_CREATED: 'admin.mall.created',
+	ADMIN_MALL_UPDATED: 'admin.mall.updated',
+	ADMIN_MALL_ACTIVATED: 'admin.mall.activated',
+	ADMIN_MALL_SUSPENDED: 'admin.mall.suspended',
+	ADMIN_MALL_REACTIVATED: 'admin.mall.reactivated',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

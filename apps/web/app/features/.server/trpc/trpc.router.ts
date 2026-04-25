@@ -2,6 +2,13 @@ import { createAdminCcAssignmentMutation } from '@/features/.server/admin-platfo
 import { listAdminCcAssignmentsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-admin-cc-assignments.query';
 import { listAssignableMallsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-assignable-malls.query';
 import { getPlatformMetricsQuery } from '@/features/.server/admin-platform/dashboard/get-platform-metrics.query';
+import { activateMallMutation } from '@/features/.server/admin-platform/malls/activate-mall.mutation';
+import { createMallMutation } from '@/features/.server/admin-platform/malls/create-mall.mutation';
+import { getMallQuery } from '@/features/.server/admin-platform/malls/get-mall.query';
+import { listMallsQuery } from '@/features/.server/admin-platform/malls/list-malls.query';
+import { reactivateMallMutation } from '@/features/.server/admin-platform/malls/reactivate-mall.mutation';
+import { suspendMallMutation } from '@/features/.server/admin-platform/malls/suspend-mall.mutation';
+import { updateMallMutation } from '@/features/.server/admin-platform/malls/update-mall.mutation';
 import {
 	banUserMutation,
 	unbanUserMutation,
@@ -48,6 +55,15 @@ export const appRouter = t.router({
 	}),
 	adminDashboard: t.router({
 		metrics: getPlatformMetricsQuery,
+	}),
+	adminMalls: t.router({
+		list: listMallsQuery,
+		get: getMallQuery,
+		create: createMallMutation,
+		update: updateMallMutation,
+		activate: activateMallMutation,
+		suspend: suspendMallMutation,
+		reactivate: reactivateMallMutation,
 	}),
 	adminAudit: t.router({
 		listRecent: listRecentAuditEventsQuery,
