@@ -9,6 +9,14 @@ import { listMallsQuery } from '@/features/.server/admin-platform/malls/list-mal
 import { reactivateMallMutation } from '@/features/.server/admin-platform/malls/reactivate-mall.mutation';
 import { suspendMallMutation } from '@/features/.server/admin-platform/malls/suspend-mall.mutation';
 import { updateMallMutation } from '@/features/.server/admin-platform/malls/update-mall.mutation';
+import { correctMallProfileFromModerationMutation } from '@/features/.server/admin-platform/moderation/correct-mall-profile-from-moderation.mutation';
+import { correctStoreProfileFromModerationMutation } from '@/features/.server/admin-platform/moderation/correct-store-profile-from-moderation.mutation';
+import { dismissModerationReportMutation } from '@/features/.server/admin-platform/moderation/dismiss-moderation-report.mutation';
+import { getModerationReportQuery } from '@/features/.server/admin-platform/moderation/get-moderation-report.query';
+import { listModerationReportsQuery } from '@/features/.server/admin-platform/moderation/list-moderation-reports.query';
+import { removeMallImageFromModerationMutation } from '@/features/.server/admin-platform/moderation/remove-mall-image-from-moderation.mutation';
+import { removeProductFromModerationMutation } from '@/features/.server/admin-platform/moderation/remove-product-from-moderation.mutation';
+import { removeStoreImageFromModerationMutation } from '@/features/.server/admin-platform/moderation/remove-store-image-from-moderation.mutation';
 import { approveStoreRegistrationMutation } from '@/features/.server/admin-platform/store-registration/approve-store-registration.mutation';
 import { listStoreRegistrationsQuery } from '@/features/.server/admin-platform/store-registration/list-store-registrations.query';
 import { rejectStoreRegistrationMutation } from '@/features/.server/admin-platform/store-registration/reject-store-registration.mutation';
@@ -82,6 +90,16 @@ export const appRouter = t.router({
 		list: listStoreRegistrationsQuery,
 		approve: approveStoreRegistrationMutation,
 		reject: rejectStoreRegistrationMutation,
+	}),
+	adminModeration: t.router({
+		list: listModerationReportsQuery,
+		get: getModerationReportQuery,
+		dismiss: dismissModerationReportMutation,
+		removeProduct: removeProductFromModerationMutation,
+		correctStoreProfile: correctStoreProfileFromModerationMutation,
+		correctMallProfile: correctMallProfileFromModerationMutation,
+		removeStoreImage: removeStoreImageFromModerationMutation,
+		removeMallImage: removeMallImageFromModerationMutation,
 	}),
 	adminAudit: t.router({
 		listRecent: listRecentAuditEventsQuery,

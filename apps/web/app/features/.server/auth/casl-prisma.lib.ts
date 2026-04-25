@@ -40,6 +40,7 @@ export type AppSubjects =
 			DailyPlatformMetric: PrismaClient.DailyPlatformMetric;
 			AiRun: PrismaClient.AiRun;
 			AdminCcAssignment: PrismaClient.AdminCcAssignment;
+			ModerationReport: PrismaClient.ModerationReport;
 			AuditEvent: PrismaClient.AuditEvent;
 			Organization: PrismaClient.Organization;
 			Member: PrismaClient.Member;

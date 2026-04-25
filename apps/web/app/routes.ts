@@ -62,6 +62,10 @@ export default [
 						'features/admin-platform/moderation/route/admin-moderation.route.tsx',
 					),
 					route(
+						'moderation/:reportId',
+						'features/admin-platform/moderation/route/admin-moderation-detail.route.tsx',
+					),
+					route(
 						'audit',
 						'features/admin-platform/audit/route/admin-audit.route.tsx',
 					),

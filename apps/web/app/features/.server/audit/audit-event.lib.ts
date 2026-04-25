@@ -16,6 +16,14 @@ export const auditEventActions = {
 	ADMIN_STORE_REACTIVATED: 'admin.store.reactivated',
 	ADMIN_STORE_REGISTRATION_APPROVED: 'admin.store-registration.approved',
 	ADMIN_STORE_REGISTRATION_REJECTED: 'admin.store-registration.rejected',
+	ADMIN_MODERATION_REPORT_DISMISSED: 'admin.moderation.report.dismissed',
+	ADMIN_MODERATION_PRODUCT_REMOVED: 'admin.moderation.product.removed',
+	ADMIN_MODERATION_STORE_PROFILE_CORRECTED:
+		'admin.moderation.store-profile.corrected',
+	ADMIN_MODERATION_MALL_PROFILE_CORRECTED:
+		'admin.moderation.mall-profile.corrected',
+	ADMIN_MODERATION_STORE_IMAGE_REMOVED: 'admin.moderation.store-image.removed',
+	ADMIN_MODERATION_MALL_IMAGE_REMOVED: 'admin.moderation.mall-image.removed',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

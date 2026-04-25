@@ -41,6 +41,29 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum ModerationReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum ModerationReportTargetType {
+  PRODUCT
+  STORE_PROFILE
+  MALL_PROFILE
+  STORE_IMAGE
+  MALL_IMAGE
+}
+
+enum ModerationDecisionAction {
+  PRODUCT_REMOVED
+  REPORT_DISMISSED
+  STORE_PROFILE_CORRECTED
+  MALL_PROFILE_CORRECTED
+  STORE_IMAGE_REMOVED
+  MALL_IMAGE_REMOVED
+}
+
 enum PromotionStatus {
   DRAFT
   ACTIVE
@@ -112,6 +135,8 @@ model User {
   createdAdminCcAssignments AdminCcAssignment[] @relation("AdminCcAssignmentCreator")
   adminCcAssignments        AdminCcAssignment[] @relation("AdminCcAssignmentAssignee")
   auditEvents               AuditEvent[]        @relation("AuditEventActor")
+  createdModerationReports  ModerationReport[]  @relation("ModerationReportReporter")
+  reviewedModerationReports ModerationReport[]  @relation("ModerationReportReviewer")
 
   @@index([preferredMallId], map: "users_preferredMallId_idx")
   @@index([role], map: "users_role_idx")
@@ -240,6 +265,7 @@ model Mall {
   city          String
   address       String
   description   String?
+  heroImageUrl  String?    @map("hero_image_url")
   status        MallStatus @default(ACTIVE)
   adminCcUserId String?    @map("admin_cc_user_id")
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -256,6 +282,7 @@ model Mall {
   dailyMetrics       DailyMallMetric[]
   aiRuns             AiRun[]
   adminCcAssignments AdminCcAssignment[]
+  moderationReports  ModerationReport[]
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
@@ -269,6 +296,7 @@ model Store {
   name         String
   category     String?
   description  String?
+  logoImageUrl String?     @map("logo_image_url")
   phone        String?
   contactEmail String?     @map("contact_email")
   status       StoreStatus @default(PENDING_APPROVAL)
@@ -284,6 +312,7 @@ model Store {
   aiRuns              AiRun[]
   favoriteStores      FavoriteStore[]
   approvedFromRequest StoreRegistrationRequest? @relation("ApprovedStore")
+  moderationReports   ModerationReport[]
 
   @@index([mallId], map: "stores_mallId_idx")
   @@index([ownerUserId], map: "stores_ownerUserId_idx")
@@ -339,6 +368,7 @@ model Product {
 
   reservations     Reservation[]
   favoriteProducts FavoriteProduct[]
+  moderationReports ModerationReport[]
 
   @@index([mallId], map: "products_mallId_idx")
   @@index([storeId], map: "products_storeId_idx")
@@ -525,6 +555,37 @@ model AdminCcAssignment {
   @@unique([mallId, adminCcUserId], map: "admin_cc_assignments_mall_admin_key")
   @@index([createdByUserId], map: "admin_cc_assignments_createdByUserId_idx")
   @@map("admin_cc_assignments")
+}
+
+model ModerationReport {
+  id               String                    @id @default(cuid())
+  targetType       ModerationReportTargetType @map("target_type")
+  reason           String
+  detailsJson      Json?                     @map("details_json")
+  status           ModerationReportStatus    @default(OPEN)
+  resolutionAction ModerationDecisionAction? @map("resolution_action")
+  resolutionReason String?                   @map("resolution_reason")
+  productId        String?                   @map("product_id")
+  storeId          String?                   @map("store_id")
+  mallId           String?                   @map("mall_id")
+  reportedByUserId String?                   @map("reported_by_user_id")
+  reviewedByUserId String?                   @map("reviewed_by_user_id")
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  updatedAt        DateTime                  @default(now()) @updatedAt @map("updated_at")
+  reviewedAt       DateTime?                 @map("reviewed_at")
+
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  store          Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  mall           Mall?    @relation(fields: [mallId], references: [id], onDelete: SetNull)
+  reportedByUser User?    @relation("ModerationReportReporter", fields: [reportedByUserId], references: [id], onDelete: SetNull)
+  reviewedByUser User?    @relation("ModerationReportReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt], map: "moderation_reports_status_created_at_idx")
+  @@index([targetType, status, createdAt], map: "moderation_reports_target_status_created_at_idx")
+  @@index([productId], map: "moderation_reports_product_id_idx")
+  @@index([storeId], map: "moderation_reports_store_id_idx")
+  @@index([mallId], map: "moderation_reports_mall_id_idx")
+  @@map("moderation_reports")
 }
 
 model AuditEvent {

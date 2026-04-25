@@ -89,6 +89,18 @@ const ACTIVITY_ACTION_LABELS = {
 		m.admin_dashboard_activity_action_admin_store_registration_approved(),
 	'admin.store-registration.rejected': () =>
 		m.admin_dashboard_activity_action_admin_store_registration_rejected(),
+	'admin.moderation.report.dismissed': () =>
+		m.admin_dashboard_activity_action_admin_moderation_report_dismissed(),
+	'admin.moderation.product.removed': () =>
+		m.admin_dashboard_activity_action_admin_moderation_product_removed(),
+	'admin.moderation.store-profile.corrected': () =>
+		m.admin_dashboard_activity_action_admin_moderation_store_profile_corrected(),
+	'admin.moderation.mall-profile.corrected': () =>
+		m.admin_dashboard_activity_action_admin_moderation_mall_profile_corrected(),
+	'admin.moderation.store-image.removed': () =>
+		m.admin_dashboard_activity_action_admin_moderation_store_image_removed(),
+	'admin.moderation.mall-image.removed': () =>
+		m.admin_dashboard_activity_action_admin_moderation_mall_image_removed(),
 	'admin.platform.password-reset.completed': () =>
 		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
 	'admin.platform.session.expired': () =>
