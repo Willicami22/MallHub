@@ -54,6 +54,10 @@ export default [
 						'features/admin-platform/stores/route/admin-stores.route.tsx',
 					),
 					route(
+						'stores/:storeId',
+						'features/admin-platform/stores/route/admin-store-detail.route.tsx',
+					),
+					route(
 						'moderation',
 						'features/admin-platform/moderation/route/admin-moderation.route.tsx',
 					),

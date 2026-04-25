@@ -81,6 +81,14 @@ const ACTIVITY_ACTION_LABELS = {
 		m.admin_dashboard_activity_action_admin_mall_suspended(),
 	'admin.mall.reactivated': () =>
 		m.admin_dashboard_activity_action_admin_mall_reactivated(),
+	'admin.store.suspended': () =>
+		m.admin_dashboard_activity_action_admin_store_suspended(),
+	'admin.store.reactivated': () =>
+		m.admin_dashboard_activity_action_admin_store_reactivated(),
+	'admin.store-registration.approved': () =>
+		m.admin_dashboard_activity_action_admin_store_registration_approved(),
+	'admin.store-registration.rejected': () =>
+		m.admin_dashboard_activity_action_admin_store_registration_rejected(),
 	'admin.platform.password-reset.completed': () =>
 		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
 	'admin.platform.session.expired': () =>

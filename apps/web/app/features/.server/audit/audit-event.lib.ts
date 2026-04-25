@@ -12,6 +12,10 @@ export const auditEventActions = {
 	ADMIN_MALL_ACTIVATED: 'admin.mall.activated',
 	ADMIN_MALL_SUSPENDED: 'admin.mall.suspended',
 	ADMIN_MALL_REACTIVATED: 'admin.mall.reactivated',
+	ADMIN_STORE_SUSPENDED: 'admin.store.suspended',
+	ADMIN_STORE_REACTIVATED: 'admin.store.reactivated',
+	ADMIN_STORE_REGISTRATION_APPROVED: 'admin.store-registration.approved',
+	ADMIN_STORE_REGISTRATION_REJECTED: 'admin.store-registration.rejected',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

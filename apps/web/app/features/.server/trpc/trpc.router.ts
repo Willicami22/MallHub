@@ -9,6 +9,13 @@ import { listMallsQuery } from '@/features/.server/admin-platform/malls/list-mal
 import { reactivateMallMutation } from '@/features/.server/admin-platform/malls/reactivate-mall.mutation';
 import { suspendMallMutation } from '@/features/.server/admin-platform/malls/suspend-mall.mutation';
 import { updateMallMutation } from '@/features/.server/admin-platform/malls/update-mall.mutation';
+import { approveStoreRegistrationMutation } from '@/features/.server/admin-platform/store-registration/approve-store-registration.mutation';
+import { listStoreRegistrationsQuery } from '@/features/.server/admin-platform/store-registration/list-store-registrations.query';
+import { rejectStoreRegistrationMutation } from '@/features/.server/admin-platform/store-registration/reject-store-registration.mutation';
+import { getStoreQuery } from '@/features/.server/admin-platform/stores/get-store.query';
+import { listStoresQuery } from '@/features/.server/admin-platform/stores/list-stores.query';
+import { reactivateStoreMutation } from '@/features/.server/admin-platform/stores/reactivate-store.mutation';
+import { suspendStoreMutation } from '@/features/.server/admin-platform/stores/suspend-store.mutation';
 import {
 	banUserMutation,
 	unbanUserMutation,
@@ -64,6 +71,17 @@ export const appRouter = t.router({
 		activate: activateMallMutation,
 		suspend: suspendMallMutation,
 		reactivate: reactivateMallMutation,
+	}),
+	adminStores: t.router({
+		list: listStoresQuery,
+		get: getStoreQuery,
+		suspend: suspendStoreMutation,
+		reactivate: reactivateStoreMutation,
+	}),
+	adminStoreRegistrations: t.router({
+		list: listStoreRegistrationsQuery,
+		approve: approveStoreRegistrationMutation,
+		reject: rejectStoreRegistrationMutation,
 	}),
 	adminAudit: t.router({
 		listRecent: listRecentAuditEventsQuery,
