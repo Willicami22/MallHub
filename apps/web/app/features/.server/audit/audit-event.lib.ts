@@ -30,6 +30,13 @@ export const auditEventActions = {
 	ADMIN_BILLING_STORE_PLAN_SET: 'admin.billing.store-plan.set',
 	ADMIN_BILLING_PAYMENT_REGISTERED: 'admin.billing.payment.registered',
 	ADMIN_BILLING_COLLECTION_ALERT_SENT: 'admin.billing.collection-alert.sent',
+	ADMIN_CAMPAIGN_CREATED: 'admin.campaign.created',
+	ADMIN_CAMPAIGN_UPDATED: 'admin.campaign.updated',
+	ADMIN_CAMPAIGN_ACTIVATED: 'admin.campaign.activated',
+	ADMIN_CAMPAIGN_PAUSED: 'admin.campaign.paused',
+	ADMIN_CAMPAIGN_EXPIRED: 'admin.campaign.expired',
+	ADMIN_CAMPAIGN_AUTO_EXPIRED: 'admin.campaign.auto-expired',
+	ADMIN_CAMPAIGN_DAILY_METRIC_UPSERTED: 'admin.campaign.daily-metric.upserted',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

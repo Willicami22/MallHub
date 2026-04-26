@@ -53,6 +53,20 @@ const ACTION_LABELS: Record<string, () => string> = {
 		m.admin_dashboard_activity_action_admin_billing_payment_registered(),
 	'admin.billing.collection-alert.sent': () =>
 		m.admin_dashboard_activity_action_admin_billing_collection_alert_sent(),
+	'admin.campaign.created': () =>
+		m.admin_dashboard_activity_action_admin_campaign_created(),
+	'admin.campaign.updated': () =>
+		m.admin_dashboard_activity_action_admin_campaign_updated(),
+	'admin.campaign.activated': () =>
+		m.admin_dashboard_activity_action_admin_campaign_activated(),
+	'admin.campaign.paused': () =>
+		m.admin_dashboard_activity_action_admin_campaign_paused(),
+	'admin.campaign.expired': () =>
+		m.admin_dashboard_activity_action_admin_campaign_expired(),
+	'admin.campaign.auto-expired': () =>
+		m.admin_dashboard_activity_action_admin_campaign_auto_expired(),
+	'admin.campaign.daily-metric.upserted': () =>
+		m.admin_dashboard_activity_action_admin_campaign_daily_metric_upserted(),
 	'admin.platform.password-reset.completed': () =>
 		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
 	'admin.platform.session.expired': () =>

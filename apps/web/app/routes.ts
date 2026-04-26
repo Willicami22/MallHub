@@ -85,6 +85,10 @@ export default [
 						'campaigns',
 						'features/admin-platform/campaigns/route/admin-campaigns.route.tsx',
 					),
+					route(
+						'campaigns/:campaignId',
+						'features/admin-platform/campaigns/route/admin-campaign-detail.route.tsx',
+					),
 				]),
 			]),
 		]),

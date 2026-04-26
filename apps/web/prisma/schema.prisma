@@ -130,6 +130,18 @@ enum BillingSubscriptionStatus {
   SUSPENDED
 }
 
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+}
+
+enum CampaignBannerType {
+  IMAGE
+  NATIVE_CARD
+}
+
 model User {
   id              String    @id
   name            String
@@ -176,6 +188,8 @@ model User {
   updatedBillingSubscriptions BillingSubscription[]   @relation("BillingSubscriptionUpdater")
   registeredBillingPayments   BillingPayment[]        @relation("BillingPaymentRegistrar")
   createdBillingCollectionAlerts BillingCollectionAlert[] @relation("BillingCollectionAlertCreator")
+  createdCampaigns            Campaign[]              @relation("CampaignCreator")
+  updatedCampaigns            Campaign[]              @relation("CampaignUpdater")
 
   @@index([preferredMallId], map: "users_preferredMallId_idx")
   @@index([role], map: "users_role_idx")
@@ -323,6 +337,7 @@ model Mall {
   adminCcAssignments AdminCcAssignment[]
   moderationReports  ModerationReport[]
   billingSubscription BillingSubscription? @relation("MallBillingSubscription")
+  campaignTargets    CampaignTargetMall[]
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
@@ -450,6 +465,65 @@ model BillingCollectionAlert {
   @@index([subscriptionId, sentAt], map: "billing_collection_alerts_subscription_sent_at_idx")
   @@index([createdByUserId], map: "billing_collection_alerts_created_by_user_id_idx")
   @@map("billing_collection_alerts")
+}
+
+model Campaign {
+  id             String             @id @default(cuid())
+  name           String
+  advertiserName String             @map("advertiser_name")
+  bannerType     CampaignBannerType @map("banner_type")
+  imageUrl       String             @map("image_url")
+  destinationUrl String             @map("destination_url")
+  status         CampaignStatus     @default(DRAFT)
+  startsAt       DateTime           @map("starts_at")
+  endsAt         DateTime           @map("ends_at")
+  activatedAt    DateTime?          @map("activated_at")
+  pausedAt       DateTime?          @map("paused_at")
+  expiredAt      DateTime?          @map("expired_at")
+  createdByUserId String?           @map("created_by_user_id")
+  updatedByUserId String?           @map("updated_by_user_id")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @default(now()) @updatedAt @map("updated_at")
+
+  createdByUser User? @relation("CampaignCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUser User? @relation("CampaignUpdater", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  targetMalls CampaignTargetMall[]
+  dailyMetrics CampaignDailyMetric[]
+
+  @@index([status, startsAt, endsAt], map: "campaigns_status_schedule_idx")
+  @@index([advertiserName], map: "campaigns_advertiser_name_idx")
+  @@index([createdAt], map: "campaigns_created_at_idx")
+  @@map("campaigns")
+}
+
+model CampaignTargetMall {
+  campaignId String   @map("campaign_id")
+  mallId     String   @map("mall_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  mall     Mall     @relation(fields: [mallId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, mallId])
+  @@index([mallId], map: "campaign_target_malls_mall_id_idx")
+  @@map("campaign_target_malls")
+}
+
+model CampaignDailyMetric {
+  id          String   @id @default(cuid())
+  campaignId  String   @map("campaign_id")
+  metricDate  DateTime @map("metric_date") @db.Date
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, metricDate], map: "campaign_daily_metrics_campaign_date_key")
+  @@index([metricDate], map: "campaign_daily_metrics_metric_date_idx")
+  @@map("campaign_daily_metrics")
 }
 
 model Product {

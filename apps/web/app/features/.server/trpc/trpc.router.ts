@@ -7,6 +7,15 @@ import { registerBillingPaymentMutation } from '@/features/.server/admin-platfor
 import { sendBillingCollectionAlertMutation } from '@/features/.server/admin-platform/billing/send-billing-collection-alert.mutation';
 import { upsertMallBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-mall-billing-subscription.mutation';
 import { upsertStoreBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-store-billing-subscription.mutation';
+import { activateCampaignMutation } from '@/features/.server/admin-platform/campaigns/activate-campaign.mutation';
+import { createCampaignMutation } from '@/features/.server/admin-platform/campaigns/create-campaign.mutation';
+import { expireCampaignMutation } from '@/features/.server/admin-platform/campaigns/expire-campaign.mutation';
+import { getCampaignQuery } from '@/features/.server/admin-platform/campaigns/get-campaign.query';
+import { getCampaignPerformanceReportQuery } from '@/features/.server/admin-platform/campaigns/get-campaign-performance-report.query';
+import { listCampaignsQuery } from '@/features/.server/admin-platform/campaigns/list-campaigns.query';
+import { pauseCampaignMutation } from '@/features/.server/admin-platform/campaigns/pause-campaign.mutation';
+import { updateCampaignMutation } from '@/features/.server/admin-platform/campaigns/update-campaign.mutation';
+import { upsertCampaignDailyMetricMutation } from '@/features/.server/admin-platform/campaigns/upsert-campaign-daily-metric.mutation';
 import { getPlatformMetricsQuery } from '@/features/.server/admin-platform/dashboard/get-platform-metrics.query';
 import { getPlatformHealthStatusQuery } from '@/features/.server/admin-platform/health/get-platform-health-status.query';
 import { listPlatformHealthIncidentsQuery } from '@/features/.server/admin-platform/health/list-platform-health-incidents.query';
@@ -125,6 +134,17 @@ export const appRouter = t.router({
 		setStorePlan: upsertStoreBillingSubscriptionMutation,
 		registerPayment: registerBillingPaymentMutation,
 		sendCollectionAlert: sendBillingCollectionAlertMutation,
+	}),
+	adminCampaigns: t.router({
+		list: listCampaignsQuery,
+		get: getCampaignQuery,
+		getPerformanceReport: getCampaignPerformanceReportQuery,
+		create: createCampaignMutation,
+		update: updateCampaignMutation,
+		activate: activateCampaignMutation,
+		pause: pauseCampaignMutation,
+		expire: expireCampaignMutation,
+		upsertDailyMetric: upsertCampaignDailyMetricMutation,
 	}),
 });
 
