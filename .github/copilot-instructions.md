@@ -19,6 +19,9 @@ This is a **pnpm + Turborepo** workspace.
 | Build only UI package | `pnpm --filter @mallhub/ui run build` |
 | Lint only UI package | `pnpm --filter @mallhub/ui run lint` |
 | Type-check only UI package | `pnpm --filter @mallhub/ui run type-check` |
+| Build only notifications package | `pnpm --filter @mallhub/notifications run build` |
+| Lint only notifications package | `pnpm --filter @mallhub/notifications run lint` |
+| Type-check only notifications package | `pnpm --filter @mallhub/notifications run type-check` |
 
 ### Tests
 
@@ -31,6 +34,7 @@ Validation workflow (mandatory before finishing changes): run `pnpm run format`,
 - Monorepo with:
   - `apps/web`: React Router v7 SSR app (frontend + server route handlers)
   - `packages/ui`: shared UI component library consumed via `@mallhub/ui`
+  - `packages/notifications`: shared Redis + BullMQ notification infrastructure
 - API boundaries are route-based in `apps/web/app/routes.ts`:
   - `api/trpc/*` -> `features/trpc/trpc.handler.ts`
   - `api/auth/*` -> `features/better-auth/better-auth.handler.ts`
@@ -86,12 +90,22 @@ Validation workflow (mandatory before finishing changes): run `pnpm run format`,
 
 7. **Environment handling**
    - Required env vars are enforced at startup (`server-env.lib.ts`, `client-env.lib.ts`).
-   - Do not bypass these checks with fallback literals in feature code.
+   - Do not bypass these checks with fallback literals in feature code (`process.env.X ?? 'fallback'` is not allowed).
+   - For server-side env changes: update `apps/web/app/features/.server/env/server-env.lib.ts`, `apps/web/.env.example`, and relevant docker compose environment blocks together.
 
 8. **Generated artifacts**
    - Do not manually edit generated code under:
-     - `apps/web/app/paraglide/*`
-     - `apps/web/app/features/.server/prisma/generated/*`
+      - `apps/web/app/paraglide/*`
+      - `apps/web/app/features/.server/prisma/generated/*`
+
+9. **Notifications stack (Redis + BullMQ)**
+   - Better Auth emails (verification/reset password) are enqueued through `apps/web/app/features/.server/notifications/notification-email-dispatcher.lib.ts`.
+   - Queue primitives come from `@mallhub/notifications` (`createRedisConnection`, `createEmailNotificationQueue`, `createEmailNotificationWorker`, `enqueueEmailNotification`).
+   - Keep producer logic fire-and-forget; do not block auth flows waiting for SMTP delivery.
+
+10. **Import policy**
+   - Use TypeScript path aliases for internal code (`@/`) instead of relative imports.
+   - In internal packages, configure alias paths in tsconfig and use them consistently for source imports.
 
 ## Form conventions (well-formed pattern)
 

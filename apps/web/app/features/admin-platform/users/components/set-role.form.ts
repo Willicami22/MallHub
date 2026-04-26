@@ -4,17 +4,15 @@ import {
 	formOptions,
 } from '@tanstack/react-form';
 import { z } from 'zod';
-import type { UserRole } from '@/features/.server/prisma/generated/client';
+import {
+	ADMIN_PLATFORM_ASSIGNABLE_USER_ROLES,
+	type AdminPlatformAssignableUserRole,
+} from '@/features/admin-platform/users/admin-users-policy.lib';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 
 export const { fieldContext, formContext } = createFormHookContexts();
 
-const userRoleSchema = z.enum([
-	appRoles.CUSTOMER,
-	appRoles.ADMIN_LOCAL,
-	appRoles.ADMIN_CC,
-	appRoles.ADMIN_PLATFORM,
-]);
+const userRoleSchema = z.enum(ADMIN_PLATFORM_ASSIGNABLE_USER_ROLES);
 
 const setRoleFormState = z.object({
 	role: userRoleSchema,
@@ -26,7 +24,7 @@ const setRoleFormState = z.object({
 const setRoleFormSchema = z.object({
 	role: userRoleSchema,
 }) satisfies z.ZodType<{
-	role: UserRole;
+	role: AdminPlatformAssignableUserRole;
 }>;
 
 const setRoleFormCodec = z.codec(setRoleFormState, setRoleFormSchema, {
@@ -60,7 +58,7 @@ const { useAppForm: useSetRoleForm, withForm: withSetRoleForm } =
 	});
 
 const getSetRoleFormDefaultValues = (
-	initialRole: UserRole,
+	initialRole: AdminPlatformAssignableUserRole,
 ): SetRoleFormState => ({
 	role: initialRole,
 	formControls: {

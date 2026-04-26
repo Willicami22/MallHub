@@ -8,6 +8,7 @@ import { LandingFooter } from '../components/landing-footer';
 import { LandingHero } from '../components/landing-hero';
 import { LandingHowItWorks } from '../components/landing-how-it-works';
 import { LandingProblemSolution } from '../components/landing-problem-solution';
+import { LandingSponsoredCampaigns } from '../components/landing-sponsored-campaigns';
 import { LandingStats } from '../components/landing-stats';
 import { LandingTrust } from '../components/landing-trust';
 import type { Route } from './+types/home.route';
@@ -22,6 +23,7 @@ export default function HomeRoute() {
 		<>
 			<LandingHero />
 			<LandingStats />
+			<LandingSponsoredCampaigns />
 			<LandingProblemSolution />
 			<LandingHowItWorks />
 			<LandingBuyerBenefits />

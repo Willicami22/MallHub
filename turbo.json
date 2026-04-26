@@ -3,11 +3,49 @@
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": ["dist/**", "build/**", "public/build/**"]
+			"outputs": ["dist/**", "build/**", "public/build/**"],
+			"env": [
+				"DATABASE_URL",
+				"BETTER_AUTH_URL",
+				"BETTER_AUTH_SECRET",
+				"ADMIN_EMAIL",
+				"ADMIN_NAME",
+				"ADMIN_PASSWORD",
+				"REDIS_URL",
+				"SMTP_HOST",
+				"SMTP_PORT",
+				"SMTP_SECURE",
+				"SMTP_USER",
+				"SMTP_PASSWORD",
+				"SMTP_FROM_EMAIL",
+				"SMTP_FROM_NAME",
+				"NOTIFICATIONS_WORKER_CONCURRENCY",
+				"NOTIFICATIONS_WORKER_LIMIT_MAX",
+				"NOTIFICATIONS_WORKER_LIMIT_DURATION_MS"
+			]
 		},
 		"dev": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"DATABASE_URL",
+				"BETTER_AUTH_URL",
+				"BETTER_AUTH_SECRET",
+				"ADMIN_EMAIL",
+				"ADMIN_NAME",
+				"ADMIN_PASSWORD",
+				"REDIS_URL",
+				"SMTP_HOST",
+				"SMTP_PORT",
+				"SMTP_SECURE",
+				"SMTP_USER",
+				"SMTP_PASSWORD",
+				"SMTP_FROM_EMAIL",
+				"SMTP_FROM_NAME",
+				"NOTIFICATIONS_WORKER_CONCURRENCY",
+				"NOTIFICATIONS_WORKER_LIMIT_MAX",
+				"NOTIFICATIONS_WORKER_LIMIT_DURATION_MS"
+			]
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
@@ -16,7 +54,26 @@
 			"dependsOn": ["^format"]
 		},
 		"type-check": {
-			"dependsOn": ["^build", "^type-check"]
+			"dependsOn": ["^build", "^type-check"],
+			"env": [
+				"DATABASE_URL",
+				"BETTER_AUTH_URL",
+				"BETTER_AUTH_SECRET",
+				"ADMIN_EMAIL",
+				"ADMIN_NAME",
+				"ADMIN_PASSWORD",
+				"REDIS_URL",
+				"SMTP_HOST",
+				"SMTP_PORT",
+				"SMTP_SECURE",
+				"SMTP_USER",
+				"SMTP_PASSWORD",
+				"SMTP_FROM_EMAIL",
+				"SMTP_FROM_NAME",
+				"NOTIFICATIONS_WORKER_CONCURRENCY",
+				"NOTIFICATIONS_WORKER_LIMIT_MAX",
+				"NOTIFICATIONS_WORKER_LIMIT_DURATION_MS"
+			]
 		}
 	}
 }

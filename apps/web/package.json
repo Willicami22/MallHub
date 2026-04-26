@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "pnpm run i18n:compile && prisma generate && react-router build",
+		"admin:aggregate-metrics": "tsx app/features/.server/analytics/platform-metrics-aggregation.command.ts",
 		"dev": "pnpm run i18n:compile && prisma generate && react-router dev --host",
 		"format": "biome check --write --unsafe .",
 		"i18n:compile": "paraglide-js compile --project ../../project.inlang --outdir ./app/paraglide --strategy url,baseLocale",
@@ -22,6 +23,7 @@
 		"@casl/prisma": "^1.6.1",
 		"@hugeicons/core-free-icons": "^4.1.1",
 		"@hugeicons/react": "^1.1.6",
+		"@mallhub/notifications": "workspace:*",
 		"@mallhub/ui": "workspace:*",
 		"@prisma/adapter-pg": "^7.0.0",
 		"@prisma/client": "^7.0.0",
@@ -41,6 +43,7 @@
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
 		"react-router": "7.13.2",
+		"resend": "^6.12.2",
 		"superjson": "^2.2.6",
 		"zod": "^4.3.6"
 	},

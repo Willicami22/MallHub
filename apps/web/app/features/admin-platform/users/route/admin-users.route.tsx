@@ -22,6 +22,7 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import type { UserRole } from '@/features/.server/prisma/generated/client';
 import type { TanStackZodError } from '@/features/.server/trpc/trpc.init';
+import { AssignAdminCcDialog } from '@/features/admin-platform/users/components/assign-admin-cc-dialog';
 import { BanUserDialog } from '@/features/admin-platform/users/components/ban-user-dialog';
 import { CreateUserDialog } from '@/features/admin-platform/users/components/create-user-dialog';
 import { SetRoleDialog } from '@/features/admin-platform/users/components/set-role-dialog';
@@ -83,6 +84,9 @@ export default function AdminUsersRoute() {
 
 	const [banTarget, setBanTarget] = useState<UserRow | null>(null);
 	const [roleTarget, setRoleTarget] = useState<UserRow | null>(null);
+	const [assignmentTarget, setAssignmentTarget] = useState<UserRow | null>(
+		null,
+	);
 	const [createFieldErrors, setCreateFieldErrors] =
 		useState<TanStackZodError | null>(null);
 
@@ -127,6 +131,12 @@ export default function AdminUsersRoute() {
 		});
 	}, [queryClient, trpc]);
 
+	const invalidateAssignments = useCallback(async () => {
+		await queryClient.invalidateQueries({
+			queryKey: trpc.adminCcAssignments.pathKey(),
+		});
+	}, [queryClient, trpc]);
+
 	// Mutations
 	const createUserMutation = useMutation(
 		trpc.adminUsers.create.mutationOptions({
@@ -166,6 +176,15 @@ export default function AdminUsersRoute() {
 		}),
 	);
 
+	const createAdminCcAssignmentMutation = useMutation(
+		trpc.adminCcAssignments.create.mutationOptions({
+			onSuccess: async () => {
+				setAssignmentTarget(null);
+				await Promise.all([invalidateAssignments(), invalidateUsers()]);
+			},
+		}),
+	);
+
 	const columns = useMemo(
 		() =>
 			getUserColumns({
@@ -174,6 +193,7 @@ export default function AdminUsersRoute() {
 					await unbanUserMutation.mutateAsync({ userId: user.id });
 				},
 				onSetRole: (user) => setRoleTarget(user),
+				onAssignMall: (user) => setAssignmentTarget(user),
 			}),
 		[unbanUserMutation],
 	);
@@ -391,6 +411,24 @@ export default function AdminUsersRoute() {
 					});
 				}}
 				isSubmitting={setRoleMutation.isPending}
+			/>
+
+			<AssignAdminCcDialog
+				open={!!assignmentTarget}
+				onOpenChange={(open) => {
+					if (!open) {
+						setAssignmentTarget(null);
+					}
+				}}
+				adminCcUserId={assignmentTarget?.id ?? ''}
+				adminCcUserName={assignmentTarget?.name ?? ''}
+				onConfirm={async ({ adminCcUserId, mallId }) => {
+					await createAdminCcAssignmentMutation.mutateAsync({
+						adminCcUserId,
+						mallId,
+					});
+				}}
+				isSubmitting={createAdminCcAssignmentMutation.isPending}
 			/>
 		</div>
 	);
