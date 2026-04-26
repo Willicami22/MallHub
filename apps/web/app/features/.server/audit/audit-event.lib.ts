@@ -24,6 +24,8 @@ export const auditEventActions = {
 		'admin.moderation.mall-profile.corrected',
 	ADMIN_MODERATION_STORE_IMAGE_REMOVED: 'admin.moderation.store-image.removed',
 	ADMIN_MODERATION_MALL_IMAGE_REMOVED: 'admin.moderation.mall-image.removed',
+	ADMIN_HEALTH_INCIDENT_OPENED: 'admin.health.incident.opened',
+	ADMIN_HEALTH_INCIDENT_RESOLVED: 'admin.health.incident.resolved',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

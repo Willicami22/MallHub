@@ -95,6 +95,24 @@ enum AuditEventOutcome {
   FAILURE
 }
 
+enum PlatformServiceKey {
+  DATABASE
+  BETTER_AUTH
+  NOTIFICATIONS
+  METRICS_PIPELINE
+}
+
+enum PlatformServiceStatus {
+  OPERATIONAL
+  DEGRADED
+  INCIDENT
+}
+
+enum PlatformHealthIncidentStatus {
+  OPEN
+  RESOLVED
+}
+
 model User {
   id              String    @id
   name            String
@@ -604,4 +622,35 @@ model AuditEvent {
   @@index([action, createdAt], map: "audit_events_action_created_at_idx")
   @@index([targetType, targetId, createdAt], map: "audit_events_target_created_at_idx")
   @@map("audit_events")
+}
+
+model PlatformServiceSnapshot {
+  id               String                @id @default(cuid())
+  serviceKey       PlatformServiceKey    @unique(map: "platform_service_snapshots_service_key_key") @map("service_key")
+  status           PlatformServiceStatus
+  summaryCode      String                @map("summary_code")
+  summaryParamsJson Json?                @map("summary_params_json")
+  metadataJson     Json?                 @map("metadata_json")
+  observedAt       DateTime              @default(now()) @map("observed_at")
+  updatedAt        DateTime              @default(now()) @updatedAt @map("updated_at")
+
+  @@index([status, observedAt], map: "platform_service_snapshots_status_observed_at_idx")
+  @@map("platform_service_snapshots")
+}
+
+model PlatformHealthIncident {
+  id               String                       @id @default(cuid())
+  serviceKey       PlatformServiceKey           @map("service_key")
+  status           PlatformHealthIncidentStatus @default(OPEN)
+  summaryCode      String                       @map("summary_code")
+  summaryParamsJson Json?                       @map("summary_params_json")
+  metadataJson     Json?                        @map("metadata_json")
+  startedAt        DateTime                     @default(now()) @map("started_at")
+  resolvedAt       DateTime?                    @map("resolved_at")
+  createdAt        DateTime                     @default(now()) @map("created_at")
+  updatedAt        DateTime                     @default(now()) @updatedAt @map("updated_at")
+
+  @@index([serviceKey, status, startedAt], map: "platform_health_incidents_service_status_started_at_idx")
+  @@index([status, startedAt], map: "platform_health_incidents_status_started_at_idx")
+  @@map("platform_health_incidents")
 }

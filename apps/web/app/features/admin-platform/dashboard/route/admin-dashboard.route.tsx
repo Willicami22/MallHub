@@ -34,6 +34,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { getAuditActionLabel } from '@/features/admin-platform/audit/components/audit-action-label.lib';
 import {
 	ADMIN_DASHBOARD_PERIOD_OPTIONS,
 	type AdminDashboardPeriod,
@@ -59,53 +60,6 @@ const getPeriodLabel = (period: AdminDashboardPeriod): string => {
 
 	return m.admin_dashboard_period_30d();
 };
-
-const ACTIVITY_ACTION_LABELS = {
-	'admin.user.created': () =>
-		m.admin_dashboard_activity_action_admin_user_created(),
-	'admin.user.role.updated': () =>
-		m.admin_dashboard_activity_action_admin_user_role_updated(),
-	'admin.user.banned': () =>
-		m.admin_dashboard_activity_action_admin_user_banned(),
-	'admin.user.unbanned': () =>
-		m.admin_dashboard_activity_action_admin_user_unbanned(),
-	'admin.cc.assignment.created': () =>
-		m.admin_dashboard_activity_action_admin_cc_assignment_created(),
-	'admin.mall.created': () =>
-		m.admin_dashboard_activity_action_admin_mall_created(),
-	'admin.mall.updated': () =>
-		m.admin_dashboard_activity_action_admin_mall_updated(),
-	'admin.mall.activated': () =>
-		m.admin_dashboard_activity_action_admin_mall_activated(),
-	'admin.mall.suspended': () =>
-		m.admin_dashboard_activity_action_admin_mall_suspended(),
-	'admin.mall.reactivated': () =>
-		m.admin_dashboard_activity_action_admin_mall_reactivated(),
-	'admin.store.suspended': () =>
-		m.admin_dashboard_activity_action_admin_store_suspended(),
-	'admin.store.reactivated': () =>
-		m.admin_dashboard_activity_action_admin_store_reactivated(),
-	'admin.store-registration.approved': () =>
-		m.admin_dashboard_activity_action_admin_store_registration_approved(),
-	'admin.store-registration.rejected': () =>
-		m.admin_dashboard_activity_action_admin_store_registration_rejected(),
-	'admin.moderation.report.dismissed': () =>
-		m.admin_dashboard_activity_action_admin_moderation_report_dismissed(),
-	'admin.moderation.product.removed': () =>
-		m.admin_dashboard_activity_action_admin_moderation_product_removed(),
-	'admin.moderation.store-profile.corrected': () =>
-		m.admin_dashboard_activity_action_admin_moderation_store_profile_corrected(),
-	'admin.moderation.mall-profile.corrected': () =>
-		m.admin_dashboard_activity_action_admin_moderation_mall_profile_corrected(),
-	'admin.moderation.store-image.removed': () =>
-		m.admin_dashboard_activity_action_admin_moderation_store_image_removed(),
-	'admin.moderation.mall-image.removed': () =>
-		m.admin_dashboard_activity_action_admin_moderation_mall_image_removed(),
-	'admin.platform.password-reset.completed': () =>
-		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
-	'admin.platform.session.expired': () =>
-		m.admin_dashboard_activity_action_admin_platform_session_expired(),
-} as const;
 
 const numberFormatter = new Intl.NumberFormat();
 
@@ -418,9 +372,7 @@ export default function AdminDashboardRoute() {
 										</div>
 										<div className="flex min-w-0 flex-col gap-1">
 											<span className="truncate text-sm text-foreground">
-												{ACTIVITY_ACTION_LABELS[
-													event.action as keyof typeof ACTIVITY_ACTION_LABELS
-												]?.() ?? event.action}
+												{getAuditActionLabel(event.action)}
 											</span>
 											<div className="flex items-center gap-2">
 												<Badge

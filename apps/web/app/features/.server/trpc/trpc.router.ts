@@ -2,6 +2,8 @@ import { createAdminCcAssignmentMutation } from '@/features/.server/admin-platfo
 import { listAdminCcAssignmentsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-admin-cc-assignments.query';
 import { listAssignableMallsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-assignable-malls.query';
 import { getPlatformMetricsQuery } from '@/features/.server/admin-platform/dashboard/get-platform-metrics.query';
+import { getPlatformHealthStatusQuery } from '@/features/.server/admin-platform/health/get-platform-health-status.query';
+import { listPlatformHealthIncidentsQuery } from '@/features/.server/admin-platform/health/list-platform-health-incidents.query';
 import { activateMallMutation } from '@/features/.server/admin-platform/malls/activate-mall.mutation';
 import { createMallMutation } from '@/features/.server/admin-platform/malls/create-mall.mutation';
 import { getMallQuery } from '@/features/.server/admin-platform/malls/get-mall.query';
@@ -32,6 +34,7 @@ import { createUserMutation } from '@/features/.server/admin-platform/users/crea
 import { listUsersQuery } from '@/features/.server/admin-platform/users/list-users.query';
 import { setRoleMutation } from '@/features/.server/admin-platform/users/set-role.mutation';
 import { ensurePlatformMetricsAggregationRuntime } from '@/features/.server/analytics/platform-metrics-aggregation-runtime.lib';
+import { listAuditEventsQuery } from '@/features/.server/audit/list-audit-events.query';
 import { listRecentAuditEventsQuery } from '@/features/.server/audit/list-recent-audit-events.query';
 import { expireAdminSessionMutation } from '@/features/.server/better-auth/expire-admin-session.mutation';
 import { requestPasswordResetMutation } from '@/features/.server/better-auth/request-password-reset.mutation';
@@ -102,7 +105,12 @@ export const appRouter = t.router({
 		removeMallImage: removeMallImageFromModerationMutation,
 	}),
 	adminAudit: t.router({
+		list: listAuditEventsQuery,
 		listRecent: listRecentAuditEventsQuery,
+	}),
+	adminHealth: t.router({
+		status: getPlatformHealthStatusQuery,
+		listIncidents: listPlatformHealthIncidentsQuery,
 	}),
 });
 
