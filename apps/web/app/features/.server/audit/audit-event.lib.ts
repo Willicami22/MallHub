@@ -26,6 +26,10 @@ export const auditEventActions = {
 	ADMIN_MODERATION_MALL_IMAGE_REMOVED: 'admin.moderation.mall-image.removed',
 	ADMIN_HEALTH_INCIDENT_OPENED: 'admin.health.incident.opened',
 	ADMIN_HEALTH_INCIDENT_RESOLVED: 'admin.health.incident.resolved',
+	ADMIN_BILLING_MALL_PLAN_SET: 'admin.billing.mall-plan.set',
+	ADMIN_BILLING_STORE_PLAN_SET: 'admin.billing.store-plan.set',
+	ADMIN_BILLING_PAYMENT_REGISTERED: 'admin.billing.payment.registered',
+	ADMIN_BILLING_COLLECTION_ALERT_SENT: 'admin.billing.collection-alert.sent',
 	ADMIN_PLATFORM_PASSWORD_RESET_COMPLETED:
 		'admin.platform.password-reset.completed',
 	ADMIN_PLATFORM_SESSION_EXPIRED: 'admin.platform.session.expired',

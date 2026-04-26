@@ -112,6 +112,14 @@ export const rejectStoreRegistrationMutation = procedures.adminPlatform
 									email: true,
 								},
 							},
+							billingSubscription: {
+								select: {
+									id: true,
+									planCode: true,
+									status: true,
+									nextPaymentDueAt: true,
+								},
+							},
 						},
 					})
 				: null;
@@ -181,7 +189,15 @@ export const rejectStoreRegistrationMutation = procedures.adminPlatform
 			store: result.store
 				? {
 						...result.store,
-						activePlan: null,
+						activePlan: result.store.billingSubscription
+							? {
+									id: result.store.billingSubscription.id,
+									planCode: result.store.billingSubscription.planCode,
+									status: result.store.billingSubscription.status,
+									nextPaymentDueAt:
+										result.store.billingSubscription.nextPaymentDueAt,
+								}
+							: null,
 					}
 				: null,
 		};

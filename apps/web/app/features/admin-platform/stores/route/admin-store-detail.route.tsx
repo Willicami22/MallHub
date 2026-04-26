@@ -23,6 +23,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { getBillingPlanLabel } from '@/features/admin-platform/billing/components/billing-labels.lib';
 import { StoreStatusBadge } from '@/features/admin-platform/stores/components/store-status-badge';
 import {
 	SUSPEND_STORE_FORM_OPTIONS,
@@ -310,7 +311,9 @@ export default function AdminStoreDetailRoute({
 									{m.admin_store_detail_summary_plan()}
 								</span>
 								<span className="font-medium">
-									{m.admin_stores_plan_not_configured()}
+									{store.activePlan
+										? getBillingPlanLabel(store.activePlan.planCode)
+										: m.admin_stores_plan_not_configured()}
 								</span>
 							</div>
 							<div className="flex items-center justify-between">

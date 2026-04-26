@@ -40,6 +40,7 @@ import type { FormEvent } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import type { StoreStatus } from '@/features/.server/prisma/generated/client';
+import { getBillingPlanLabel } from '@/features/admin-platform/billing/components/billing-labels.lib';
 import {
 	REJECT_STORE_REGISTRATION_FORM_OPTIONS,
 	toRejectStoreRegistrationSubmitData,
@@ -93,6 +94,18 @@ const PLAN_FILTER_OPTIONS = [
 	{
 		value: 'NOT_CONFIGURED',
 		label: () => m.admin_stores_filter_plan_not_configured(),
+	},
+	{
+		value: 'BASIC',
+		label: () => m.admin_billing_plan_basic(),
+	},
+	{
+		value: 'STANDARD',
+		label: () => m.admin_billing_plan_standard(),
+	},
+	{
+		value: 'PREMIUM',
+		label: () => m.admin_billing_plan_premium(),
 	},
 ] as const;
 
@@ -216,7 +229,12 @@ export default function AdminStoresRoute() {
 			planFilter:
 				planFilter === 'ALL'
 					? undefined
-					: (planFilter as 'NOT_CONFIGURED' | undefined),
+					: (planFilter as
+							| 'NOT_CONFIGURED'
+							| 'BASIC'
+							| 'STANDARD'
+							| 'PREMIUM'
+							| undefined),
 			sortBy,
 			sortDirection,
 		}),
@@ -454,7 +472,11 @@ export default function AdminStoresRoute() {
 								<TableRow key={store.id}>
 									<TableCell className="font-medium">{store.name}</TableCell>
 									<TableCell>{store.mall.name}</TableCell>
-									<TableCell>{m.admin_stores_plan_not_configured()}</TableCell>
+									<TableCell>
+										{store.activePlan
+											? getBillingPlanLabel(store.activePlan.planCode)
+											: m.admin_stores_plan_not_configured()}
+									</TableCell>
 									<TableCell>
 										<StoreStatusBadge status={store.status} />
 									</TableCell>

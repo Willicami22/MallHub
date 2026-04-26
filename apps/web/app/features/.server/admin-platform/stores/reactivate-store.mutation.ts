@@ -47,6 +47,14 @@ export const reactivateStoreMutation = procedures.adminPlatform
 						email: true,
 					},
 				},
+				billingSubscription: {
+					select: {
+						id: true,
+						planCode: true,
+						status: true,
+						nextPaymentDueAt: true,
+					},
+				},
 			},
 		});
 
@@ -104,6 +112,14 @@ export const reactivateStoreMutation = procedures.adminPlatform
 						email: true,
 					},
 				},
+				billingSubscription: {
+					select: {
+						id: true,
+						planCode: true,
+						status: true,
+						nextPaymentDueAt: true,
+					},
+				},
 			},
 		});
 
@@ -145,7 +161,15 @@ export const reactivateStoreMutation = procedures.adminPlatform
 		return {
 			store: {
 				...updatedStore,
-				activePlan: null,
+				activePlan: updatedStore.billingSubscription
+					? {
+							id: updatedStore.billingSubscription.id,
+							planCode: updatedStore.billingSubscription.planCode,
+							status: updatedStore.billingSubscription.status,
+							nextPaymentDueAt:
+								updatedStore.billingSubscription.nextPaymentDueAt,
+						}
+					: null,
 			},
 		};
 	});

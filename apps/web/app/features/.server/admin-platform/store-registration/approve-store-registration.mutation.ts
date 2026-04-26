@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { addDays } from '@/features/.server/admin-platform/billing/billing-plan-catalog.lib';
 import { notifyStoreRegistrationDecision } from '@/features/.server/admin-platform/store-registration/store-registration-notification.lib';
 import {
 	auditEventActions,
@@ -112,6 +113,14 @@ export const approveStoreRegistrationMutation = procedures.adminPlatform
 									email: true,
 								},
 							},
+							billingSubscription: {
+								select: {
+									id: true,
+									planCode: true,
+									status: true,
+									nextPaymentDueAt: true,
+								},
+							},
 						},
 					})
 				: await tx.store.create({
@@ -150,8 +159,38 @@ export const approveStoreRegistrationMutation = procedures.adminPlatform
 									email: true,
 								},
 							},
+							billingSubscription: {
+								select: {
+									id: true,
+									planCode: true,
+									status: true,
+									nextPaymentDueAt: true,
+								},
+							},
 						},
 					});
+
+			const currentPeriodStart = new Date();
+			const currentPeriodEnd = addDays(currentPeriodStart, 30);
+			await tx.billingSubscription.upsert({
+				where: {
+					storeId: store.id,
+				},
+				create: {
+					targetType: 'STORE',
+					storeId: store.id,
+					planCode: 'BASIC',
+					status: 'ACTIVE',
+					currentPeriodStart,
+					currentPeriodEnd,
+					nextPaymentDueAt: currentPeriodEnd,
+					createdByUserId: ctx.user.id,
+					updatedByUserId: ctx.user.id,
+				},
+				update: {
+					updatedByUserId: ctx.user.id,
+				},
+			});
 
 			const reviewedRequest = await tx.storeRegistrationRequest.update({
 				where: {
@@ -216,7 +255,15 @@ export const approveStoreRegistrationMutation = procedures.adminPlatform
 			registrationRequest: result.reviewedRequest,
 			store: {
 				...result.store,
-				activePlan: null,
+				activePlan: result.store.billingSubscription
+					? {
+							id: result.store.billingSubscription.id,
+							planCode: result.store.billingSubscription.planCode,
+							status: result.store.billingSubscription.status,
+							nextPaymentDueAt:
+								result.store.billingSubscription.nextPaymentDueAt,
+						}
+					: null,
 			},
 		};
 	});

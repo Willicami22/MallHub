@@ -11,7 +11,9 @@ const listStoresInputSchema = z.object({
 	statusFilter: z
 		.enum(['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'REJECTED', 'SUSPENDED'])
 		.optional(),
-	planFilter: z.enum(['NOT_CONFIGURED']).optional(),
+	planFilter: z
+		.enum(['NOT_CONFIGURED', 'BASIC', 'STANDARD', 'PREMIUM'])
+		.optional(),
 	sortBy: z
 		.enum(['name', 'status', 'createdAt', 'mallName'])
 		.default('createdAt'),
@@ -58,14 +60,33 @@ export const listStoresQuery = procedures.adminPlatform
 			search,
 			mallId,
 			statusFilter,
+			planFilter,
 			sortBy,
 			sortDirection,
 		} = input;
 		const normalizedSearch = search?.trim();
 
+		const planWhere: Prisma.StoreWhereInput =
+			planFilter === 'NOT_CONFIGURED'
+				? {
+						billingSubscription: {
+							is: null,
+						},
+					}
+				: planFilter
+					? {
+							billingSubscription: {
+								is: {
+									planCode: planFilter,
+								},
+							},
+						}
+					: {};
+
 		const where: Prisma.StoreWhereInput = {
 			...(mallId ? { mallId } : {}),
 			...(statusFilter ? { status: statusFilter } : {}),
+			...planWhere,
 			...(normalizedSearch
 				? {
 						OR: [
@@ -130,6 +151,14 @@ export const listStoresQuery = procedures.adminPlatform
 							email: true,
 						},
 					},
+					billingSubscription: {
+						select: {
+							id: true,
+							planCode: true,
+							status: true,
+							nextPaymentDueAt: true,
+						},
+					},
 				},
 				orderBy: getStoreListOrderBy(sortBy, sortDirection),
 				skip: (page - 1) * pageSize,
@@ -141,7 +170,14 @@ export const listStoresQuery = procedures.adminPlatform
 		return {
 			stores: stores.map((store) => ({
 				...store,
-				activePlan: null,
+				activePlan: store.billingSubscription
+					? {
+							id: store.billingSubscription.id,
+							planCode: store.billingSubscription.planCode,
+							status: store.billingSubscription.status,
+							nextPaymentDueAt: store.billingSubscription.nextPaymentDueAt,
+						}
+					: null,
 			})),
 			total,
 			page,

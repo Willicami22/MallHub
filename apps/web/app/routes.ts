@@ -78,6 +78,10 @@ export default [
 						'features/admin-platform/billing/route/admin-billing.route.tsx',
 					),
 					route(
+						'billing/:subscriptionId',
+						'features/admin-platform/billing/route/admin-billing-detail.route.tsx',
+					),
+					route(
 						'campaigns',
 						'features/admin-platform/campaigns/route/admin-campaigns.route.tsx',
 					),

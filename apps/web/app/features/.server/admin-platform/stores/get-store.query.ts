@@ -52,6 +52,14 @@ export const getStoreQuery = procedures.adminPlatform
 						role: true,
 					},
 				},
+				billingSubscription: {
+					select: {
+						id: true,
+						planCode: true,
+						status: true,
+						nextPaymentDueAt: true,
+					},
+				},
 			},
 		});
 
@@ -65,7 +73,14 @@ export const getStoreQuery = procedures.adminPlatform
 		return {
 			store: {
 				...store,
-				activePlan: null,
+				activePlan: store.billingSubscription
+					? {
+							id: store.billingSubscription.id,
+							planCode: store.billingSubscription.planCode,
+							status: store.billingSubscription.status,
+							nextPaymentDueAt: store.billingSubscription.nextPaymentDueAt,
+						}
+					: null,
 			},
 		};
 	});

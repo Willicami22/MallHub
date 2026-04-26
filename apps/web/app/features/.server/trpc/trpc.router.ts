@@ -1,6 +1,12 @@
 import { createAdminCcAssignmentMutation } from '@/features/.server/admin-platform/admin-cc-assignment/create-admin-cc-assignment.mutation';
 import { listAdminCcAssignmentsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-admin-cc-assignments.query';
 import { listAssignableMallsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-assignable-malls.query';
+import { getBillingSubscriptionQuery } from '@/features/.server/admin-platform/billing/get-billing-subscription.query';
+import { listBillingSubscriptionsQuery } from '@/features/.server/admin-platform/billing/list-billing-subscriptions.query';
+import { registerBillingPaymentMutation } from '@/features/.server/admin-platform/billing/register-billing-payment.mutation';
+import { sendBillingCollectionAlertMutation } from '@/features/.server/admin-platform/billing/send-billing-collection-alert.mutation';
+import { upsertMallBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-mall-billing-subscription.mutation';
+import { upsertStoreBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-store-billing-subscription.mutation';
 import { getPlatformMetricsQuery } from '@/features/.server/admin-platform/dashboard/get-platform-metrics.query';
 import { getPlatformHealthStatusQuery } from '@/features/.server/admin-platform/health/get-platform-health-status.query';
 import { listPlatformHealthIncidentsQuery } from '@/features/.server/admin-platform/health/list-platform-health-incidents.query';
@@ -111,6 +117,14 @@ export const appRouter = t.router({
 	adminHealth: t.router({
 		status: getPlatformHealthStatusQuery,
 		listIncidents: listPlatformHealthIncidentsQuery,
+	}),
+	adminBilling: t.router({
+		list: listBillingSubscriptionsQuery,
+		get: getBillingSubscriptionQuery,
+		setMallPlan: upsertMallBillingSubscriptionMutation,
+		setStorePlan: upsertStoreBillingSubscriptionMutation,
+		registerPayment: registerBillingPaymentMutation,
+		sendCollectionAlert: sendBillingCollectionAlertMutation,
 	}),
 });
 

@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { addDays } from '@/features/.server/admin-platform/billing/billing-plan-catalog.lib';
 import { ensureMallAdminCcUserIsAssignable } from '@/features/.server/admin-platform/malls/mall-admin-cc-validation.lib';
 import {
 	auditEventActions,
@@ -89,6 +90,23 @@ export const createMallMutation = procedures.adminPlatform
 								banned: true,
 							},
 						},
+					},
+				});
+
+				const currentPeriodStart = new Date();
+				const currentPeriodEnd = addDays(currentPeriodStart, 30);
+
+				await tx.billingSubscription.create({
+					data: {
+						targetType: 'MALL',
+						mallId: createdMall.id,
+						planCode: 'BASIC',
+						status: 'ACTIVE',
+						currentPeriodStart,
+						currentPeriodEnd,
+						nextPaymentDueAt: currentPeriodEnd,
+						createdByUserId: ctx.user.id,
+						updatedByUserId: ctx.user.id,
 					},
 				});
 

@@ -45,6 +45,14 @@ const ACTION_LABELS: Record<string, () => string> = {
 		m.admin_dashboard_activity_action_admin_health_incident_opened(),
 	'admin.health.incident.resolved': () =>
 		m.admin_dashboard_activity_action_admin_health_incident_resolved(),
+	'admin.billing.mall-plan.set': () =>
+		m.admin_dashboard_activity_action_admin_billing_mall_plan_set(),
+	'admin.billing.store-plan.set': () =>
+		m.admin_dashboard_activity_action_admin_billing_store_plan_set(),
+	'admin.billing.payment.registered': () =>
+		m.admin_dashboard_activity_action_admin_billing_payment_registered(),
+	'admin.billing.collection-alert.sent': () =>
+		m.admin_dashboard_activity_action_admin_billing_collection_alert_sent(),
 	'admin.platform.password-reset.completed': () =>
 		m.admin_dashboard_activity_action_admin_platform_password_reset_completed(),
 	'admin.platform.session.expired': () =>

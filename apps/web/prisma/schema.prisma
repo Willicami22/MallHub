@@ -113,6 +113,23 @@ enum PlatformHealthIncidentStatus {
   RESOLVED
 }
 
+enum BillingTargetType {
+  MALL
+  STORE
+}
+
+enum BillingPlanCode {
+  BASIC
+  STANDARD
+  PREMIUM
+}
+
+enum BillingSubscriptionStatus {
+  ACTIVE
+  OVERDUE
+  SUSPENDED
+}
+
 model User {
   id              String    @id
   name            String
@@ -155,6 +172,10 @@ model User {
   auditEvents               AuditEvent[]        @relation("AuditEventActor")
   createdModerationReports  ModerationReport[]  @relation("ModerationReportReporter")
   reviewedModerationReports ModerationReport[]  @relation("ModerationReportReviewer")
+  createdBillingSubscriptions BillingSubscription[]   @relation("BillingSubscriptionCreator")
+  updatedBillingSubscriptions BillingSubscription[]   @relation("BillingSubscriptionUpdater")
+  registeredBillingPayments   BillingPayment[]        @relation("BillingPaymentRegistrar")
+  createdBillingCollectionAlerts BillingCollectionAlert[] @relation("BillingCollectionAlertCreator")
 
   @@index([preferredMallId], map: "users_preferredMallId_idx")
   @@index([role], map: "users_role_idx")
@@ -301,6 +322,7 @@ model Mall {
   aiRuns             AiRun[]
   adminCcAssignments AdminCcAssignment[]
   moderationReports  ModerationReport[]
+  billingSubscription BillingSubscription? @relation("MallBillingSubscription")
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
@@ -331,6 +353,7 @@ model Store {
   favoriteStores      FavoriteStore[]
   approvedFromRequest StoreRegistrationRequest? @relation("ApprovedStore")
   moderationReports   ModerationReport[]
+  billingSubscription BillingSubscription?      @relation("StoreBillingSubscription")
 
   @@index([mallId], map: "stores_mallId_idx")
   @@index([ownerUserId], map: "stores_ownerUserId_idx")
@@ -363,6 +386,70 @@ model StoreRegistrationRequest {
   @@index([mallId, status], map: "store_registration_requests_mall_status_idx")
   @@index([applicantUserId], map: "store_registration_requests_applicant_idx")
   @@map("store_registration_requests")
+}
+
+model BillingSubscription {
+  id                 String                    @id @default(cuid())
+  targetType         BillingTargetType         @map("target_type")
+  mallId             String?                   @unique(map: "billing_subscriptions_mall_id_key") @map("mall_id")
+  storeId            String?                   @unique(map: "billing_subscriptions_store_id_key") @map("store_id")
+  planCode           BillingPlanCode           @map("plan_code")
+  status             BillingSubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime                  @map("current_period_start")
+  currentPeriodEnd   DateTime?                 @map("current_period_end")
+  nextPaymentDueAt   DateTime?                 @map("next_payment_due_at")
+  lastPaymentAt      DateTime?                 @map("last_payment_at")
+  createdByUserId    String?                   @map("created_by_user_id")
+  updatedByUserId    String?                   @map("updated_by_user_id")
+  createdAt          DateTime                  @default(now()) @map("created_at")
+  updatedAt          DateTime                  @default(now()) @updatedAt @map("updated_at")
+
+  mall          Mall?  @relation("MallBillingSubscription", fields: [mallId], references: [id], onDelete: Cascade)
+  store         Store? @relation("StoreBillingSubscription", fields: [storeId], references: [id], onDelete: Cascade)
+  createdByUser User?  @relation("BillingSubscriptionCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUser User?  @relation("BillingSubscriptionUpdater", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  payments         BillingPayment[]
+  collectionAlerts BillingCollectionAlert[]
+
+  @@index([targetType, status, nextPaymentDueAt], map: "billing_subscriptions_target_status_due_idx")
+  @@index([planCode], map: "billing_subscriptions_plan_code_idx")
+  @@map("billing_subscriptions")
+}
+
+model BillingPayment {
+  id                 String   @id @default(cuid())
+  subscriptionId     String   @map("subscription_id")
+  amount             Decimal  @db.Decimal(12, 2)
+  currency           String   @default("USD")
+  paidAt             DateTime @map("paid_at")
+  reference          String?  @map("reference")
+  notes              String?
+  registeredByUserId String   @map("registered_by_user_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  subscription     BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  registeredByUser User                @relation("BillingPaymentRegistrar", fields: [registeredByUserId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, paidAt], map: "billing_payments_subscription_paid_at_idx")
+  @@index([registeredByUserId], map: "billing_payments_registered_by_user_id_idx")
+  @@map("billing_payments")
+}
+
+model BillingCollectionAlert {
+  id              String   @id @default(cuid())
+  subscriptionId  String   @map("subscription_id")
+  reason          String?
+  sentAt          DateTime @default(now()) @map("sent_at")
+  createdByUserId String   @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  subscription  BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  createdByUser User                @relation("BillingCollectionAlertCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, sentAt], map: "billing_collection_alerts_subscription_sent_at_idx")
+  @@index([createdByUserId], map: "billing_collection_alerts_created_by_user_id_idx")
+  @@map("billing_collection_alerts")
 }
 
 model Product {
