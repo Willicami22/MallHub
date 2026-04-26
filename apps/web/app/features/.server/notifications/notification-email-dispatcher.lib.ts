@@ -8,6 +8,10 @@ import {
 	enqueueEmailNotification,
 } from '@mallhub/notifications';
 import { Resend } from 'resend';
+import {
+	auditEventActions,
+	writeAuditEventBestEffort,
+} from '@/features/.server/audit/audit-event.lib';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 
 interface NotificationRuntime {
@@ -129,11 +133,28 @@ export const dispatchNotificationEmail = (
 		queue: notificationRuntime.notificationQueue,
 		payload: queuedPayload,
 	}).catch((error) => {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown enqueue error';
+
 		console.error('[notifications.dispatch] Failed to enqueue email', {
 			to: queuedPayload.to,
 			subject: queuedPayload.subject,
 			idempotencyKey: queuedPayload.idempotencyKey,
 			error,
+		});
+
+		void writeAuditEventBestEffort({
+			context: 'notifications.dispatch.enqueue',
+			action: auditEventActions.ADMIN_NOTIFICATIONS_EMAIL_ENQUEUE_FAILED,
+			targetType: 'NotificationEmail',
+			targetId: queuedPayload.idempotencyKey ?? null,
+			outcome: 'FAILURE',
+			metadata: {
+				to: queuedPayload.to,
+				subject: queuedPayload.subject,
+				idempotencyKey: queuedPayload.idempotencyKey ?? null,
+				error: errorMessage,
+			},
 		});
 	});
 };

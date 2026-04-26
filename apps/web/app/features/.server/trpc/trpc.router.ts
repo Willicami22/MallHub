@@ -8,6 +8,7 @@ import { sendBillingCollectionAlertMutation } from '@/features/.server/admin-pla
 import { upsertMallBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-mall-billing-subscription.mutation';
 import { upsertStoreBillingSubscriptionMutation } from '@/features/.server/admin-platform/billing/upsert-store-billing-subscription.mutation';
 import { activateCampaignMutation } from '@/features/.server/admin-platform/campaigns/activate-campaign.mutation';
+import { ensureCampaignExpirationRuntime } from '@/features/.server/admin-platform/campaigns/campaign-expiration-runtime.lib';
 import { createCampaignMutation } from '@/features/.server/admin-platform/campaigns/create-campaign.mutation';
 import { expireCampaignMutation } from '@/features/.server/admin-platform/campaigns/expire-campaign.mutation';
 import { getCampaignQuery } from '@/features/.server/admin-platform/campaigns/get-campaign.query';
@@ -59,6 +60,7 @@ import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-emai
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
 
 ensurePlatformMetricsAggregationRuntime();
+ensureCampaignExpirationRuntime();
 
 export const appRouter = t.router({
 	health: procedures.public.query(() => ({ status: 'ok' as const })),

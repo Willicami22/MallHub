@@ -114,6 +114,13 @@ export const getPlatformHealthSummaryMessage = (
 		return m.admin_health_summary_notifications_unreachable();
 	}
 
+	if (summaryCode === 'NOTIFICATIONS_ENQUEUE_FAILURES_RECENT') {
+		return m.admin_health_summary_notifications_enqueue_failures_recent({
+			count: getNumberParam(params, 'count').toString(),
+			windowHours: getNumberParam(params, 'windowHours').toString(),
+		});
+	}
+
 	if (summaryCode === 'METRICS_RECENT') {
 		return m.admin_health_summary_metrics_recent({
 			lagHours: getNumberParam(params, 'lagHours').toString(),

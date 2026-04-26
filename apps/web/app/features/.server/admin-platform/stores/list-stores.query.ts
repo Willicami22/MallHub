@@ -11,9 +11,7 @@ const listStoresInputSchema = z.object({
 	statusFilter: z
 		.enum(['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'REJECTED', 'SUSPENDED'])
 		.optional(),
-	planFilter: z
-		.enum(['NOT_CONFIGURED', 'BASIC', 'STANDARD', 'PREMIUM'])
-		.optional(),
+	planFilter: z.enum(['BASIC', 'STANDARD', 'PREMIUM']).optional(),
 	sortBy: z
 		.enum(['name', 'status', 'createdAt', 'mallName'])
 		.default('createdAt'),
@@ -66,22 +64,15 @@ export const listStoresQuery = procedures.adminPlatform
 		} = input;
 		const normalizedSearch = search?.trim();
 
-		const planWhere: Prisma.StoreWhereInput =
-			planFilter === 'NOT_CONFIGURED'
-				? {
-						billingSubscription: {
-							is: null,
+		const planWhere: Prisma.StoreWhereInput = planFilter
+			? {
+					billingSubscription: {
+						is: {
+							planCode: planFilter,
 						},
-					}
-				: planFilter
-					? {
-							billingSubscription: {
-								is: {
-									planCode: planFilter,
-								},
-							},
-						}
-					: {};
+					},
+				}
+			: {};
 
 		const where: Prisma.StoreWhereInput = {
 			...(mallId ? { mallId } : {}),

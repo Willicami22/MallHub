@@ -1,4 +1,5 @@
 import { createRedisConnection } from '@mallhub/notifications';
+import { auditEventActions } from '@/features/.server/audit/audit-event.lib';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 import { prisma } from '@/features/.server/prisma/prisma.server';
 
@@ -24,6 +25,8 @@ export const platformHealthSummaryCodes = {
 	BETTER_AUTH_MISSING_PLATFORM_ADMIN: 'BETTER_AUTH_MISSING_PLATFORM_ADMIN',
 	NOTIFICATIONS_OK: 'NOTIFICATIONS_OK',
 	NOTIFICATIONS_UNREACHABLE: 'NOTIFICATIONS_UNREACHABLE',
+	NOTIFICATIONS_ENQUEUE_FAILURES_RECENT:
+		'NOTIFICATIONS_ENQUEUE_FAILURES_RECENT',
 	METRICS_RECENT: 'METRICS_RECENT',
 	METRICS_STALE: 'METRICS_STALE',
 	METRICS_MISSING: 'METRICS_MISSING',
@@ -69,6 +72,9 @@ const PENDING_STORE_REGISTRATIONS_ALERT_THRESHOLD = 15;
 const PENDING_STORE_REGISTRATIONS_CRITICAL_THRESHOLD = 40;
 const OPEN_MODERATION_REPORTS_ALERT_THRESHOLD = 25;
 const OPEN_MODERATION_REPORTS_CRITICAL_THRESHOLD = 75;
+const NOTIFICATIONS_ENQUEUE_FAILURES_ALERT_THRESHOLD = 1;
+const NOTIFICATIONS_ENQUEUE_FAILURES_CRITICAL_THRESHOLD = 5;
+const NOTIFICATIONS_ENQUEUE_FAILURES_WINDOW_HOURS = 24;
 
 const withTimeout = async <T>(
 	promise: Promise<T>,
@@ -266,7 +272,22 @@ const getAlertSeverity = (
 export const readPlatformBackofficeAlerts = async (): Promise<
 	PlatformHealthAlertDiagnostic[]
 > => {
-	const [pendingStoreRegistrations, openModerationReports] = await Promise.all([
+	const notificationFailureWindowStartsAt = new Date(
+		Date.now() - NOTIFICATIONS_ENQUEUE_FAILURES_WINDOW_HOURS * 60 * 60 * 1000,
+	);
+	const [
+		notificationEnqueueFailures,
+		pendingStoreRegistrations,
+		openModerationReports,
+	] = await Promise.all([
+		prisma.auditEvent.count({
+			where: {
+				action: auditEventActions.ADMIN_NOTIFICATIONS_EMAIL_ENQUEUE_FAILED,
+				createdAt: {
+					gte: notificationFailureWindowStartsAt,
+				},
+			},
+		}),
 		prisma.storeRegistrationRequest.count({
 			where: {
 				status: 'PENDING',
@@ -280,6 +301,25 @@ export const readPlatformBackofficeAlerts = async (): Promise<
 	]);
 
 	const alerts: PlatformHealthAlertDiagnostic[] = [];
+
+	if (
+		notificationEnqueueFailures >=
+		NOTIFICATIONS_ENQUEUE_FAILURES_ALERT_THRESHOLD
+	) {
+		alerts.push({
+			id: 'notifications-enqueue-failures-recent',
+			severity: getAlertSeverity(
+				notificationEnqueueFailures,
+				NOTIFICATIONS_ENQUEUE_FAILURES_CRITICAL_THRESHOLD,
+			),
+			code: platformHealthSummaryCodes.NOTIFICATIONS_ENQUEUE_FAILURES_RECENT,
+			params: {
+				count: notificationEnqueueFailures,
+				windowHours: NOTIFICATIONS_ENQUEUE_FAILURES_WINDOW_HOURS,
+			},
+			relatedServiceKey: 'NOTIFICATIONS',
+		});
+	}
 
 	if (
 		pendingStoreRegistrations >= PENDING_STORE_REGISTRATIONS_ALERT_THRESHOLD

@@ -92,10 +92,6 @@ const PLAN_FILTER_OPTIONS = [
 		label: () => m.admin_stores_filter_plan_all(),
 	},
 	{
-		value: 'NOT_CONFIGURED',
-		label: () => m.admin_stores_filter_plan_not_configured(),
-	},
-	{
 		value: 'BASIC',
 		label: () => m.admin_billing_plan_basic(),
 	},
@@ -229,12 +225,7 @@ export default function AdminStoresRoute() {
 			planFilter:
 				planFilter === 'ALL'
 					? undefined
-					: (planFilter as
-							| 'NOT_CONFIGURED'
-							| 'BASIC'
-							| 'STANDARD'
-							| 'PREMIUM'
-							| undefined),
+					: (planFilter as 'BASIC' | 'STANDARD' | 'PREMIUM' | undefined),
 			sortBy,
 			sortDirection,
 		}),

@@ -179,17 +179,17 @@ model User {
   favoritePromotions FavoritePromotion[]
   searchLogs         SearchLog[]
 
-  createdAdminCcAssignments AdminCcAssignment[] @relation("AdminCcAssignmentCreator")
-  adminCcAssignments        AdminCcAssignment[] @relation("AdminCcAssignmentAssignee")
-  auditEvents               AuditEvent[]        @relation("AuditEventActor")
-  createdModerationReports  ModerationReport[]  @relation("ModerationReportReporter")
-  reviewedModerationReports ModerationReport[]  @relation("ModerationReportReviewer")
-  createdBillingSubscriptions BillingSubscription[]   @relation("BillingSubscriptionCreator")
-  updatedBillingSubscriptions BillingSubscription[]   @relation("BillingSubscriptionUpdater")
-  registeredBillingPayments   BillingPayment[]        @relation("BillingPaymentRegistrar")
+  createdAdminCcAssignments      AdminCcAssignment[]      @relation("AdminCcAssignmentCreator")
+  adminCcAssignments             AdminCcAssignment[]      @relation("AdminCcAssignmentAssignee")
+  auditEvents                    AuditEvent[]             @relation("AuditEventActor")
+  createdModerationReports       ModerationReport[]       @relation("ModerationReportReporter")
+  reviewedModerationReports      ModerationReport[]       @relation("ModerationReportReviewer")
+  createdBillingSubscriptions    BillingSubscription[]    @relation("BillingSubscriptionCreator")
+  updatedBillingSubscriptions    BillingSubscription[]    @relation("BillingSubscriptionUpdater")
+  registeredBillingPayments      BillingPayment[]         @relation("BillingPaymentRegistrar")
   createdBillingCollectionAlerts BillingCollectionAlert[] @relation("BillingCollectionAlertCreator")
-  createdCampaigns            Campaign[]              @relation("CampaignCreator")
-  updatedCampaigns            Campaign[]              @relation("CampaignUpdater")
+  createdCampaigns               Campaign[]               @relation("CampaignCreator")
+  updatedCampaigns               Campaign[]               @relation("CampaignUpdater")
 
   @@index([preferredMallId], map: "users_preferredMallId_idx")
   @@index([role], map: "users_role_idx")
@@ -319,25 +319,25 @@ model Mall {
   address       String
   description   String?
   heroImageUrl  String?    @map("hero_image_url")
-  status        MallStatus @default(ACTIVE)
+  status        MallStatus @default(INACTIVE)
   adminCcUserId String?    @map("admin_cc_user_id")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @default(now()) @updatedAt @map("updated_at")
 
-  adminCcUser        User?                      @relation("MallAdmin", fields: [adminCcUserId], references: [id], onDelete: SetNull)
-  preferredByUsers   User[]                     @relation("PreferredMall")
-  stores             Store[]
-  products           Product[]
-  registrations      StoreRegistrationRequest[]
-  promotions         Promotion[]
-  reservations       Reservation[]
-  searchLogs         SearchLog[]
-  dailyMetrics       DailyMallMetric[]
-  aiRuns             AiRun[]
-  adminCcAssignments AdminCcAssignment[]
-  moderationReports  ModerationReport[]
-  billingSubscription BillingSubscription? @relation("MallBillingSubscription")
-  campaignTargets    CampaignTargetMall[]
+  adminCcUser         User?                      @relation("MallAdmin", fields: [adminCcUserId], references: [id], onDelete: SetNull)
+  preferredByUsers    User[]                     @relation("PreferredMall")
+  stores              Store[]
+  products            Product[]
+  registrations       StoreRegistrationRequest[]
+  promotions          Promotion[]
+  reservations        Reservation[]
+  searchLogs          SearchLog[]
+  dailyMetrics        DailyMallMetric[]
+  aiRuns              AiRun[]
+  adminCcAssignments  AdminCcAssignment[]
+  moderationReports   ModerationReport[]
+  billingSubscription BillingSubscription?       @relation("MallBillingSubscription")
+  campaignTargets     CampaignTargetMall[]
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
@@ -468,27 +468,27 @@ model BillingCollectionAlert {
 }
 
 model Campaign {
-  id             String             @id @default(cuid())
-  name           String
-  advertiserName String             @map("advertiser_name")
-  bannerType     CampaignBannerType @map("banner_type")
-  imageUrl       String             @map("image_url")
-  destinationUrl String             @map("destination_url")
-  status         CampaignStatus     @default(DRAFT)
-  startsAt       DateTime           @map("starts_at")
-  endsAt         DateTime           @map("ends_at")
-  activatedAt    DateTime?          @map("activated_at")
-  pausedAt       DateTime?          @map("paused_at")
-  expiredAt      DateTime?          @map("expired_at")
-  createdByUserId String?           @map("created_by_user_id")
-  updatedByUserId String?           @map("updated_by_user_id")
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @default(now()) @updatedAt @map("updated_at")
+  id              String             @id @default(cuid())
+  name            String
+  advertiserName  String             @map("advertiser_name")
+  bannerType      CampaignBannerType @map("banner_type")
+  imageUrl        String             @map("image_url")
+  destinationUrl  String             @map("destination_url")
+  status          CampaignStatus     @default(DRAFT)
+  startsAt        DateTime           @map("starts_at")
+  endsAt          DateTime           @map("ends_at")
+  activatedAt     DateTime?          @map("activated_at")
+  pausedAt        DateTime?          @map("paused_at")
+  expiredAt       DateTime?          @map("expired_at")
+  createdByUserId String?            @map("created_by_user_id")
+  updatedByUserId String?            @map("updated_by_user_id")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @default(now()) @updatedAt @map("updated_at")
 
   createdByUser User? @relation("CampaignCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUser User? @relation("CampaignUpdater", fields: [updatedByUserId], references: [id], onDelete: SetNull)
 
-  targetMalls CampaignTargetMall[]
+  targetMalls  CampaignTargetMall[]
   dailyMetrics CampaignDailyMetric[]
 
   @@index([status, startsAt, endsAt], map: "campaigns_status_schedule_idx")
@@ -545,8 +545,8 @@ model Product {
   mall  Mall  @relation(fields: [mallId], references: [id], onDelete: Cascade)
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
-  reservations     Reservation[]
-  favoriteProducts FavoriteProduct[]
+  reservations      Reservation[]
+  favoriteProducts  FavoriteProduct[]
   moderationReports ModerationReport[]
 
   @@index([mallId], map: "products_mallId_idx")
@@ -737,21 +737,21 @@ model AdminCcAssignment {
 }
 
 model ModerationReport {
-  id               String                    @id @default(cuid())
+  id               String                     @id @default(cuid())
   targetType       ModerationReportTargetType @map("target_type")
   reason           String
-  detailsJson      Json?                     @map("details_json")
-  status           ModerationReportStatus    @default(OPEN)
-  resolutionAction ModerationDecisionAction? @map("resolution_action")
-  resolutionReason String?                   @map("resolution_reason")
-  productId        String?                   @map("product_id")
-  storeId          String?                   @map("store_id")
-  mallId           String?                   @map("mall_id")
-  reportedByUserId String?                   @map("reported_by_user_id")
-  reviewedByUserId String?                   @map("reviewed_by_user_id")
-  createdAt        DateTime                  @default(now()) @map("created_at")
-  updatedAt        DateTime                  @default(now()) @updatedAt @map("updated_at")
-  reviewedAt       DateTime?                 @map("reviewed_at")
+  detailsJson      Json?                      @map("details_json")
+  status           ModerationReportStatus     @default(OPEN)
+  resolutionAction ModerationDecisionAction?  @map("resolution_action")
+  resolutionReason String?                    @map("resolution_reason")
+  productId        String?                    @map("product_id")
+  storeId          String?                    @map("store_id")
+  mallId           String?                    @map("mall_id")
+  reportedByUserId String?                    @map("reported_by_user_id")
+  reviewedByUserId String?                    @map("reviewed_by_user_id")
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @default(now()) @updatedAt @map("updated_at")
+  reviewedAt       DateTime?                  @map("reviewed_at")
 
   product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   store          Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
@@ -768,14 +768,14 @@ model ModerationReport {
 }
 
 model AuditEvent {
-  id          String            @id @default(cuid())
-  actorUserId String?           @map("actor_user_id")
-  action      String
-  targetType  String            @map("target_type")
-  targetId    String?           @map("target_id")
-  outcome     AuditEventOutcome @default(SUCCESS)
-  metadataJson Json?            @map("metadata_json")
-  createdAt   DateTime          @default(now()) @map("created_at")
+  id           String            @id @default(cuid())
+  actorUserId  String?           @map("actor_user_id")
+  action       String
+  targetType   String            @map("target_type")
+  targetId     String?           @map("target_id")
+  outcome      AuditEventOutcome @default(SUCCESS)
+  metadataJson Json?             @map("metadata_json")
+  createdAt    DateTime          @default(now()) @map("created_at")
 
   actorUser User? @relation("AuditEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
@@ -786,30 +786,30 @@ model AuditEvent {
 }
 
 model PlatformServiceSnapshot {
-  id               String                @id @default(cuid())
-  serviceKey       PlatformServiceKey    @unique(map: "platform_service_snapshots_service_key_key") @map("service_key")
-  status           PlatformServiceStatus
-  summaryCode      String                @map("summary_code")
-  summaryParamsJson Json?                @map("summary_params_json")
-  metadataJson     Json?                 @map("metadata_json")
-  observedAt       DateTime              @default(now()) @map("observed_at")
-  updatedAt        DateTime              @default(now()) @updatedAt @map("updated_at")
+  id                String                @id @default(cuid())
+  serviceKey        PlatformServiceKey    @unique(map: "platform_service_snapshots_service_key_key") @map("service_key")
+  status            PlatformServiceStatus
+  summaryCode       String                @map("summary_code")
+  summaryParamsJson Json?                 @map("summary_params_json")
+  metadataJson      Json?                 @map("metadata_json")
+  observedAt        DateTime              @default(now()) @map("observed_at")
+  updatedAt         DateTime              @default(now()) @updatedAt @map("updated_at")
 
   @@index([status, observedAt], map: "platform_service_snapshots_status_observed_at_idx")
   @@map("platform_service_snapshots")
 }
 
 model PlatformHealthIncident {
-  id               String                       @id @default(cuid())
-  serviceKey       PlatformServiceKey           @map("service_key")
-  status           PlatformHealthIncidentStatus @default(OPEN)
-  summaryCode      String                       @map("summary_code")
-  summaryParamsJson Json?                       @map("summary_params_json")
-  metadataJson     Json?                        @map("metadata_json")
-  startedAt        DateTime                     @default(now()) @map("started_at")
-  resolvedAt       DateTime?                    @map("resolved_at")
-  createdAt        DateTime                     @default(now()) @map("created_at")
-  updatedAt        DateTime                     @default(now()) @updatedAt @map("updated_at")
+  id                String                       @id @default(cuid())
+  serviceKey        PlatformServiceKey           @map("service_key")
+  status            PlatformHealthIncidentStatus @default(OPEN)
+  summaryCode       String                       @map("summary_code")
+  summaryParamsJson Json?                        @map("summary_params_json")
+  metadataJson      Json?                        @map("metadata_json")
+  startedAt         DateTime                     @default(now()) @map("started_at")
+  resolvedAt        DateTime?                    @map("resolved_at")
+  createdAt         DateTime                     @default(now()) @map("created_at")
+  updatedAt         DateTime                     @default(now()) @updatedAt @map("updated_at")
 
   @@index([serviceKey, status, startedAt], map: "platform_health_incidents_service_status_started_at_idx")
   @@index([status, startedAt], map: "platform_health_incidents_status_started_at_idx")

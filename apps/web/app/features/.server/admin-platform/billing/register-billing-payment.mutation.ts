@@ -32,9 +32,11 @@ export const registerBillingPaymentMutation = procedures.adminPlatform
 	.input(registerBillingPaymentInputSchema)
 	.mutation(async ({ ctx, input }) => {
 		const locale = getLocaleFromAsyncStorage();
-		const paymentDate = input.paidAt
-			? parseIsoDateInput(input.paidAt, 'end')
-			: new Date();
+		const fallbackPaidAtInput = new Date().toISOString().slice(0, 10);
+		const paymentDate = parseIsoDateInput(
+			input.paidAt ?? fallbackPaidAtInput,
+			'end',
+		);
 
 		if (!paymentDate) {
 			throw new TRPCError({
@@ -89,8 +91,7 @@ export const registerBillingPaymentMutation = procedures.adminPlatform
 			paymentDate,
 			subscription.planCode,
 		);
-		const nextStatus =
-			subscription.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE';
+		const nextStatus = 'ACTIVE';
 
 		const result = await prisma.$transaction(async (tx) => {
 			const payment = await tx.billingPayment.create({

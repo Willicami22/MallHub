@@ -30,6 +30,8 @@ export const auditEventActions = {
 	ADMIN_BILLING_STORE_PLAN_SET: 'admin.billing.store-plan.set',
 	ADMIN_BILLING_PAYMENT_REGISTERED: 'admin.billing.payment.registered',
 	ADMIN_BILLING_COLLECTION_ALERT_SENT: 'admin.billing.collection-alert.sent',
+	ADMIN_NOTIFICATIONS_EMAIL_ENQUEUE_FAILED:
+		'admin.notifications.email.enqueue-failed',
 	ADMIN_CAMPAIGN_CREATED: 'admin.campaign.created',
 	ADMIN_CAMPAIGN_UPDATED: 'admin.campaign.updated',
 	ADMIN_CAMPAIGN_ACTIVATED: 'admin.campaign.activated',

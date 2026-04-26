@@ -53,6 +53,8 @@ const ACTION_LABELS: Record<string, () => string> = {
 		m.admin_dashboard_activity_action_admin_billing_payment_registered(),
 	'admin.billing.collection-alert.sent': () =>
 		m.admin_dashboard_activity_action_admin_billing_collection_alert_sent(),
+	'admin.notifications.email.enqueue-failed': () =>
+		m.admin_dashboard_activity_action_admin_notifications_email_enqueue_failed(),
 	'admin.campaign.created': () =>
 		m.admin_dashboard_activity_action_admin_campaign_created(),
 	'admin.campaign.updated': () =>
