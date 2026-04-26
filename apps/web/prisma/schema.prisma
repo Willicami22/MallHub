@@ -130,6 +130,14 @@ enum BillingSubscriptionStatus {
   SUSPENDED
 }
 
+enum BillingPaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  OTHER
+}
+
 enum CampaignStatus {
   DRAFT
   ACTIVE
@@ -410,6 +418,7 @@ model BillingSubscription {
   storeId            String?                   @unique(map: "billing_subscriptions_store_id_key") @map("store_id")
   planCode           BillingPlanCode           @map("plan_code")
   status             BillingSubscriptionStatus @default(ACTIVE)
+  recurringAmount    Decimal                   @default(0) @map("recurring_amount") @db.Decimal(12, 2)
   currentPeriodStart DateTime                  @map("current_period_start")
   currentPeriodEnd   DateTime?                 @map("current_period_end")
   nextPaymentDueAt   DateTime?                 @map("next_payment_due_at")
@@ -438,6 +447,7 @@ model BillingPayment {
   amount             Decimal  @db.Decimal(12, 2)
   currency           String   @default("USD")
   paidAt             DateTime @map("paid_at")
+  paymentMethod      BillingPaymentMethod @default(BANK_TRANSFER) @map("payment_method")
   reference          String?  @map("reference")
   notes              String?
   registeredByUserId String   @map("registered_by_user_id")

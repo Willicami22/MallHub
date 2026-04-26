@@ -1,4 +1,5 @@
 import type {
+	BillingPaymentMethod,
 	BillingPlanCode,
 	BillingSubscriptionStatus,
 	BillingTargetType,
@@ -44,4 +45,26 @@ export const formatBillingDate = (value: string | Date | null): string => {
 	}
 
 	return new Date(value).toLocaleDateString();
+};
+
+export const getBillingPaymentMethodLabel = (
+	paymentMethod: BillingPaymentMethod,
+): string => {
+	if (paymentMethod === 'CASH') {
+		return m.admin_billing_payment_method_cash();
+	}
+
+	if (paymentMethod === 'CREDIT_CARD') {
+		return m.admin_billing_payment_method_credit_card();
+	}
+
+	if (paymentMethod === 'DEBIT_CARD') {
+		return m.admin_billing_payment_method_debit_card();
+	}
+
+	if (paymentMethod === 'OTHER') {
+		return m.admin_billing_payment_method_other();
+	}
+
+	return m.admin_billing_payment_method_bank_transfer();
 };

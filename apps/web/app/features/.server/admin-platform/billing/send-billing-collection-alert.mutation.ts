@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { notifyBillingCollectionAlert } from '@/features/.server/admin-platform/billing/billing-notification.lib';
 import { collectBillingRecipients } from '@/features/.server/admin-platform/billing/billing-recipients.lib';
+import { getBillingSubscriptionEffectiveStatus } from '@/features/.server/admin-platform/billing/billing-subscription-status.lib';
 import {
 	auditEventActions,
 	writeAuditEventBestEffort,
@@ -79,12 +80,11 @@ export const sendBillingCollectionAlertMutation = procedures.adminPlatform
 			});
 		}
 
-		const now = new Date();
-		const isOverdue =
-			subscription.status === 'OVERDUE' ||
-			(subscription.nextPaymentDueAt !== null &&
-				subscription.nextPaymentDueAt.getTime() < now.getTime());
-		if (!isOverdue) {
+		const effectiveStatus = getBillingSubscriptionEffectiveStatus(
+			subscription.status,
+			subscription.nextPaymentDueAt,
+		);
+		if (effectiveStatus !== 'OVERDUE') {
 			throw new TRPCError({
 				code: 'BAD_REQUEST',
 				message: m.admin_billing_collection_alert_only_overdue({}, { locale }),

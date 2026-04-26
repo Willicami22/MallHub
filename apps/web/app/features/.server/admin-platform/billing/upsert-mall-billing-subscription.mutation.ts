@@ -19,7 +19,14 @@ import * as m from '@/paraglide/messages.js';
 const upsertMallBillingSubscriptionInputSchema = z.object({
 	mallId: z.string().trim().min(1),
 	planCode: z.enum(['BASIC', 'STANDARD', 'PREMIUM']),
-	status: z.enum(['ACTIVE', 'OVERDUE', 'SUSPENDED']).default('ACTIVE'),
+	status: z.enum(['ACTIVE', 'SUSPENDED']).default('ACTIVE'),
+	recurringAmount: z.number().positive({
+		error: () =>
+			m.admin_billing_validation_amount_positive(
+				{},
+				{ locale: getLocaleFromAsyncStorage() },
+			),
+	}),
 	currentPeriodStart: z
 		.string()
 		.trim()
@@ -109,6 +116,7 @@ export const upsertMallBillingSubscriptionMutation = procedures.adminPlatform
 				mallId: mall.id,
 				planCode: input.planCode,
 				status: input.status,
+				recurringAmount: input.recurringAmount,
 				currentPeriodStart: periodStart,
 				currentPeriodEnd: computedPeriodEnd,
 				nextPaymentDueAt,
@@ -118,6 +126,7 @@ export const upsertMallBillingSubscriptionMutation = procedures.adminPlatform
 			update: {
 				planCode: input.planCode,
 				status: input.status,
+				recurringAmount: input.recurringAmount,
 				currentPeriodStart: periodStart,
 				currentPeriodEnd: computedPeriodEnd,
 				nextPaymentDueAt,
@@ -128,6 +137,7 @@ export const upsertMallBillingSubscriptionMutation = procedures.adminPlatform
 				targetType: true,
 				planCode: true,
 				status: true,
+				recurringAmount: true,
 				currentPeriodStart: true,
 				currentPeriodEnd: true,
 				nextPaymentDueAt: true,
@@ -185,6 +195,7 @@ export const upsertMallBillingSubscriptionMutation = procedures.adminPlatform
 				nextPlanCode: subscription.planCode,
 				previousStatus: previousSubscription?.status ?? null,
 				nextStatus: subscription.status,
+				recurringAmount: input.recurringAmount,
 				currentPeriodStart: periodStart.toISOString(),
 				nextPaymentDueAt: nextPaymentDueAt.toISOString(),
 				reason: normalizedReason,

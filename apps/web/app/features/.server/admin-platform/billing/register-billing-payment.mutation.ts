@@ -23,6 +23,9 @@ const registerBillingPaymentInputSchema = z.object({
 				{ locale: getLocaleFromAsyncStorage() },
 			),
 	}),
+	paymentMethod: z
+		.enum(['CASH', 'BANK_TRANSFER', 'CREDIT_CARD', 'DEBIT_CARD', 'OTHER'])
+		.default('BANK_TRANSFER'),
 	paidAt: z.string().trim().regex(ISO_DATE_INPUT_REGEX).optional(),
 	reference: z.string().trim().max(120).optional(),
 	notes: z.string().trim().max(500).optional(),
@@ -100,6 +103,7 @@ export const registerBillingPaymentMutation = procedures.adminPlatform
 					amount: input.amount,
 					currency: 'USD',
 					paidAt: paymentDate,
+					paymentMethod: input.paymentMethod,
 					reference: normalizedReference,
 					notes: normalizedNotes,
 					registeredByUserId: ctx.user.id,
@@ -109,6 +113,7 @@ export const registerBillingPaymentMutation = procedures.adminPlatform
 					amount: true,
 					currency: true,
 					paidAt: true,
+					paymentMethod: true,
 					reference: true,
 					notes: true,
 					createdAt: true,
@@ -203,6 +208,7 @@ export const registerBillingPaymentMutation = procedures.adminPlatform
 				storeId: subscription.store?.id ?? null,
 				amount: input.amount,
 				currency: 'USD',
+				paymentMethod: input.paymentMethod,
 				paidAt: paymentDate.toISOString(),
 				reference: normalizedReference,
 				notes: normalizedNotes,

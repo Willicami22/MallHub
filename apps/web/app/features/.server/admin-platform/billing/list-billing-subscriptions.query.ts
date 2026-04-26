@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+	getBillingStatusFilterWhere,
+	getBillingSubscriptionEffectiveStatus,
+} from '@/features/.server/admin-platform/billing/billing-subscription-status.lib';
 import type { Prisma } from '@/features/.server/prisma/generated/client';
 import { prisma } from '@/features/.server/prisma/prisma.server';
 import { procedures } from '@/features/.server/trpc/trpc.init';
@@ -53,11 +57,13 @@ export const listBillingSubscriptionsQuery = procedures.adminPlatform
 			sortDirection,
 		} = input;
 		const normalizedSearch = search?.trim();
+		const now = new Date();
+		const statusWhere = getBillingStatusFilterWhere(statusFilter, now);
 
 		const where: Prisma.BillingSubscriptionWhereInput = {
 			...(targetTypeFilter ? { targetType: targetTypeFilter } : {}),
-			...(statusFilter ? { status: statusFilter } : {}),
 			...(planFilter ? { planCode: planFilter } : {}),
+			...(statusWhere ? { AND: [statusWhere] } : {}),
 			...(normalizedSearch
 				? {
 						OR: [
@@ -118,6 +124,7 @@ export const listBillingSubscriptionsQuery = procedures.adminPlatform
 					targetType: true,
 					planCode: true,
 					status: true,
+					recurringAmount: true,
 					currentPeriodStart: true,
 					currentPeriodEnd: true,
 					nextPaymentDueAt: true,
@@ -160,7 +167,20 @@ export const listBillingSubscriptionsQuery = procedures.adminPlatform
 		]);
 
 		return {
-			subscriptions,
+			subscriptions: subscriptions.map((subscription) => {
+				const effectiveStatus = getBillingSubscriptionEffectiveStatus(
+					subscription.status,
+					subscription.nextPaymentDueAt,
+					now,
+				);
+
+				return {
+					...subscription,
+					effectiveStatus,
+					overdueAmount:
+						effectiveStatus === 'OVERDUE' ? subscription.recurringAmount : null,
+				};
+			}),
 			total,
 			page,
 			pageSize,

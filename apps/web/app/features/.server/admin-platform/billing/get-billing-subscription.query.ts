@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { getBillingSubscriptionEffectiveStatus } from '@/features/.server/admin-platform/billing/billing-subscription-status.lib';
 import { prisma } from '@/features/.server/prisma/prisma.server';
 import { getLocaleFromAsyncStorage } from '@/features/.server/trpc/locale.context';
 import { procedures } from '@/features/.server/trpc/trpc.init';
@@ -22,6 +23,7 @@ export const getBillingSubscriptionQuery = procedures.adminPlatform
 				targetType: true,
 				planCode: true,
 				status: true,
+				recurringAmount: true,
 				currentPeriodStart: true,
 				currentPeriodEnd: true,
 				nextPaymentDueAt: true,
@@ -74,6 +76,7 @@ export const getBillingSubscriptionQuery = procedures.adminPlatform
 						amount: true,
 						currency: true,
 						paidAt: true,
+						paymentMethod: true,
 						reference: true,
 						notes: true,
 						createdAt: true,
@@ -115,5 +118,17 @@ export const getBillingSubscriptionQuery = procedures.adminPlatform
 			});
 		}
 
-		return { subscription };
+		const effectiveStatus = getBillingSubscriptionEffectiveStatus(
+			subscription.status,
+			subscription.nextPaymentDueAt,
+		);
+
+		return {
+			subscription: {
+				...subscription,
+				effectiveStatus,
+				overdueAmount:
+					effectiveStatus === 'OVERDUE' ? subscription.recurringAmount : null,
+			},
+		};
 	});

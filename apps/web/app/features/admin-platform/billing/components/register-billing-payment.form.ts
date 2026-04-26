@@ -10,6 +10,7 @@ export const { fieldContext, formContext } = createFormHookContexts();
 
 const registerBillingPaymentFormState = z.object({
 	amount: z.string(),
+	paymentMethod: z.string(),
 	paidAt: z.string(),
 	reference: z.string(),
 	notes: z.string(),
@@ -26,11 +27,24 @@ const registerBillingPaymentFormSchema = z.object({
 			const numericValue = Number(value);
 			return Number.isFinite(numericValue) && numericValue > 0;
 		}, m.admin_billing_validation_amount_positive()),
+	paymentMethod: z.enum([
+		'CASH',
+		'BANK_TRANSFER',
+		'CREDIT_CARD',
+		'DEBIT_CARD',
+		'OTHER',
+	]),
 	paidAt: z.string().trim().nullable(),
 	reference: z.string().trim().max(120).nullable(),
 	notes: z.string().trim().max(500).nullable(),
 }) satisfies z.ZodType<{
 	amount: string;
+	paymentMethod:
+		| 'CASH'
+		| 'BANK_TRANSFER'
+		| 'CREDIT_CARD'
+		| 'DEBIT_CARD'
+		| 'OTHER';
 	paidAt: string | null;
 	reference: string | null;
 	notes: string | null;
@@ -42,6 +56,12 @@ const registerBillingPaymentFormCodec = z.codec(
 	{
 		decode: (formState) => ({
 			amount: formState.amount.trim(),
+			paymentMethod: formState.paymentMethod as
+				| 'CASH'
+				| 'BANK_TRANSFER'
+				| 'CREDIT_CARD'
+				| 'DEBIT_CARD'
+				| 'OTHER',
 			paidAt: formState.paidAt.trim().length ? formState.paidAt.trim() : null,
 			reference: formState.reference.trim().length
 				? formState.reference.trim()
@@ -50,6 +70,7 @@ const registerBillingPaymentFormCodec = z.codec(
 		}),
 		encode: (formData) => ({
 			amount: formData.amount,
+			paymentMethod: formData.paymentMethod,
 			paidAt: formData.paidAt ?? '',
 			reference: formData.reference ?? '',
 			notes: formData.notes ?? '',
@@ -84,6 +105,7 @@ const {
 const REGISTER_BILLING_PAYMENT_FORM_OPTIONS = formOptions({
 	defaultValues: {
 		amount: '',
+		paymentMethod: 'BANK_TRANSFER',
 		paidAt: '',
 		reference: '',
 		notes: '',

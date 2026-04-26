@@ -138,6 +138,7 @@ export default function AdminCampaignDetailRoute({
 	const [lastSyncedCampaignId, setLastSyncedCampaignId] = useState<
 		string | null
 	>(null);
+	const [targetMallSearch, setTargetMallSearch] = useState('');
 
 	const campaignQuery = useQuery(
 		trpc.adminCampaigns.get.queryOptions({
@@ -147,7 +148,10 @@ export default function AdminCampaignDetailRoute({
 	const mallsQuery = useQuery(
 		trpc.adminMalls.list.queryOptions({
 			page: 1,
-			pageSize: 100,
+			pageSize: 20,
+			search: targetMallSearch.trim().length
+				? targetMallSearch.trim()
+				: undefined,
 			sortBy: 'name',
 			sortDirection: 'asc',
 		}),
@@ -759,6 +763,14 @@ export default function AdminCampaignDetailRoute({
 												<FieldLabel>
 													{m.admin_campaigns_create_target_malls_label()}
 												</FieldLabel>
+												<Input
+													value={targetMallSearch}
+													onChange={(event) =>
+														setTargetMallSearch(event.target.value)
+													}
+													placeholder={m.admin_campaigns_target_mall_search_placeholder()}
+													className="mb-2 max-w-sm"
+												/>
 												<div className="flex flex-wrap gap-2">
 													{availableMalls.map((mall) => {
 														const isSelected = selectedMallIds.includes(

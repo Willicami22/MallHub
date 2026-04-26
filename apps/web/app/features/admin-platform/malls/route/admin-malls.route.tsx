@@ -105,6 +105,7 @@ export default function AdminMallsRoute() {
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<string>('ALL');
+	const [adminCcSearch, setAdminCcSearch] = useState('');
 	const [sortValue, setSortValue] = useState<string>('createdAt_desc');
 	const [searchTimer, setSearchTimer] = useState<ReturnType<
 		typeof setTimeout
@@ -155,7 +156,8 @@ export default function AdminMallsRoute() {
 	const adminCcUsersQuery = useQuery(
 		trpc.adminUsers.list.queryOptions({
 			page: 1,
-			pageSize: 100,
+			pageSize: 20,
+			search: adminCcSearch.trim().length ? adminCcSearch.trim() : undefined,
 			roleFilter: appRoles.ADMIN_CC,
 			sortBy: 'name',
 			sortDirection: 'asc',
@@ -349,6 +351,14 @@ export default function AdminMallsRoute() {
 											<FieldLabel>
 												{m.admin_malls_form_admin_cc_label()}
 											</FieldLabel>
+											<Input
+												value={adminCcSearch}
+												onChange={(event) =>
+													setAdminCcSearch(event.target.value)
+												}
+												placeholder={m.admin_malls_form_admin_cc_search_placeholder()}
+												className="mb-2"
+											/>
 											<Select
 												items={adminCcItems}
 												value={selectedValue}

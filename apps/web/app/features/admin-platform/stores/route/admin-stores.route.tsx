@@ -149,6 +149,7 @@ export default function AdminStoresRoute() {
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [mallFilter, setMallFilter] = useState<string>('ALL');
+	const [mallFilterSearch, setMallFilterSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<string>('ALL');
 	const [planFilter, setPlanFilter] = useState<string>('ALL');
 	const [sortValue, setSortValue] = useState<string>('createdAt_desc');
@@ -178,7 +179,10 @@ export default function AdminStoresRoute() {
 	const mallsQuery = useQuery(
 		trpc.adminMalls.list.queryOptions({
 			page: 1,
-			pageSize: 100,
+			pageSize: 20,
+			search: mallFilterSearch.trim().length
+				? mallFilterSearch.trim()
+				: undefined,
 			sortBy: 'name',
 			sortDirection: 'asc',
 		}),
@@ -365,6 +369,12 @@ export default function AdminStoresRoute() {
 										))}
 									</SelectContent>
 								</Select>
+								<Input
+									value={mallFilterSearch}
+									onChange={(event) => setMallFilterSearch(event.target.value)}
+									placeholder={m.admin_stores_filter_mall_search_placeholder()}
+									className="w-[200px]"
+								/>
 								<Select
 									items={statusFilterItems}
 									value={statusFilter}

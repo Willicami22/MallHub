@@ -31,6 +31,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import {
 	formatBillingDate,
+	getBillingPaymentMethodLabel,
 	getBillingPlanLabel,
 	getBillingTargetTypeLabel,
 } from '@/features/admin-platform/billing/components/billing-labels.lib';
@@ -82,14 +83,41 @@ const STATUS_ITEMS = [
 		label: () => m.admin_billing_status_active(),
 	},
 	{
-		value: 'OVERDUE',
-		label: () => m.admin_billing_status_overdue(),
-	},
-	{
 		value: 'SUSPENDED',
 		label: () => m.admin_billing_status_suspended(),
 	},
 ] as const;
+
+const PAYMENT_METHOD_ITEMS = [
+	{
+		value: 'BANK_TRANSFER',
+		label: () => m.admin_billing_payment_method_bank_transfer(),
+	},
+	{
+		value: 'CREDIT_CARD',
+		label: () => m.admin_billing_payment_method_credit_card(),
+	},
+	{
+		value: 'DEBIT_CARD',
+		label: () => m.admin_billing_payment_method_debit_card(),
+	},
+	{
+		value: 'CASH',
+		label: () => m.admin_billing_payment_method_cash(),
+	},
+	{
+		value: 'OTHER',
+		label: () => m.admin_billing_payment_method_other(),
+	},
+] as const;
+
+const BILLING_CURRENCY = 'USD';
+
+const formatBillingMoney = (value: { toString(): string } | number): string =>
+	new Intl.NumberFormat(undefined, {
+		style: 'currency',
+		currency: BILLING_CURRENCY,
+	}).format(typeof value === 'number' ? value : Number(value.toString()));
 
 const toDateInputValue = (value: string | Date | null): string =>
 	value ? new Date(value).toISOString().slice(0, 10) : '';
@@ -155,6 +183,7 @@ export default function AdminBillingDetailRoute({
 					mallId: subscription.mall.id,
 					planCode: submitData.planCode,
 					status: submitData.status,
+					recurringAmount: submitData.recurringAmount,
 					currentPeriodStart: submitData.currentPeriodStart,
 					nextPaymentDueAt: submitData.nextPaymentDueAt ?? undefined,
 					reason: submitData.reason ?? undefined,
@@ -167,6 +196,7 @@ export default function AdminBillingDetailRoute({
 					storeId: subscription.store.id,
 					planCode: submitData.planCode,
 					status: submitData.status,
+					recurringAmount: submitData.recurringAmount,
 					currentPeriodStart: submitData.currentPeriodStart,
 					nextPaymentDueAt: submitData.nextPaymentDueAt ?? undefined,
 					reason: submitData.reason ?? undefined,
@@ -191,6 +221,7 @@ export default function AdminBillingDetailRoute({
 			await registerPaymentMutation.mutateAsync({
 				subscriptionId: subscription.id,
 				amount: Number(submitData.amount),
+				paymentMethod: submitData.paymentMethod,
 				paidAt: submitData.paidAt ?? undefined,
 				reference: submitData.reference ?? undefined,
 				notes: submitData.notes ?? undefined,
@@ -229,7 +260,8 @@ export default function AdminBillingDetailRoute({
 		updatePlanForm.reset(
 			getUpdateBillingPlanFormDefaultValues({
 				planCode: subscription.planCode,
-				status: subscription.status,
+				status: subscription.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE',
+				recurringAmount: Number(subscription.recurringAmount.toString()),
 				currentPeriodStart: toDateInputValue(subscription.currentPeriodStart),
 				nextPaymentDueAt: toDateInputValue(subscription.nextPaymentDueAt),
 				reason: null,
@@ -371,7 +403,17 @@ export default function AdminBillingDetailRoute({
 								<span className="text-muted-foreground">
 									{m.admin_billing_column_status()}
 								</span>
-								<BillingSubscriptionStatusBadge status={subscription.status} />
+								<BillingSubscriptionStatusBadge
+									status={subscription.effectiveStatus}
+								/>
+							</div>
+							<div className="flex items-center justify-between gap-4">
+								<span className="text-muted-foreground">
+									{m.admin_billing_column_recurring_amount()}
+								</span>
+								<span className="font-medium">
+									{formatBillingMoney(subscription.recurringAmount)}
+								</span>
 							</div>
 							<div className="flex items-center justify-between gap-4">
 								<span className="text-muted-foreground">
@@ -390,6 +432,14 @@ export default function AdminBillingDetailRoute({
 								</span>
 								<span className="font-medium">
 									{formatBillingDate(subscription.nextPaymentDueAt)}
+								</span>
+							</div>
+							<div className="flex items-center justify-between gap-4">
+								<span className="text-muted-foreground">
+									{m.admin_billing_column_overdue_amount()}
+								</span>
+								<span className="font-medium">
+									{formatBillingMoney(subscription.overdueAmount ?? 0)}
 								</span>
 							</div>
 							<div className="flex items-center justify-between gap-4">
@@ -421,6 +471,9 @@ export default function AdminBillingDetailRoute({
 												{m.admin_billing_detail_recent_payments_column_paid_at()}
 											</TableHead>
 											<TableHead>
+												{m.admin_billing_detail_recent_payments_column_method()}
+											</TableHead>
+											<TableHead>
 												{m.admin_billing_detail_recent_payments_column_reference()}
 											</TableHead>
 											<TableHead>
@@ -436,6 +489,9 @@ export default function AdminBillingDetailRoute({
 												</TableCell>
 												<TableCell>
 													{formatBillingDate(payment.paidAt)}
+												</TableCell>
+												<TableCell>
+													{getBillingPaymentMethodLabel(payment.paymentMethod)}
 												</TableCell>
 												<TableCell>
 													{payment.reference ??
@@ -616,6 +672,37 @@ export default function AdminBillingDetailRoute({
 									}}
 								</updatePlanForm.Field>
 
+								<updatePlanForm.Field name="recurringAmount">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor="billing-recurring-amount">
+													{m.admin_billing_detail_recurring_amount_label()}
+												</FieldLabel>
+												<Input
+													id="billing-recurring-amount"
+													type="number"
+													step="0.01"
+													min="0.01"
+													value={field.state.value}
+													onChange={(event) =>
+														field.handleChange(event.target.value)
+													}
+													onBlur={field.handleBlur}
+													aria-invalid={isInvalid}
+													disabled={
+														setMallPlanMutation.isPending ||
+														setStorePlanMutation.isPending
+													}
+												/>
+												<FieldError errors={field.state.meta.errors} />
+											</Field>
+										);
+									}}
+								</updatePlanForm.Field>
+
 								<updatePlanForm.Field name="nextPaymentDueAt">
 									{(field) => (
 										<Field>
@@ -734,6 +821,42 @@ export default function AdminBillingDetailRoute({
 											</Field>
 										);
 									}}
+								</registerPaymentForm.Field>
+
+								<registerPaymentForm.Field name="paymentMethod">
+									{(field) => (
+										<Field>
+											<FieldLabel>
+												{m.admin_billing_detail_payment_method_label()}
+											</FieldLabel>
+											<Select
+												items={PAYMENT_METHOD_ITEMS.map((item) => ({
+													value: item.value,
+													label: item.label(),
+												}))}
+												value={field.state.value}
+												onValueChange={(value) => {
+													if (!value) {
+														return;
+													}
+													field.handleChange(value);
+												}}
+												disabled={registerPaymentMutation.isPending}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													{PAYMENT_METHOD_ITEMS.map((item) => (
+														<SelectItem key={item.value} value={item.value}>
+															{item.label()}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+											<FieldError errors={field.state.meta.errors} />
+										</Field>
+									)}
 								</registerPaymentForm.Field>
 
 								<registerPaymentForm.Field name="paidAt">

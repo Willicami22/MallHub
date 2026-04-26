@@ -57,6 +57,8 @@ import { requestPasswordResetMutation } from '@/features/.server/better-auth/req
 import { resetPasswordMutation } from '@/features/.server/better-auth/reset-password.mutation';
 import { signInEmailMutation } from '@/features/.server/better-auth/sign-in-email.mutation';
 import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-email.mutation';
+import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
+import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
 
 ensurePlatformMetricsAggregationRuntime();
@@ -76,6 +78,10 @@ export const appRouter = t.router({
 		email: ctx.user.email,
 		name: ctx.user.name,
 	})),
+	campaigns: t.router({
+		listActive: listActiveCampaignsQuery,
+		trackInteraction: trackCampaignInteractionMutation,
+	}),
 	adminUsers: t.router({
 		list: listUsersQuery,
 		create: createUserMutation,

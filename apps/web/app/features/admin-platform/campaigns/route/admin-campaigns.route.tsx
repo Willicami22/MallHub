@@ -123,6 +123,8 @@ export default function AdminCampaignsRoute() {
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<string>('ALL');
 	const [mallFilter, setMallFilter] = useState<string>('ALL');
+	const [mallFilterSearch, setMallFilterSearch] = useState('');
+	const [targetMallSearch, setTargetMallSearch] = useState('');
 	const [sortValue, setSortValue] = useState<string>('updatedAt_desc');
 	const [searchTimer, setSearchTimer] = useState<ReturnType<
 		typeof setTimeout
@@ -147,10 +149,24 @@ export default function AdminCampaignsRoute() {
 		'asc' | 'desc',
 	];
 
-	const mallsQuery = useQuery(
+	const mallFilterMallsQuery = useQuery(
 		trpc.adminMalls.list.queryOptions({
 			page: 1,
-			pageSize: 100,
+			pageSize: 20,
+			search: mallFilterSearch.trim().length
+				? mallFilterSearch.trim()
+				: undefined,
+			sortBy: 'name',
+			sortDirection: 'asc',
+		}),
+	);
+	const targetMallsQuery = useQuery(
+		trpc.adminMalls.list.queryOptions({
+			page: 1,
+			pageSize: 20,
+			search: targetMallSearch.trim().length
+				? targetMallSearch.trim()
+				: undefined,
 			sortBy: 'name',
 			sortDirection: 'asc',
 		}),
@@ -233,12 +249,12 @@ export default function AdminCampaignsRoute() {
 				value: 'ALL',
 				label: m.admin_campaigns_filter_mall_all(),
 			},
-			...(mallsQuery.data?.malls ?? []).map((mall) => ({
+			...(mallFilterMallsQuery.data?.malls ?? []).map((mall) => ({
 				value: mall.id,
 				label: mall.name,
 			})),
 		],
-		[mallsQuery.data?.malls],
+		[mallFilterMallsQuery.data?.malls],
 	);
 	const statusFilterItems = useMemo(
 		() =>
@@ -271,7 +287,7 @@ export default function AdminCampaignsRoute() {
 	const totalPages = campaignsQuery.data?.totalPages ?? 1;
 	const from = total > 0 ? (page - 1) * pageSize + 1 : 0;
 	const to = Math.min(page * pageSize, total);
-	const availableMalls = mallsQuery.data?.malls ?? [];
+	const availableMalls = targetMallsQuery.data?.malls ?? [];
 	const actionsBusy =
 		activateCampaignMutation.isPending ||
 		pauseCampaignMutation.isPending ||
@@ -517,6 +533,14 @@ export default function AdminCampaignsRoute() {
 										<FieldLabel>
 											{m.admin_campaigns_create_target_malls_label()}
 										</FieldLabel>
+										<Input
+											value={targetMallSearch}
+											onChange={(event) =>
+												setTargetMallSearch(event.target.value)
+											}
+											placeholder={m.admin_campaigns_target_mall_search_placeholder()}
+											className="mb-2 max-w-sm"
+										/>
 										<div className="flex flex-wrap gap-2">
 											{availableMalls.map((mall) => {
 												const isSelected = selectedMallIds.includes(mall.id);
@@ -655,6 +679,12 @@ export default function AdminCampaignsRoute() {
 										))}
 									</SelectContent>
 								</Select>
+								<Input
+									value={mallFilterSearch}
+									onChange={(event) => setMallFilterSearch(event.target.value)}
+									placeholder={m.admin_campaigns_filter_mall_search_placeholder()}
+									className="w-[220px]"
+								/>
 								<Select
 									items={statusFilterItems}
 									value={statusFilter}

@@ -47,6 +47,13 @@ export const meta = (_args: Route.MetaArgs) => [
 ];
 
 const PAGE_SIZES = [10, 20, 50] as const;
+const BILLING_CURRENCY = 'USD';
+
+const formatBillingMoney = (value: { toString(): string } | number): string =>
+	new Intl.NumberFormat(undefined, {
+		style: 'currency',
+		currency: BILLING_CURRENCY,
+	}).format(typeof value === 'number' ? value : Number(value.toString()));
 
 const TARGET_FILTER_OPTIONS = [
 	{
@@ -359,7 +366,9 @@ export default function AdminBillingRoute() {
 							<TableHead>{m.admin_billing_column_target()}</TableHead>
 							<TableHead>{m.admin_billing_column_plan()}</TableHead>
 							<TableHead>{m.admin_billing_column_status()}</TableHead>
+							<TableHead>{m.admin_billing_column_recurring_amount()}</TableHead>
 							<TableHead>{m.admin_billing_column_next_due()}</TableHead>
+							<TableHead>{m.admin_billing_column_overdue_amount()}</TableHead>
 							<TableHead>{m.admin_billing_column_last_payment()}</TableHead>
 							<TableHead>{m.admin_billing_column_actions()}</TableHead>
 						</TableRow>
@@ -368,7 +377,7 @@ export default function AdminBillingRoute() {
 						{listQuery.isLoading ? (
 							Array.from({ length: pageSize }).map((_, index) => (
 								<TableRow key={`billing-skeleton-${index.toString()}`}>
-									<TableCell colSpan={7}>
+									<TableCell colSpan={9}>
 										<div className="h-4 w-56 animate-pulse rounded bg-muted" />
 									</TableCell>
 								</TableRow>
@@ -393,11 +402,17 @@ export default function AdminBillingRoute() {
 										</TableCell>
 										<TableCell>
 											<BillingSubscriptionStatusBadge
-												status={subscription.status}
+												status={subscription.effectiveStatus}
 											/>
 										</TableCell>
 										<TableCell>
+											{formatBillingMoney(subscription.recurringAmount)}
+										</TableCell>
+										<TableCell>
 											{formatBillingDate(subscription.nextPaymentDueAt)}
+										</TableCell>
+										<TableCell>
+											{formatBillingMoney(subscription.overdueAmount ?? 0)}
 										</TableCell>
 										<TableCell>
 											{formatBillingDate(subscription.lastPaymentAt)}
@@ -424,7 +439,7 @@ export default function AdminBillingRoute() {
 						) : (
 							<TableRow>
 								<TableCell
-									colSpan={7}
+									colSpan={9}
 									className="h-24 text-center text-muted-foreground"
 								>
 									{m.admin_billing_no_results()}

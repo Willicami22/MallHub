@@ -11,6 +11,7 @@ export const { fieldContext, formContext } = createFormHookContexts();
 const updateBillingPlanFormState = z.object({
 	planCode: z.string(),
 	status: z.string(),
+	recurringAmount: z.string(),
 	currentPeriodStart: z.string(),
 	nextPaymentDueAt: z.string(),
 	reason: z.string(),
@@ -20,8 +21,11 @@ const updateBillingPlanFormSchema = z.object({
 	planCode: z.enum(['BASIC', 'STANDARD', 'PREMIUM'], {
 		error: m.admin_billing_validation_plan_required(),
 	}),
-	status: z.enum(['ACTIVE', 'OVERDUE', 'SUSPENDED'], {
+	status: z.enum(['ACTIVE', 'SUSPENDED'], {
 		error: m.admin_billing_validation_status_required(),
+	}),
+	recurringAmount: z.number().positive({
+		error: m.admin_billing_validation_amount_positive(),
 	}),
 	currentPeriodStart: z.string().trim().min(1, {
 		error: m.admin_billing_validation_current_period_start_required(),
@@ -30,7 +34,8 @@ const updateBillingPlanFormSchema = z.object({
 	reason: z.string().trim().max(500).nullable(),
 }) satisfies z.ZodType<{
 	planCode: 'BASIC' | 'STANDARD' | 'PREMIUM';
-	status: 'ACTIVE' | 'OVERDUE' | 'SUSPENDED';
+	status: 'ACTIVE' | 'SUSPENDED';
+	recurringAmount: number;
 	currentPeriodStart: string;
 	nextPaymentDueAt: string | null;
 	reason: string | null;
@@ -42,7 +47,8 @@ const updateBillingPlanFormCodec = z.codec(
 	{
 		decode: (formState) => ({
 			planCode: formState.planCode as 'BASIC' | 'STANDARD' | 'PREMIUM',
-			status: formState.status as 'ACTIVE' | 'OVERDUE' | 'SUSPENDED',
+			status: formState.status as 'ACTIVE' | 'SUSPENDED',
+			recurringAmount: Number(formState.recurringAmount.trim()),
 			currentPeriodStart: formState.currentPeriodStart.trim(),
 			nextPaymentDueAt: formState.nextPaymentDueAt.trim().length
 				? formState.nextPaymentDueAt.trim()
@@ -52,6 +58,7 @@ const updateBillingPlanFormCodec = z.codec(
 		encode: (formData) => ({
 			planCode: formData.planCode,
 			status: formData.status,
+			recurringAmount: formData.recurringAmount.toString(),
 			currentPeriodStart: formData.currentPeriodStart,
 			nextPaymentDueAt: formData.nextPaymentDueAt ?? '',
 			reason: formData.reason ?? '',
@@ -81,7 +88,8 @@ const {
 
 type UpdateBillingPlanInitialValues = Partial<{
 	planCode: 'BASIC' | 'STANDARD' | 'PREMIUM';
-	status: 'ACTIVE' | 'OVERDUE' | 'SUSPENDED';
+	status: 'ACTIVE' | 'SUSPENDED';
+	recurringAmount: number;
 	currentPeriodStart: string;
 	nextPaymentDueAt: string | null;
 	reason: string | null;
@@ -92,6 +100,7 @@ const getUpdateBillingPlanFormDefaultValues = (
 ): UpdateBillingPlanFormState => ({
 	planCode: initialValues?.planCode ?? 'BASIC',
 	status: initialValues?.status ?? 'ACTIVE',
+	recurringAmount: initialValues?.recurringAmount?.toString() ?? '',
 	currentPeriodStart: initialValues?.currentPeriodStart ?? '',
 	nextPaymentDueAt: initialValues?.nextPaymentDueAt ?? '',
 	reason: initialValues?.reason ?? '',
