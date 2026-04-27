@@ -360,6 +360,8 @@ model Store {
   category     String?
   description  String?
   logoImageUrl String?     @map("logo_image_url")
+  floor        String?
+  openHours    String?     @map("open_hours")
   phone        String?
   contactEmail String?     @map("contact_email")
   status       StoreStatus @default(PENDING_APPROVAL)

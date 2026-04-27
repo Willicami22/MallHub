@@ -44,6 +44,8 @@ export const listPublicStoresQuery = procedures.public
 				category: true,
 				description: true,
 				logoImageUrl: true,
+				floor: true,
+				openHours: true,
 				mall: {
 					select: {
 						id: true,

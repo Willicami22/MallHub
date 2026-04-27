@@ -59,6 +59,7 @@ import { signInEmailMutation } from '@/features/.server/better-auth/sign-in-emai
 import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-email.mutation';
 import { getPublicMallQuery } from '@/features/.server/browse/get-public-mall.query';
 import { listPublicMallsQuery } from '@/features/.server/browse/list-public-malls.query';
+import { listPublicPromotionsQuery } from '@/features/.server/browse/list-public-promotions.query';
 import { listPublicStoresQuery } from '@/features/.server/browse/list-public-stores.query';
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
@@ -89,6 +90,7 @@ export const appRouter = t.router({
 		listMalls: listPublicMallsQuery,
 		getMall: getPublicMallQuery,
 		listStores: listPublicStoresQuery,
+		listPromotions: listPublicPromotionsQuery,
 	}),
 	adminUsers: t.router({
 		list: listUsersQuery,

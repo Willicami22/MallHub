@@ -102,12 +102,16 @@ async function seed() {
 					name: 'Zara',
 					category: 'Moda',
 					description: 'Última tendencia en moda para toda la familia.',
+					floor: '2',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
 					name: 'Apple Store',
 					category: 'Tecnología',
 					description: 'Dispositivos, accesorios y soporte oficial Apple.',
+					floor: '1',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -115,12 +119,16 @@ async function seed() {
 					category: 'Tienda departamental',
 					description:
 						'Ropa, hogar, electrónica y mucho más bajo un mismo techo.',
+					floor: '1–3',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
 					name: 'Cinépolis',
 					category: 'Entretenimiento',
 					description: 'Las mejores películas en salas de última generación.',
+					floor: '4',
+					openHours: '11:00–23:00',
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -133,12 +141,16 @@ async function seed() {
 					name: 'H&M',
 					category: 'Moda',
 					description: 'Moda asequible y sostenible para toda ocasión.',
+					floor: '1',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
 					name: 'Sephora',
 					category: 'Belleza',
 					description: 'Las mejores marcas de cosmética y cuidado personal.',
+					floor: '2',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -146,6 +158,8 @@ async function seed() {
 					category: 'Libros y café',
 					description:
 						'Libros, revistas, música, café y más en un espacio icónico.',
+					floor: 'PB',
+					openHours: '08:00–22:00',
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -159,12 +173,16 @@ async function seed() {
 					category: 'Deportes',
 					description:
 						'Calzado, ropa y accesorios deportivos de la marca más icónica.',
+					floor: '1',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
 					name: 'Starbucks',
 					category: 'Café',
 					description: 'Tu bebida favorita con la mejor experiencia de café.',
+					floor: 'PB',
+					openHours: '07:00–22:00',
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -172,6 +190,8 @@ async function seed() {
 					category: 'Tienda departamental',
 					description:
 						'Electrodomésticos, muebles, ropa y más con facilidades de pago.',
+					floor: '1',
+					openHours: '10:00–20:00',
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -184,12 +204,16 @@ async function seed() {
 					name: 'Palacio de Hierro',
 					category: 'Lujo y moda',
 					description: 'Las marcas más exclusivas en moda, hogar y joyería.',
+					floor: '1–2',
+					openHours: '11:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 				{
 					name: 'Pull & Bear',
 					category: 'Moda joven',
 					description: 'Estilo urbano y casual para el día a día.',
+					floor: '1',
+					openHours: '10:00–21:00',
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -360,6 +384,80 @@ async function seed() {
 				});
 				console.log(`  Created product: ${productData.name}`);
 			}
+		}
+	}
+
+	// --- Demo promotions ---
+	const now = new Date();
+	const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+	const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+	const promotionsData: {
+		storeName: string;
+		title: string;
+		description: string;
+		endsAt: Date | null;
+	}[] = [
+		{
+			storeName: 'Zara',
+			title: 'Sale de fin de temporada — 30% en toda la colección',
+			description:
+				'Aprovecha los descuentos de fin de temporada primavera-verano en todas las prendas seleccionadas. Oferta válida mientras dure el stock.',
+			endsAt: in14Days,
+		},
+		{
+			storeName: 'Apple Store',
+			title: 'Trade-in especial — $3,000 de descuento por tu iPhone 14',
+			description:
+				'Entrega tu iPhone 14 en cualquier condición y obtén $3,000 de descuento inmediato en la compra de un iPhone 16 Pro.',
+			endsAt: in30Days,
+		},
+		{
+			storeName: 'Nike',
+			title: '2x1 en camisetas Dri-FIT',
+			description:
+				'Compra 2 camisetas deportivas Dri-FIT y llévate la de menor precio gratis. Aplica en tallas S a XL.',
+			endsAt: in14Days,
+		},
+		{
+			storeName: 'Sephora',
+			title: 'Regalo sorpresa en compras mayores a $1,500',
+			description:
+				'Por cada compra superior a $1,500 MXN recibirás un kit de regalo sorpresa con productos de belleza de temporada.',
+			endsAt: in30Days,
+		},
+		{
+			storeName: 'H&M',
+			title: 'Nueva colección verano — precios de lanzamiento',
+			description:
+				'Descubre la nueva colección de verano con precios especiales de lanzamiento disponibles solo este fin de semana.',
+			endsAt: in14Days,
+		},
+	];
+
+	for (const promoData of promotionsData) {
+		const store = createdStores.find((s) => s.name === promoData.storeName);
+		if (!store) continue;
+
+		const existing = await prisma.promotion.findFirst({
+			where: { title: promoData.title, storeId: store.id },
+			select: { id: true },
+		});
+
+		if (existing) {
+			console.log(`  Promotion already exists: ${promoData.title}`);
+		} else {
+			await prisma.promotion.create({
+				data: {
+					title: promoData.title,
+					description: promoData.description,
+					endsAt: promoData.endsAt,
+					status: 'ACTIVE',
+					storeId: store.id,
+					mallId: store.mallId,
+				},
+			});
+			console.log(`  Created promotion: ${promoData.title}`);
 		}
 	}
 

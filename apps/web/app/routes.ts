@@ -24,6 +24,10 @@ export default [
 			index('features/home/route/home.route.tsx'),
 			route('malls', 'features/malls/route/malls.route.tsx'),
 			route('malls/:mallId', 'features/malls/route/mall-detail.route.tsx'),
+			route(
+				'malls/:mallId/stores',
+				'features/malls/route/mall-stores-directory.route.tsx',
+			),
 			route('stores', 'features/stores/route/stores.route.tsx'),
 			route('search', 'features/search/route/search.route.tsx'),
 			layout('features/layout/authenticated-layout.route.tsx', [

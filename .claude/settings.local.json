@@ -9,7 +9,11 @@
 			"Bash(pnpm lint *)",
 			"Bash(pnpm type-check *)",
 			"Bash(pnpm --filter @mallhub/web run prisma:seed)",
-			"Bash(grep -r \"localStorage\" \"C:/Users/willi/Documents/Universidad/9no Semestre/Innovacion softwares apoyadas en nuevas tecnologias/MallHub/MallHub/apps/web/app/features\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.server/*\")"
+			"Bash(grep -r \"localStorage\" \"C:/Users/willi/Documents/Universidad/9no Semestre/Innovacion softwares apoyadas en nuevas tecnologias/MallHub/MallHub/apps/web/app/features\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.server/*\")",
+			"Bash(timeout 30 bash *)",
+			"Bash(xargs grep *)",
+			"Bash(pnpm --filter @mallhub/web run prisma:migrate)",
+			"Bash(npx prisma *)"
 		]
 	}
 }
