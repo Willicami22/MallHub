@@ -56,15 +56,36 @@ export function LandingFinalCta() {
 					{m.landing_cta_title()}
 				</h2>
 				<p className="mt-4 opacity-60">{m.landing_cta_subtitle()}</p>
-				<Button
-					variant="secondary"
-					size="lg"
-					className="mt-8"
-					nativeButton={false}
-					render={<Link to={localizeHref('/auth/register')} />}
-				>
-					{m.landing_cta_button()}
-				</Button>
+				<div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+					<Button
+						variant="secondary"
+						size="lg"
+						nativeButton={false}
+						render={<Link to={localizeHref('/auth/register')} />}
+					>
+						{m.landing_cta_button()}
+					</Button>
+					<Button
+						variant="outline"
+						size="lg"
+						className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+						nativeButton={false}
+						render={<Link to={localizeHref('/auth/login')} />}
+					>
+						{m.landing_cta_login()}
+					</Button>
+				</div>
+				<div className="mt-4">
+					<Button
+						variant="ghost"
+						size="sm"
+						nativeButton={false}
+						render={<Link to={localizeHref('/malls')} />}
+						className="text-primary-foreground/60 underline-offset-4 hover:bg-transparent hover:text-primary-foreground hover:underline"
+					>
+						{m.landing_cta_guest()}
+					</Button>
+				</div>
 			</div>
 		</section>
 	);

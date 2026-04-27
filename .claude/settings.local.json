@@ -1,0 +1,15 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev\\)\")",
+			"Bash(node *)",
+			"Bash(pnpm prisma *)",
+			"Bash(pnpm --filter @mallhub/web run i18n:compile)",
+			"Bash(pnpm format *)",
+			"Bash(pnpm lint *)",
+			"Bash(pnpm type-check *)",
+			"Bash(pnpm --filter @mallhub/web run prisma:seed)",
+			"Bash(grep -r \"localStorage\" \"C:/Users/willi/Documents/Universidad/9no Semestre/Innovacion softwares apoyadas en nuevas tecnologias/MallHub/MallHub/apps/web/app/features\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.server/*\")"
+		]
+	}
+}

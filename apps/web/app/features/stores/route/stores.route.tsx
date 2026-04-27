@@ -1,8 +1,4 @@
-import {
-	Search01Icon,
-	ShoppingBag01Icon,
-	Tag01Icon,
-} from '@hugeicons/core-free-icons';
+import { Search01Icon, ShoppingBag01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
 	Badge,
@@ -12,7 +8,9 @@ import {
 	CardHeader,
 	Skeleton,
 } from '@mallhub/ui';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
+import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/stores.route';
@@ -22,19 +20,14 @@ export const meta = (_args: Route.MetaArgs) => [
 	{ name: 'description', content: m.stores_meta_description() },
 ];
 
-// TODO-MOCK: Replace with real data
-const PLACEHOLDER_STORES = [
-	{ id: '1', badge: 'Nuevo', hasPromo: true },
-	{ id: '2', badge: null, hasPromo: false },
-	{ id: '3', badge: null, hasPromo: true },
-	{ id: '4', badge: 'Destacado', hasPromo: false },
-	{ id: '5', badge: null, hasPromo: true },
-	{ id: '6', badge: null, hasPromo: false },
-	{ id: '7', badge: 'Nuevo', hasPromo: true },
-	{ id: '8', badge: null, hasPromo: false },
-] as const;
+const PLACEHOLDER_COUNT = 8;
 
 export default function StoresRoute() {
+	const trpc = useTRPC();
+	const storesQuery = useQuery(trpc.browse.listStores.queryOptions({}));
+	const stores = storesQuery.data?.stores;
+	const isLoading = storesQuery.isPending;
+
 	return (
 		<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
 			<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -55,39 +48,73 @@ export default function StoresRoute() {
 				</Button>
 			</div>
 
+			{!isLoading && stores?.length === 0 && (
+				<p className="py-16 text-center text-sm text-muted-foreground">
+					{m.stores_empty()}
+				</p>
+			)}
+
 			<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				{PLACEHOLDER_STORES.map((store) => (
-					<Card
-						key={store.id}
-						className="group overflow-hidden transition-shadow hover:shadow-md"
-					>
-						<div className="relative flex h-24 items-center justify-center bg-muted">
-							<HugeiconsIcon
-								icon={ShoppingBag01Icon}
-								className="size-10 text-muted-foreground/40"
-							/>
-							{store.badge && (
-								<Badge variant="secondary" className="absolute top-2 right-2">
-									{store.badge}
-								</Badge>
-							)}
-							{store.hasPromo && (
-								<div className="absolute bottom-2 left-2">
-									<Badge variant="default" className="gap-1">
-										<HugeiconsIcon icon={Tag01Icon} className="size-3" />
-										Promo
-									</Badge>
+				{isLoading
+					? Array.from(
+							{ length: PLACEHOLDER_COUNT },
+							(_, i) => `skeleton-${i}`,
+						).map((key) => (
+							<Card key={key} className="overflow-hidden">
+								<div className="flex h-24 items-center justify-center bg-muted">
+									<HugeiconsIcon
+										icon={ShoppingBag01Icon}
+										className="size-10 text-muted-foreground/30"
+									/>
 								</div>
-							)}
-						</div>
-						<CardHeader className="pb-1 pt-3">
-							<Skeleton className="h-4 w-32" />
-						</CardHeader>
-						<CardContent className="pb-3">
-							<Skeleton className="h-3 w-20" />
-						</CardContent>
-					</Card>
-				))}
+								<CardHeader className="pb-1 pt-3">
+									<Skeleton className="h-4 w-32" />
+								</CardHeader>
+								<CardContent className="pb-3">
+									<Skeleton className="h-3 w-20" />
+								</CardContent>
+							</Card>
+						))
+					: stores?.map((store) => (
+							<Card
+								key={store.id}
+								className="group overflow-hidden transition-shadow hover:shadow-md"
+							>
+								<div className="relative flex h-24 items-center justify-center bg-muted">
+									{store.logoImageUrl ? (
+										<img
+											src={store.logoImageUrl}
+											alt={store.name}
+											className="h-full w-full object-cover"
+											loading="lazy"
+										/>
+									) : (
+										<HugeiconsIcon
+											icon={ShoppingBag01Icon}
+											className="size-10 text-muted-foreground/40"
+										/>
+									)}
+									{store.category && (
+										<Badge
+											variant="secondary"
+											className="absolute top-2 right-2 max-w-[6rem] truncate"
+										>
+											{store.category}
+										</Badge>
+									)}
+								</div>
+								<CardHeader className="pb-1 pt-3">
+									<span className="truncate text-sm font-semibold text-foreground">
+										{store.name}
+									</span>
+								</CardHeader>
+								<CardContent className="pb-3">
+									<span className="text-xs text-muted-foreground">
+										{store.mall.name} · {store.mall.city}
+									</span>
+								</CardContent>
+							</Card>
+						))}
 			</div>
 		</div>
 	);

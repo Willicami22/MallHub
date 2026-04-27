@@ -57,6 +57,9 @@ import { requestPasswordResetMutation } from '@/features/.server/better-auth/req
 import { resetPasswordMutation } from '@/features/.server/better-auth/reset-password.mutation';
 import { signInEmailMutation } from '@/features/.server/better-auth/sign-in-email.mutation';
 import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-email.mutation';
+import { getPublicMallQuery } from '@/features/.server/browse/get-public-mall.query';
+import { listPublicMallsQuery } from '@/features/.server/browse/list-public-malls.query';
+import { listPublicStoresQuery } from '@/features/.server/browse/list-public-stores.query';
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
@@ -81,6 +84,11 @@ export const appRouter = t.router({
 	campaigns: t.router({
 		listActive: listActiveCampaignsQuery,
 		trackInteraction: trackCampaignInteractionMutation,
+	}),
+	browse: t.router({
+		listMalls: listPublicMallsQuery,
+		getMall: getPublicMallQuery,
+		listStores: listPublicStoresQuery,
 	}),
 	adminUsers: t.router({
 		list: listUsersQuery,
