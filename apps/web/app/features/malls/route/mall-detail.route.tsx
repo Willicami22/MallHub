@@ -576,7 +576,7 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 							variant="outline"
 							size="sm"
 							nativeButton={false}
-							render={<Link to={localizeHref('/search')} />}
+							render={<Link to={`${localizeHref('/search')}?mall=${mallId}`} />}
 						>
 							<HugeiconsIcon icon={Search01Icon} data-icon="inline-start" />
 							{m.nav_search()}
