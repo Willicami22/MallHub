@@ -1,5 +1,6 @@
 import {
 	Building04Icon,
+	FilterIcon,
 	Search01Icon,
 	ShoppingBag01Icon,
 	Tag01Icon,
@@ -7,6 +8,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
 	Badge,
+	Button,
 	Card,
 	CardHeader,
 	Input,
@@ -16,9 +18,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 	Separator,
+	Sheet,
+	SheetContent,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	Switch,
 } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
@@ -97,6 +105,25 @@ function FilterChip({
 		>
 			{label}
 		</button>
+	);
+}
+
+// ─── Filter panel section ─────────────────────────────────────────────────────
+
+function FilterSection({
+	title,
+	children,
+}: {
+	title: string;
+	children: ReactNode;
+}) {
+	return (
+		<div className="flex flex-col gap-2.5">
+			<span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				{title}
+			</span>
+			{children}
+		</div>
 	);
 }
 
@@ -225,10 +252,20 @@ export default function SearchRoute() {
 	const [searchParams] = useSearchParams();
 	const initialMall = searchParams.get('mall') ?? ALL_MALLS;
 
+	// ── Primary filters ─────────────────────────────────────────────────────────
 	const [query, setQuery] = useState('');
 	const [filter, setFilter] = useState<FilterType>('all');
 	const [selectedMallId, setSelectedMallId] = useState(initialMall);
 
+	// ── Advanced filters (filter panel) ────────────────────────────────────────
+	const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [selectedFloor, setSelectedFloor] = useState<string | null>(null);
+	const [onlyInStock, setOnlyInStock] = useState(false);
+	const [minPrice, setMinPrice] = useState('');
+	const [maxPrice, setMaxPrice] = useState('');
+
+	// ── Data ────────────────────────────────────────────────────────────────────
 	const mallsQuery = useQuery(trpc.browse.listMalls.queryOptions({}));
 	const storesQuery = useQuery(
 		trpc.browse.listStores.queryOptions({ limit: 50 }),
@@ -241,6 +278,7 @@ export default function SearchRoute() {
 	const allStores = storesQuery.data?.stores ?? [];
 	const allProducts = productsQuery.data?.products ?? [];
 
+	// ── Mall selector items ─────────────────────────────────────────────────────
 	const mallItems = useMemo(
 		() => [
 			{ value: ALL_MALLS, label: m.search_mall_all() },
@@ -252,19 +290,68 @@ export default function SearchRoute() {
 		[allMalls],
 	);
 
+	// ── Filter panel options (derived from loaded data) ─────────────────────────
+	const categories = useMemo(() => {
+		const set = new Set<string>();
+		for (const p of allProducts) if (p.category) set.add(p.category);
+		for (const s of allStores) if (s.category) set.add(s.category);
+		return [...set].sort();
+	}, [allProducts, allStores]);
+
+	const floors = useMemo(() => {
+		const set = new Set<string>();
+		for (const s of allStores) if (s.floor) set.add(s.floor);
+		return [...set].sort();
+	}, [allStores]);
+
+	// ── Active filter count ─────────────────────────────────────────────────────
+	const activeFilterCount = [
+		selectedCategory !== null,
+		onlyInStock,
+		selectedFloor !== null,
+		minPrice !== '',
+		maxPrice !== '',
+	].filter(Boolean).length;
+
+	function clearFilters() {
+		setSelectedCategory(null);
+		setSelectedFloor(null);
+		setOnlyInStock(false);
+		setMinPrice('');
+		setMaxPrice('');
+	}
+
+	// ── Filtering (in-memory, all conditions AND) ───────────────────────────────
 	const trimmedQuery = query.trim();
 
 	const { matchingProducts, matchingStores } = useMemo(() => {
 		if (!trimmedQuery) return { matchingProducts: [], matchingStores: [] };
 
 		const byMall = selectedMallId !== ALL_MALLS ? selectedMallId : null;
+		const minP = minPrice !== '' ? Number(minPrice) : null;
+		const maxP = maxPrice !== '' ? Number(maxPrice) : null;
+		const storeFloorMap = new Map(allStores.map((s) => [s.id, s.floor]));
 
 		const filteredProducts =
 			filter === 'stores'
 				? []
 				: allProducts.filter((p) => {
 						if (byMall && p.store.mall.id !== byMall) return false;
-						return matches(trimmedQuery, p.name, p.category, p.store.name);
+						if (!matches(trimmedQuery, p.name, p.category, p.store.name))
+							return false;
+						if (selectedCategory && p.category !== selectedCategory)
+							return false;
+						if (onlyInStock && p.stock <= 0) return false;
+						if (selectedFloor) {
+							const floor = storeFloorMap.get(p.store.id);
+							if (floor !== selectedFloor) return false;
+						}
+						const price = p.priceDiscount ?? p.priceOriginal;
+						if (minP !== null && !Number.isNaN(minP) && price < minP)
+							return false;
+						if (maxP !== null && !Number.isNaN(maxP) && price > maxP)
+							return false;
+						return true;
 					});
 
 		const filteredStores =
@@ -272,20 +359,38 @@ export default function SearchRoute() {
 				? []
 				: allStores.filter((s) => {
 						if (byMall && s.mall.id !== byMall) return false;
-						return matches(
-							trimmedQuery,
-							s.name,
-							s.category,
-							s.mall.name,
-							s.mall.city,
-						);
+						if (
+							!matches(
+								trimmedQuery,
+								s.name,
+								s.category,
+								s.mall.name,
+								s.mall.city,
+							)
+						)
+							return false;
+						if (selectedCategory && s.category !== selectedCategory)
+							return false;
+						if (selectedFloor && s.floor !== selectedFloor) return false;
+						return true;
 					});
 
 		return {
 			matchingProducts: filteredProducts,
 			matchingStores: filteredStores,
 		};
-	}, [trimmedQuery, filter, selectedMallId, allProducts, allStores]);
+	}, [
+		trimmedQuery,
+		filter,
+		selectedMallId,
+		selectedCategory,
+		onlyInStock,
+		selectedFloor,
+		minPrice,
+		maxPrice,
+		allProducts,
+		allStores,
+	]);
 
 	const totalCount = matchingProducts.length + matchingStores.length;
 	const hasResults = totalCount > 0;
@@ -336,8 +441,8 @@ export default function SearchRoute() {
 				</Select>
 			</div>
 
-			{/* Filter chips */}
-			<div className="mb-6 flex flex-wrap gap-2">
+			{/* Type chips + Filtrar button */}
+			<div className="mb-6 flex flex-wrap items-center gap-2">
 				<FilterChip
 					label={m.search_filter_all()}
 					active={filter === 'all'}
@@ -353,13 +458,137 @@ export default function SearchRoute() {
 					active={filter === 'stores'}
 					onClick={() => setFilter('stores')}
 				/>
+				<div className="ml-auto">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setFilterPanelOpen(true)}
+						className="gap-1.5"
+					>
+						<HugeiconsIcon icon={FilterIcon} className="size-3.5" />
+						{m.search_filter_button()}
+						{activeFilterCount > 0 && (
+							<Badge className="ml-0.5 h-4 min-w-4 px-1 text-[10px]">
+								{activeFilterCount}
+							</Badge>
+						)}
+					</Button>
+				</div>
 			</div>
 
 			<Separator className="mb-6" />
 
-			{/* States */}
+			{/* ── Filter bottom sheet ──────────────────────────────────────────── */}
+			<Sheet open={filterPanelOpen} onOpenChange={setFilterPanelOpen}>
+				<SheetContent
+					side="bottom"
+					showCloseButton
+					className="max-h-[85dvh] gap-0 p-0"
+				>
+					<SheetHeader className="border-b px-5 py-4">
+						<SheetTitle>{m.search_filter_panel_title()}</SheetTitle>
+					</SheetHeader>
 
-			{/* Scenario 5: empty field */}
+					<div className="flex-1 overflow-y-auto px-5 py-5">
+						<div className="flex flex-col gap-6">
+							{/* Category */}
+							{categories.length > 0 && (
+								<FilterSection title={m.search_filter_section_category()}>
+									<div className="flex flex-wrap gap-2">
+										{categories.map((cat) => (
+											<FilterChip
+												key={cat}
+												label={cat}
+												active={selectedCategory === cat}
+												onClick={() =>
+													setSelectedCategory(
+														selectedCategory === cat ? null : cat,
+													)
+												}
+											/>
+										))}
+									</div>
+								</FilterSection>
+							)}
+
+							{/* Floor */}
+							{floors.length > 0 && (
+								<FilterSection title={m.search_filter_section_floor()}>
+									<div className="flex flex-wrap gap-2">
+										{floors.map((floor) => (
+											<FilterChip
+												key={floor}
+												label={floor}
+												active={selectedFloor === floor}
+												onClick={() =>
+													setSelectedFloor(
+														selectedFloor === floor ? null : floor,
+													)
+												}
+											/>
+										))}
+									</div>
+								</FilterSection>
+							)}
+
+							{/* Availability */}
+							<FilterSection title={m.search_filter_section_availability()}>
+								<div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
+									<span className="text-sm text-foreground">
+										{m.search_filter_in_stock_only()}
+									</span>
+									<Switch
+										checked={onlyInStock}
+										onCheckedChange={(checked) => setOnlyInStock(checked)}
+									/>
+								</div>
+							</FilterSection>
+
+							{/* Price range */}
+							<FilterSection title={m.search_filter_section_price()}>
+								<div className="flex items-center gap-3">
+									<Input
+										type="number"
+										min="0"
+										value={minPrice}
+										onChange={(e) => setMinPrice(e.target.value)}
+										placeholder={m.search_filter_price_min_placeholder()}
+										className="h-8 flex-1"
+									/>
+									<span className="shrink-0 text-xs text-muted-foreground">
+										—
+									</span>
+									<Input
+										type="number"
+										min="0"
+										value={maxPrice}
+										onChange={(e) => setMaxPrice(e.target.value)}
+										placeholder={m.search_filter_price_max_placeholder()}
+										className="h-8 flex-1"
+									/>
+								</div>
+							</FilterSection>
+						</div>
+					</div>
+
+					<SheetFooter className="border-t px-5 py-4">
+						<Button variant="outline" onClick={clearFilters} className="flex-1">
+							{m.search_filter_clear()}
+						</Button>
+						<Button
+							onClick={() => setFilterPanelOpen(false)}
+							className="flex-1"
+						>
+							{m.search_filter_apply()}
+							{hasQuery && ` (${totalCount})`}
+						</Button>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
+
+			{/* ── States ──────────────────────────────────────────────────────── */}
+
+			{/* Empty query */}
 			{!hasQuery && (
 				<div className="flex flex-col items-center gap-3 py-12 text-center">
 					<div className="flex size-14 items-center justify-center rounded-full bg-muted">
@@ -379,9 +608,9 @@ export default function SearchRoute() {
 				</div>
 			)}
 
-			{/* Scenario 2: query present but no results */}
+			{/* No results — with or without active filters */}
 			{hasQuery && !isLoading && !hasResults && (
-				<div className="flex flex-col items-center gap-3 py-12 text-center">
+				<div className="flex flex-col items-center gap-4 py-12 text-center">
 					<div className="flex size-14 items-center justify-center rounded-full bg-muted">
 						<HugeiconsIcon
 							icon={Tag01Icon}
@@ -390,26 +619,33 @@ export default function SearchRoute() {
 					</div>
 					<div className="flex flex-col gap-1">
 						<p className="text-sm font-medium text-foreground">
-							{m.search_no_results_title({ term: trimmedQuery })}
+							{activeFilterCount > 0
+								? m.search_no_results_with_filters_title()
+								: m.search_no_results_title({ term: trimmedQuery })}
 						</p>
 						<p className="text-sm text-muted-foreground">
-							{m.search_no_results_subtitle()}
+							{activeFilterCount > 0
+								? m.search_no_results_with_filters_subtitle()
+								: m.search_no_results_subtitle()}
 						</p>
 					</div>
+					{activeFilterCount > 0 && (
+						<Button variant="outline" size="sm" onClick={clearFilters}>
+							{m.search_filter_clear()}
+						</Button>
+					)}
 				</div>
 			)}
 
-			{/* Scenario 1: results found */}
+			{/* Results */}
 			{hasQuery && hasResults && (
 				<div className="flex flex-col gap-6">
-					{/* Result count */}
 					<p className="text-xs text-muted-foreground">
 						{totalCount === 1
 							? m.search_result_count({ count: totalCount })
 							: m.search_result_count_plural({ count: totalCount })}
 					</p>
 
-					{/* Products section — Scenario 3 */}
 					{matchingProducts.length > 0 && (
 						<div>
 							<SectionHeader
@@ -425,7 +661,6 @@ export default function SearchRoute() {
 						</div>
 					)}
 
-					{/* Stores section — Scenario 4 */}
 					{matchingStores.length > 0 && (
 						<div>
 							<SectionHeader
