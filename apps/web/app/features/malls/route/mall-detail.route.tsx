@@ -228,41 +228,47 @@ function StoresSection({
 							</Card>
 						))
 					: stores?.map((store) => (
-							<Card key={store.id} className="overflow-hidden">
-								<div className="relative flex h-24 items-center justify-center bg-muted">
-									{store.logoImageUrl ? (
-										<img
-											src={store.logoImageUrl}
-											alt={store.name}
-											className="h-full w-full object-cover"
-											loading="lazy"
-										/>
-									) : (
-										<HugeiconsIcon
-											icon={ShoppingBag01Icon}
-											className="size-10 text-muted-foreground/40"
-										/>
-									)}
-									{store.category && (
-										<Badge
-											variant="secondary"
-											className="absolute top-2 right-2 max-w-[6rem] truncate"
-										>
-											{store.category}
-										</Badge>
-									)}
-								</div>
-								<CardHeader className="pb-1 pt-3">
-									<span className="truncate text-sm font-semibold text-foreground">
-										{store.name}
-									</span>
-								</CardHeader>
-								<CardContent className="pb-3">
-									<span className="text-xs text-muted-foreground">
-										{store.category ?? '—'}
-									</span>
-								</CardContent>
-							</Card>
+							<Link
+								key={store.id}
+								to={localizeHref(`/stores/${store.id}`)}
+								className="group"
+							>
+								<Card className="overflow-hidden transition-shadow group-hover:shadow-md">
+									<div className="relative flex h-24 items-center justify-center bg-muted">
+										{store.logoImageUrl ? (
+											<img
+												src={store.logoImageUrl}
+												alt={store.name}
+												className="h-full w-full object-cover"
+												loading="lazy"
+											/>
+										) : (
+											<HugeiconsIcon
+												icon={ShoppingBag01Icon}
+												className="size-10 text-muted-foreground/40"
+											/>
+										)}
+										{store.category && (
+											<Badge
+												variant="secondary"
+												className="absolute top-2 right-2 max-w-[6rem] truncate"
+											>
+												{store.category}
+											</Badge>
+										)}
+									</div>
+									<CardHeader className="pb-1 pt-3">
+										<span className="truncate text-sm font-semibold text-foreground">
+											{store.name}
+										</span>
+									</CardHeader>
+									<CardContent className="pb-3">
+										<span className="text-xs text-muted-foreground">
+											{store.category ?? '—'}
+										</span>
+									</CardContent>
+								</Card>
+							</Link>
 						))}
 			</div>
 		</section>

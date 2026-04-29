@@ -65,57 +65,59 @@ function isOpenNow(openHours: string | null): boolean {
 
 function StoreCard({ store }: { store: StoreEntry }) {
 	return (
-		<Card className="flex flex-row items-center gap-4 px-4 py-3">
-			<div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
-				{store.logoImageUrl ? (
-					<img
-						src={store.logoImageUrl}
-						alt={store.name}
-						className="h-full w-full object-cover"
-						loading="lazy"
-					/>
-				) : (
-					<HugeiconsIcon
-						icon={ShoppingBag01Icon}
-						className="size-7 text-muted-foreground/40"
-					/>
-				)}
-			</div>
-
-			<div className="min-w-0 flex-1">
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span className="truncate text-sm font-semibold text-foreground">
-						{store.name}
-					</span>
-					{store.category && (
-						<Badge
-							variant="secondary"
-							className="max-w-[8rem] truncate text-xs"
-						>
-							{store.category}
-						</Badge>
+		<Link to={localizeHref(`/stores/${store.id}`)} className="group">
+			<Card className="flex flex-row items-center gap-4 px-4 py-3 transition-shadow group-hover:shadow-md">
+				<div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+					{store.logoImageUrl ? (
+						<img
+							src={store.logoImageUrl}
+							alt={store.name}
+							className="h-full w-full object-cover"
+							loading="lazy"
+						/>
+					) : (
+						<HugeiconsIcon
+							icon={ShoppingBag01Icon}
+							className="size-7 text-muted-foreground/40"
+						/>
 					)}
 				</div>
 
-				<div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-					{store.floor && (
-						<span className="flex items-center gap-1 text-xs text-muted-foreground">
-							<HugeiconsIcon
-								icon={Location01Icon}
-								className="size-3 shrink-0"
-							/>
-							{m.mall_directory_floor({ floor: store.floor })}
+				<div className="min-w-0 flex-1">
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className="truncate text-sm font-semibold text-foreground">
+							{store.name}
 						</span>
-					)}
-					{store.openHours && (
-						<span className="flex items-center gap-1 text-xs text-muted-foreground">
-							<HugeiconsIcon icon={Clock01Icon} className="size-3 shrink-0" />
-							{m.mall_directory_open_hours({ hours: store.openHours })}
-						</span>
-					)}
+						{store.category && (
+							<Badge
+								variant="secondary"
+								className="max-w-[8rem] truncate text-xs"
+							>
+								{store.category}
+							</Badge>
+						)}
+					</div>
+
+					<div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+						{store.floor && (
+							<span className="flex items-center gap-1 text-xs text-muted-foreground">
+								<HugeiconsIcon
+									icon={Location01Icon}
+									className="size-3 shrink-0"
+								/>
+								{m.mall_directory_floor({ floor: store.floor })}
+							</span>
+						)}
+						{store.openHours && (
+							<span className="flex items-center gap-1 text-xs text-muted-foreground">
+								<HugeiconsIcon icon={Clock01Icon} className="size-3 shrink-0" />
+								{m.mall_directory_open_hours({ hours: store.openHours })}
+							</span>
+						)}
+					</div>
 				</div>
-			</div>
-		</Card>
+			</Card>
+		</Link>
 	);
 }
 

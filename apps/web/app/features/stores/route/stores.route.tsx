@@ -249,66 +249,69 @@ export default function StoresRoute() {
 							</Card>
 						))
 					: filteredStores.map((store) => (
-							<Card
+							<Link
 								key={store.id}
-								className="group overflow-hidden transition-shadow hover:shadow-md"
+								to={localizeHref(`/stores/${store.id}`)}
+								className="group"
 							>
-								<div className="relative flex h-24 items-center justify-center bg-muted">
-									{store.logoImageUrl ? (
-										<img
-											src={store.logoImageUrl}
-											alt={store.name}
-											className="h-full w-full object-cover"
-											loading="lazy"
-										/>
-									) : (
-										<HugeiconsIcon
-											icon={ShoppingBag01Icon}
-											className="size-10 text-muted-foreground/40"
-										/>
-									)}
-									{store.category && (
-										<Badge
-											variant="secondary"
-											className="absolute top-2 right-2 max-w-[6rem] truncate"
-										>
-											{store.category}
-										</Badge>
-									)}
-								</div>
-								<CardHeader className="pb-1 pt-3">
-									<span className="truncate text-sm font-semibold text-foreground">
-										{store.name}
-									</span>
-								</CardHeader>
-								<CardContent className="pb-3 space-y-1">
-									<span className="text-xs text-muted-foreground">
-										{store.mall.name} · {store.mall.city}
-									</span>
-									{(store.floor || store.openHours) && (
-										<div className="flex flex-wrap gap-x-2 gap-y-0.5">
-											{store.floor && (
-												<span className="flex items-center gap-1 text-xs text-muted-foreground">
-													<HugeiconsIcon
-														icon={Location01Icon}
-														className="size-3 shrink-0"
-													/>
-													{m.stores_floor({ floor: store.floor })}
-												</span>
-											)}
-											{store.openHours && (
-												<span className="flex items-center gap-1 text-xs text-muted-foreground">
-													<HugeiconsIcon
-														icon={Clock01Icon}
-														className="size-3 shrink-0"
-													/>
-													{store.openHours}
-												</span>
-											)}
-										</div>
-									)}
-								</CardContent>
-							</Card>
+								<Card className="overflow-hidden transition-shadow group-hover:shadow-md">
+									<div className="relative flex h-24 items-center justify-center bg-muted">
+										{store.logoImageUrl ? (
+											<img
+												src={store.logoImageUrl}
+												alt={store.name}
+												className="h-full w-full object-cover"
+												loading="lazy"
+											/>
+										) : (
+											<HugeiconsIcon
+												icon={ShoppingBag01Icon}
+												className="size-10 text-muted-foreground/40"
+											/>
+										)}
+										{store.category && (
+											<Badge
+												variant="secondary"
+												className="absolute top-2 right-2 max-w-[6rem] truncate"
+											>
+												{store.category}
+											</Badge>
+										)}
+									</div>
+									<CardHeader className="pb-1 pt-3">
+										<span className="truncate text-sm font-semibold text-foreground">
+											{store.name}
+										</span>
+									</CardHeader>
+									<CardContent className="pb-3 space-y-1">
+										<span className="text-xs text-muted-foreground">
+											{store.mall.name} · {store.mall.city}
+										</span>
+										{(store.floor || store.openHours) && (
+											<div className="flex flex-wrap gap-x-2 gap-y-0.5">
+												{store.floor && (
+													<span className="flex items-center gap-1 text-xs text-muted-foreground">
+														<HugeiconsIcon
+															icon={Location01Icon}
+															className="size-3 shrink-0"
+														/>
+														{m.stores_floor({ floor: store.floor })}
+													</span>
+												)}
+												{store.openHours && (
+													<span className="flex items-center gap-1 text-xs text-muted-foreground">
+														<HugeiconsIcon
+															icon={Clock01Icon}
+															className="size-3 shrink-0"
+														/>
+														{store.openHours}
+													</span>
+												)}
+											</div>
+										)}
+									</CardContent>
+								</Card>
+							</Link>
 						))}
 			</div>
 		</div>
