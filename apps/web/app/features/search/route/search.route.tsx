@@ -441,39 +441,24 @@ export default function SearchRoute() {
 				</Select>
 			</div>
 
-			{/* Type chips + Filtrar button */}
-			<div className="mb-6 flex flex-wrap items-center gap-2">
-				<FilterChip
-					label={m.search_filter_all()}
-					active={filter === 'all'}
-					onClick={() => setFilter('all')}
-				/>
-				<FilterChip
-					label={m.search_filter_products()}
-					active={filter === 'products'}
-					onClick={() => setFilter('products')}
-				/>
-				<FilterChip
-					label={m.search_filter_stores()}
-					active={filter === 'stores'}
-					onClick={() => setFilter('stores')}
-				/>
-				<div className="ml-auto">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => setFilterPanelOpen(true)}
-						className="gap-1.5"
-					>
-						<HugeiconsIcon icon={FilterIcon} className="size-3.5" />
-						{m.search_filter_button()}
-						{activeFilterCount > 0 && (
-							<Badge className="ml-0.5 h-4 min-w-4 px-1 text-[10px]">
-								{activeFilterCount}
-							</Badge>
-						)}
-					</Button>
-				</div>
+			<div className="mb-6">
+				<ToggleGroup
+					value={[category]}
+					onValueChange={(vals: readonly string[]) => {
+						if (vals.length > 0) {
+							setCategory(vals[0]);
+						}
+					}}
+				>
+					{CATEGORIES.map((cat) => (
+						<ToggleGroupItem key={cat.value} value={cat.value}>
+							{'icon' in cat && (
+								<HugeiconsIcon icon={cat.icon} className="size-3.5" />
+							)}
+							{typeof cat.label === 'function' ? cat.label() : cat.label}
+						</ToggleGroupItem>
+					))}
+				</ToggleGroup>
 			</div>
 
 			<Separator className="mb-6" />
