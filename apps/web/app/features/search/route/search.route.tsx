@@ -71,11 +71,12 @@ export default function SearchRoute() {
 
 			<div className="mb-6">
 				<ToggleGroup
-					type="single"
 					value={[category]}
-					onValueChange={(vals: readonly string[]) =>
-						vals.length > 0 && setCategory(vals[0])
-					}
+					onValueChange={(vals: readonly string[]) => {
+						if (vals.length > 0) {
+							setCategory(vals[0]);
+						}
+					}}
 				>
 					{CATEGORIES.map((cat) => (
 						<ToggleGroupItem key={cat.value} value={cat.value}>
