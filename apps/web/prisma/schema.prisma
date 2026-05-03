@@ -360,6 +360,8 @@ model Store {
   category     String?
   description  String?
   logoImageUrl String?     @map("logo_image_url")
+  floor        String?
+  openHours    String?     @map("open_hours")
   phone        String?
   contactEmail String?     @map("contact_email")
   status       StoreStatus @default(PENDING_APPROVAL)
@@ -548,6 +550,7 @@ model Product {
   priceDiscount Decimal?      @map("price_discount") @db.Decimal(12, 2)
   stock         Int           @default(0)
   isReservable  Boolean       @default(true) @map("is_reservable")
+  variantsJson  String?       @map("variants_json") @db.Text
   aiAssisted    Boolean       @default(false) @map("ai_assisted")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")

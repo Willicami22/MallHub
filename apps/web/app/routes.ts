@@ -23,7 +23,17 @@ export default [
 		layout('features/layout/main-layout.route.tsx', [
 			index('features/home/route/home.route.tsx'),
 			route('malls', 'features/malls/route/malls.route.tsx'),
+			route('malls/:mallId', 'features/malls/route/mall-detail.route.tsx'),
+			route(
+				'malls/:mallId/stores',
+				'features/malls/route/mall-stores-directory.route.tsx',
+			),
 			route('stores', 'features/stores/route/stores.route.tsx'),
+			route('stores/:storeId', 'features/stores/route/store-detail.route.tsx'),
+			route(
+				'products/:productId',
+				'features/stores/route/product-detail.route.tsx',
+			),
 			route('search', 'features/search/route/search.route.tsx'),
 			layout('features/layout/authenticated-layout.route.tsx', [
 				route(

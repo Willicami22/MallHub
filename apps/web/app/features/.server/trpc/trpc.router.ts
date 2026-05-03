@@ -57,6 +57,14 @@ import { requestPasswordResetMutation } from '@/features/.server/better-auth/req
 import { resetPasswordMutation } from '@/features/.server/better-auth/reset-password.mutation';
 import { signInEmailMutation } from '@/features/.server/better-auth/sign-in-email.mutation';
 import { signUpEmailMutation } from '@/features/.server/better-auth/sign-up-email.mutation';
+import { getPublicMallQuery } from '@/features/.server/browse/get-public-mall.query';
+import { getPublicProductQuery } from '@/features/.server/browse/get-public-product.query';
+import { getPublicStoreQuery } from '@/features/.server/browse/get-public-store.query';
+import { listAllPublicProductsQuery } from '@/features/.server/browse/list-all-public-products.query';
+import { listPublicMallsQuery } from '@/features/.server/browse/list-public-malls.query';
+import { listPublicPromotionsQuery } from '@/features/.server/browse/list-public-promotions.query';
+import { listPublicStoreProductsQuery } from '@/features/.server/browse/list-public-store-products.query';
+import { listPublicStoresQuery } from '@/features/.server/browse/list-public-stores.query';
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
@@ -81,6 +89,16 @@ export const appRouter = t.router({
 	campaigns: t.router({
 		listActive: listActiveCampaignsQuery,
 		trackInteraction: trackCampaignInteractionMutation,
+	}),
+	browse: t.router({
+		listMalls: listPublicMallsQuery,
+		getMall: getPublicMallQuery,
+		listStores: listPublicStoresQuery,
+		getStore: getPublicStoreQuery,
+		listStoreProducts: listPublicStoreProductsQuery,
+		getProduct: getPublicProductQuery,
+		listAllProducts: listAllPublicProductsQuery,
+		listPromotions: listPublicPromotionsQuery,
 	}),
 	adminUsers: t.router({
 		list: listUsersQuery,

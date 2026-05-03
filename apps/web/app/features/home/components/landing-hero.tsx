@@ -38,7 +38,7 @@ export function LandingHero() {
 						</p>
 					</div>
 
-					<div className="flex flex-col gap-3 sm:flex-row">
+					<div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
 						<Button
 							size="lg"
 							nativeButton={false}
@@ -50,14 +50,20 @@ export function LandingHero() {
 							variant="outline"
 							size="lg"
 							nativeButton={false}
-							render={
-								<Link
-									to="#how-it-works"
-									aria-label={m.landing_hero_cta_secondary()}
-								/>
-							}
+							render={<Link to={localizeHref('/auth/login')} />}
 						>
-							{m.landing_hero_cta_secondary()}
+							{m.landing_hero_cta_login()}
+						</Button>
+					</div>
+					<div>
+						<Button
+							variant="ghost"
+							size="sm"
+							nativeButton={false}
+							render={<Link to={localizeHref('/malls')} />}
+							className="text-muted-foreground underline-offset-4 hover:underline"
+						>
+							{m.landing_hero_cta_guest()}
 						</Button>
 					</div>
 
