@@ -3,6 +3,7 @@ import {
 	Building04Icon,
 	Call02Icon,
 	Clock01Icon,
+	FavouriteIcon,
 	Location01Icon,
 	Mail01Icon,
 	ShoppingBag01Icon,
@@ -22,6 +23,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -372,6 +374,7 @@ export default function StoreDetailRoute({ params }: Route.ComponentProps) {
 	const { storeId } = params;
 	const trpc = useTRPC();
 	const [activeTab, setActiveTab] = useState<Tab>('catalog');
+	const [favoritesModalOpen, setFavoritesModalOpen] = useState(false);
 
 	const storeQuery = useQuery({
 		...trpc.browse.getStore.queryOptions({ storeId }),
@@ -454,6 +457,16 @@ export default function StoreDetailRoute({ params }: Route.ComponentProps) {
 						</>
 					)}
 				</div>
+
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					className="ml-auto mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
+					onClick={() => setFavoritesModalOpen(true)}
+				>
+					<HugeiconsIcon icon={FavouriteIcon} className="size-5" />
+					<span className="sr-only">{m.guest_auth_save_favorites()}</span>
+				</Button>
 			</div>
 
 			{/* Tabs */}
@@ -469,6 +482,14 @@ export default function StoreDetailRoute({ params }: Route.ComponentProps) {
 			{activeTab === 'reviews' && <ReviewsTab />}
 
 			<div className="h-8" />
+
+			<GuestAuthDialog
+				open={favoritesModalOpen}
+				onClose={() => setFavoritesModalOpen(false)}
+				returnTo={localizeHref(`/stores/${storeId}`)}
+				title={m.guest_auth_favorites_title()}
+				description={m.guest_auth_favorites_description()}
+			/>
 		</div>
 	);
 }

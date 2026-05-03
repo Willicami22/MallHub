@@ -1,26 +1,16 @@
 import {
 	ArrowLeft01Icon,
 	Building04Icon,
+	FavouriteIcon,
 	ShoppingBag01Icon,
 	Tag01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import {
-	Badge,
-	Button,
-	Card,
-	CardContent,
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	Skeleton,
-} from '@mallhub/ui';
+import { Badge, Button, Card, CardContent, Skeleton } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -88,44 +78,6 @@ function NotFound() {
 	);
 }
 
-// ─── Guest reserve modal ──────────────────────────────────────────────────────
-
-function GuestReserveDialog({
-	open,
-	onClose,
-}: {
-	open: boolean;
-	onClose: () => void;
-}) {
-	return (
-		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent className="sm:max-w-sm">
-				<DialogHeader>
-					<DialogTitle>{m.product_detail_reserve_guest_title()}</DialogTitle>
-					<DialogDescription>
-						{m.product_detail_reserve_guest_description()}
-					</DialogDescription>
-				</DialogHeader>
-				<DialogFooter>
-					<Button
-						nativeButton={false}
-						render={<Link to={localizeHref('/auth/register')} />}
-					>
-						{m.product_detail_reserve_guest_register()}
-					</Button>
-					<Button
-						variant="outline"
-						nativeButton={false}
-						render={<Link to={localizeHref('/auth/login')} />}
-					>
-						{m.product_detail_reserve_guest_login()}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-	);
-}
-
 // ─── Variant selector ─────────────────────────────────────────────────────────
 
 function VariantSelector({ groups }: { groups: VariantGroup[] }) {
@@ -172,10 +124,12 @@ function VariantSelector({ groups }: { groups: VariantGroup[] }) {
 
 // ─── Main route ───────────────────────────────────────────────────────────────
 
+type GuestModal = 'reserve' | 'favorites' | null;
+
 export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const { productId } = params;
 	const trpc = useTRPC();
-	const [guestDialogOpen, setGuestDialogOpen] = useState(false);
+	const [guestModal, setGuestModal] = useState<GuestModal>(null);
 
 	const productQuery = useQuery({
 		...trpc.browse.getProduct.queryOptions({ productId }),
@@ -194,6 +148,7 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const variantGroups = parseVariants(product?.variantsJson ?? null);
 	const inStock = (product?.stock ?? 0) > 0;
 	const storeId = product?.store.id;
+	const returnTo = localizeHref(`/products/${productId}`);
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -221,12 +176,21 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 
 			{/* Product card */}
 			<Card className="overflow-hidden">
-				{/* Image placeholder */}
-				<div className="flex h-56 w-full items-center justify-center bg-muted sm:h-72">
+				{/* Image placeholder with favorites button */}
+				<div className="relative flex h-56 w-full items-center justify-center bg-muted sm:h-72">
 					<HugeiconsIcon
 						icon={ShoppingBag01Icon}
 						className="size-20 text-muted-foreground/20"
 					/>
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+						onClick={() => setGuestModal('favorites')}
+					>
+						<HugeiconsIcon icon={FavouriteIcon} className="size-5" />
+						<span className="sr-only">{m.guest_auth_save_favorites()}</span>
+					</Button>
 				</div>
 
 				<CardContent className="flex flex-col gap-6 p-5 sm:p-6">
@@ -268,7 +232,7 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 						)}
 					</div>
 
-					{/* Price — Scenario 3 */}
+					{/* Price */}
 					{productQuery.isPending ? (
 						<div className="flex items-baseline gap-3">
 							<Skeleton className="h-8 w-24" />
@@ -294,7 +258,7 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 						</div>
 					)}
 
-					{/* Stock badge — Scenario 4 */}
+					{/* Stock badge */}
 					{productQuery.isPending ? (
 						<Skeleton className="h-6 w-20" />
 					) : (
@@ -326,12 +290,12 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 						</div>
 					)}
 
-					{/* Variants — Scenario 2 */}
+					{/* Variants */}
 					{!productQuery.isPending && variantGroups.length > 0 && (
 						<VariantSelector groups={variantGroups} />
 					)}
 
-					{/* Description — Scenario 1 */}
+					{/* Description */}
 					{!productQuery.isPending && product?.description && (
 						<div className="flex flex-col gap-1.5">
 							<span className="text-sm font-medium text-foreground">
@@ -343,13 +307,13 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 						</div>
 					)}
 
-					{/* Reserve button — Scenarios 1 & 4 */}
+					{/* Reserve button */}
 					<div className="pt-1">
 						<Button
 							className="w-full"
 							disabled={!inStock || productQuery.isPending}
 							onClick={() => {
-								if (inStock) setGuestDialogOpen(true);
+								if (inStock) setGuestModal('reserve');
 							}}
 						>
 							{inStock
@@ -360,10 +324,21 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 				</CardContent>
 			</Card>
 
-			{/* Guest reservation modal */}
-			<GuestReserveDialog
-				open={guestDialogOpen}
-				onClose={() => setGuestDialogOpen(false)}
+			{/* Guest modal — reserve or favorites */}
+			<GuestAuthDialog
+				open={guestModal !== null}
+				onClose={() => setGuestModal(null)}
+				returnTo={returnTo}
+				title={
+					guestModal === 'favorites'
+						? m.guest_auth_favorites_title()
+						: m.product_detail_reserve_guest_title()
+				}
+				description={
+					guestModal === 'favorites'
+						? m.guest_auth_favorites_description()
+						: m.product_detail_reserve_guest_description()
+				}
 			/>
 
 			<div className="h-8" />

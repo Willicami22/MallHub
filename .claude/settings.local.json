@@ -14,7 +14,9 @@
 			"Bash(xargs grep *)",
 			"Bash(pnpm --filter @mallhub/web run prisma:migrate)",
 			"Bash(npx prisma *)",
-			"Bash(pnpm --filter @mallhub/web run lint)"
+			"Bash(pnpm --filter @mallhub/web run lint)",
+			"Bash(xargs cat *)",
+			"Bash(npx paraglide-js *)"
 		]
 	}
 }
