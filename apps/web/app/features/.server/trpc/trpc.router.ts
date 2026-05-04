@@ -68,6 +68,7 @@ import { listPublicStoreProductsQuery } from '@/features/.server/browse/list-pub
 import { listPublicStoresQuery } from '@/features/.server/browse/list-public-stores.query';
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
+import { createReservationMutation } from '@/features/.server/reservations/create-reservation.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
 
 ensurePlatformMetricsAggregationRuntime();
@@ -90,6 +91,9 @@ export const appRouter = t.router({
 	campaigns: t.router({
 		listActive: listActiveCampaignsQuery,
 		trackInteraction: trackCampaignInteractionMutation,
+	}),
+	reservations: t.router({
+		create: createReservationMutation,
 	}),
 	browse: t.router({
 		listMalls: listPublicMallsQuery,
