@@ -16,11 +16,22 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+	Input,
 	Skeleton,
+	Spinner,
+	Textarea,
+	toast,
 } from '@mallhub/ui';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { TRPCClientError } from '@trpc/client';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
+import { withReturnTo } from '@/features/better-auth/return-to.lib';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -93,12 +104,21 @@ function NotFound() {
 function GuestReserveDialog({
 	open,
 	onClose,
+	registerHref,
+	loginHref,
 }: {
 	open: boolean;
 	onClose: () => void;
+	registerHref: string;
+	loginHref: string;
 }) {
 	return (
-		<Dialog open={open} onOpenChange={onClose}>
+		<Dialog
+			open={open}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose();
+			}}
+		>
 			<DialogContent className="sm:max-w-sm">
 				<DialogHeader>
 					<DialogTitle>{m.product_detail_reserve_guest_title()}</DialogTitle>
@@ -107,16 +127,13 @@ function GuestReserveDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<Button
-						nativeButton={false}
-						render={<Link to={localizeHref('/auth/register')} />}
-					>
+					<Button nativeButton={false} render={<Link to={registerHref} />}>
 						{m.product_detail_reserve_guest_register()}
 					</Button>
 					<Button
 						variant="outline"
 						nativeButton={false}
-						render={<Link to={localizeHref('/auth/login')} />}
+						render={<Link to={loginHref} />}
 					>
 						{m.product_detail_reserve_guest_login()}
 					</Button>
@@ -128,11 +145,15 @@ function GuestReserveDialog({
 
 // ─── Variant selector ─────────────────────────────────────────────────────────
 
-function VariantSelector({ groups }: { groups: VariantGroup[] }) {
-	const [selected, setSelected] = useState<Record<string, string>>(() =>
-		Object.fromEntries(groups.map((g) => [g.type, g.options[0] ?? ''])),
-	);
-
+function VariantSelector({
+	groups,
+	selected,
+	onSelect,
+}: {
+	groups: VariantGroup[];
+	selected: Record<string, string>;
+	onSelect: (type: string, option: string) => void;
+}) {
 	if (groups.length === 0) return null;
 
 	return (
@@ -150,9 +171,7 @@ function VariantSelector({ groups }: { groups: VariantGroup[] }) {
 								<button
 									key={option}
 									type="button"
-									onClick={() =>
-										setSelected((prev) => ({ ...prev, [group.type]: option }))
-									}
+									onClick={() => onSelect(group.type, option)}
 									className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
 										isActive
 											? 'border-primary bg-primary text-primary-foreground'
@@ -170,12 +189,179 @@ function VariantSelector({ groups }: { groups: VariantGroup[] }) {
 	);
 }
 
+function ReserveDialog({
+	open,
+	onClose,
+	isSubmitting,
+	defaultPickupFullName,
+	defaultPickupPhone,
+	onSubmit,
+}: {
+	open: boolean;
+	onClose: () => void;
+	isSubmitting: boolean;
+	defaultPickupFullName: string;
+	defaultPickupPhone: string;
+	onSubmit: (values: {
+		pickupFullName: string;
+		pickupPhone: string;
+		pickupNote: string;
+		quantity: number;
+	}) => Promise<void>;
+}) {
+	const [pickupFullName, setPickupFullName] = useState(defaultPickupFullName);
+	const [pickupPhone, setPickupPhone] = useState(defaultPickupPhone);
+	const [pickupNote, setPickupNote] = useState('');
+	const [quantityInput, setQuantityInput] = useState('1');
+
+	useEffect(() => {
+		if (!open) return;
+		setPickupFullName(defaultPickupFullName);
+		setPickupPhone(defaultPickupPhone);
+		setPickupNote('');
+		setQuantityInput('1');
+	}, [open, defaultPickupFullName, defaultPickupPhone]);
+
+	const quantity = Number.parseInt(quantityInput, 10);
+	const isQuantityValid = Number.isInteger(quantity) && quantity >= 1;
+	const canSubmit =
+		pickupFullName.trim().length > 0 &&
+		pickupPhone.trim().length > 0 &&
+		isQuantityValid;
+
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		if (!canSubmit || isSubmitting) {
+			return;
+		}
+		await onSubmit({
+			pickupFullName: pickupFullName.trim(),
+			pickupPhone: pickupPhone.trim(),
+			pickupNote: pickupNote.trim(),
+			quantity,
+		});
+	};
+
+	return (
+		<Dialog
+			open={open}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose();
+			}}
+		>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>{m.product_detail_reserve_dialog_title()}</DialogTitle>
+					<DialogDescription>
+						{m.product_detail_reserve_dialog_description()}
+					</DialogDescription>
+				</DialogHeader>
+				<form className="space-y-4" onSubmit={handleSubmit}>
+					<FieldGroup>
+						<Field>
+							<FieldLabel htmlFor="pickup-full-name">
+								{m.product_detail_reserve_pickup_name_label()}
+							</FieldLabel>
+							<Input
+								id="pickup-full-name"
+								value={pickupFullName}
+								onChange={(event) => setPickupFullName(event.target.value)}
+								placeholder={m.product_detail_reserve_pickup_name_placeholder()}
+								disabled={isSubmitting}
+								autoComplete="name"
+							/>
+						</Field>
+
+						<Field>
+							<FieldLabel htmlFor="pickup-phone">
+								{m.product_detail_reserve_pickup_phone_label()}
+							</FieldLabel>
+							<Input
+								id="pickup-phone"
+								value={pickupPhone}
+								onChange={(event) => setPickupPhone(event.target.value)}
+								placeholder={m.product_detail_reserve_pickup_phone_placeholder()}
+								disabled={isSubmitting}
+								autoComplete="tel"
+							/>
+						</Field>
+
+						<Field data-invalid={!isQuantityValid}>
+							<FieldLabel htmlFor="pickup-quantity">
+								{m.product_detail_reserve_quantity_label()}
+							</FieldLabel>
+							<Input
+								id="pickup-quantity"
+								type="number"
+								min={1}
+								step={1}
+								value={quantityInput}
+								onChange={(event) => setQuantityInput(event.target.value)}
+								aria-invalid={!isQuantityValid}
+								disabled={isSubmitting}
+							/>
+							{!isQuantityValid && (
+								<FieldError>
+									{m.product_detail_reserve_quantity_invalid()}
+								</FieldError>
+							)}
+						</Field>
+
+						<Field>
+							<FieldLabel htmlFor="pickup-note">
+								{m.product_detail_reserve_note_label()}
+							</FieldLabel>
+							<Textarea
+								id="pickup-note"
+								value={pickupNote}
+								onChange={(event) => setPickupNote(event.target.value)}
+								placeholder={m.product_detail_reserve_note_placeholder()}
+								disabled={isSubmitting}
+								rows={3}
+							/>
+						</Field>
+					</FieldGroup>
+
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onClose}
+							disabled={isSubmitting}
+						>
+							{m.product_detail_reserve_cancel()}
+						</Button>
+						<Button type="submit" disabled={!canSubmit || isSubmitting}>
+							{isSubmitting ? (
+								<>
+									<Spinner />
+									{m.product_detail_reserve_submitting()}
+								</>
+							) : (
+								m.product_detail_reserve_confirm()
+							)}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const { productId } = params;
 	const trpc = useTRPC();
+	const session = useAppSession();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [guestDialogOpen, setGuestDialogOpen] = useState(false);
+	const [reserveDialogOpen, setReserveDialogOpen] = useState(false);
+
+	const reserveMutation = useMutation(
+		trpc.reservations.create.mutationOptions(),
+	);
 
 	const productQuery = useQuery({
 		...trpc.browse.getProduct.queryOptions({ productId }),
@@ -187,13 +373,77 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 		!productQuery.isPending &&
 		(productQuery.isError || !productQuery.data?.product);
 
+	const variantGroups = useMemo(
+		() => parseVariants(product?.variantsJson ?? null),
+		[product?.variantsJson],
+	);
+	const [selectedVariants, setSelectedVariants] = useState<
+		Record<string, string>
+	>({});
+	useEffect(() => {
+		setSelectedVariants(
+			Object.fromEntries(
+				variantGroups.map((group) => [group.type, group.options[0] ?? '']),
+			),
+		);
+	}, [variantGroups]);
+
+	const inStock = (product?.stock ?? 0) > 0;
+	const storeId = product?.store.id;
+	const returnTo = `${location.pathname}${location.search}${location.hash}`;
+	const registerHref = withReturnTo(localizeHref('/auth/register'), returnTo);
+	const loginHref = withReturnTo(localizeHref('/auth/login'), returnTo);
+
 	if (isNotFound) {
 		return <NotFound />;
 	}
 
-	const variantGroups = parseVariants(product?.variantsJson ?? null);
-	const inStock = (product?.stock ?? 0) > 0;
-	const storeId = product?.store.id;
+	const handleReserveSubmit = async ({
+		pickupFullName,
+		pickupPhone,
+		pickupNote,
+		quantity,
+	}: {
+		pickupFullName: string;
+		pickupPhone: string;
+		pickupNote: string;
+		quantity: number;
+	}) => {
+		if (!product) return;
+
+		const selection = Object.entries(selectedVariants)
+			.filter(([, option]) => option.trim().length > 0)
+			.map(([type, option]) => ({ type, option }));
+
+		try {
+			await reserveMutation.mutateAsync({
+				productId: product.id,
+				quantity,
+				pickupFullName,
+				pickupPhone,
+				pickupNote: pickupNote.length > 0 ? pickupNote : null,
+				selectedVariants: selection,
+			});
+			setReserveDialogOpen(false);
+			toast.success(m.product_detail_reserve_success_toast());
+			navigate(localizeHref('/dashboard'));
+		} catch (error) {
+			if (error instanceof TRPCClientError) {
+				toast.error(
+					m.product_detail_reserve_error_toast({
+						message: error.data?.message ?? m.auth_unexpected_error(),
+					}),
+				);
+				return;
+			}
+
+			toast.error(
+				m.product_detail_reserve_error_toast({
+					message: m.auth_unexpected_error(),
+				}),
+			);
+		}
+	};
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -328,7 +578,16 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 
 					{/* Variants — Scenario 2 */}
 					{!productQuery.isPending && variantGroups.length > 0 && (
-						<VariantSelector groups={variantGroups} />
+						<VariantSelector
+							groups={variantGroups}
+							selected={selectedVariants}
+							onSelect={(type, option) =>
+								setSelectedVariants((previous) => ({
+									...previous,
+									[type]: option,
+								}))
+							}
+						/>
 					)}
 
 					{/* Description — Scenario 1 */}
@@ -347,14 +606,32 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 					<div className="pt-1">
 						<Button
 							className="w-full"
-							disabled={!inStock || productQuery.isPending}
+							disabled={
+								!inStock || productQuery.isPending || reserveMutation.isPending
+							}
 							onClick={() => {
-								if (inStock) setGuestDialogOpen(true);
+								if (!inStock || !product) {
+									return;
+								}
+
+								if (!session.data?.user) {
+									setGuestDialogOpen(true);
+									return;
+								}
+
+								setReserveDialogOpen(true);
 							}}
 						>
-							{inStock
-								? m.product_detail_reserve_button()
-								: m.product_detail_reserve_disabled()}
+							{reserveMutation.isPending ? (
+								<>
+									<Spinner />
+									{m.product_detail_reserve_submitting()}
+								</>
+							) : inStock ? (
+								m.product_detail_reserve_button()
+							) : (
+								m.product_detail_reserve_disabled()
+							)}
 						</Button>
 					</div>
 				</CardContent>
@@ -364,6 +641,17 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 			<GuestReserveDialog
 				open={guestDialogOpen}
 				onClose={() => setGuestDialogOpen(false)}
+				registerHref={registerHref}
+				loginHref={loginHref}
+			/>
+
+			<ReserveDialog
+				open={reserveDialogOpen}
+				onClose={() => setReserveDialogOpen(false)}
+				isSubmitting={reserveMutation.isPending}
+				defaultPickupFullName={session.data?.user.name ?? ''}
+				defaultPickupPhone=""
+				onSubmit={handleReserveSubmit}
 			/>
 
 			<div className="h-8" />

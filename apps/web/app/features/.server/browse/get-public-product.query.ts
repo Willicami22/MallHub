@@ -21,7 +21,6 @@ export const getPublicProductQuery = procedures.public
 				priceDiscount: true,
 				stock: true,
 				isReservable: true,
-				variantsJson: true,
 				store: {
 					select: {
 						id: true,
@@ -51,7 +50,7 @@ export const getPublicProductQuery = procedures.public
 				priceDiscount: product.priceDiscount?.toNumber() ?? null,
 				stock: product.stock,
 				isReservable: product.isReservable,
-				variantsJson: product.variantsJson,
+				variantsJson: null,
 				store: product.store,
 			},
 		};
