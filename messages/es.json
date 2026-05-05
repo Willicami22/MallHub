@@ -234,6 +234,7 @@
 	"nav_settings": "Configuración",
 	"nav_sign_out": "Cerrar sesión",
 	"nav_admin_platform": "Admin Plataforma",
+	"nav_admin_cc": "Panel Admin CC",
 	"admin_workspace_title": "Workspace de Admin Plataforma",
 	"admin_workspace_subtitle": "Navega todas las secciones superadmin desde un solo backoffice.",
 	"admin_nav_dashboard": "Dashboard",

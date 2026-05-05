@@ -234,6 +234,7 @@
 	"nav_settings": "Settings",
 	"nav_sign_out": "Sign out",
 	"nav_admin_platform": "Platform Admin",
+	"nav_admin_cc": "CC Admin Panel",
 	"admin_workspace_title": "Admin Platform Workspace",
 	"admin_workspace_subtitle": "Navigate all superadmin sections from one backoffice shell.",
 	"admin_nav_dashboard": "Dashboard",

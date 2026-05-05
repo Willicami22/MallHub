@@ -69,6 +69,10 @@ function canAccessAdminPlatform(user: { role?: string | null }): boolean {
 	return user.role === appRoles.ADMIN_PLATFORM;
 }
 
+function canAccessAdminCc(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_CC;
+}
+
 const NAV_LINKS = [
 	{
 		href: '/',
@@ -327,6 +331,19 @@ function UserMenu() {
 							</DropdownMenuGroup>
 						</>
 					)}
+					{canAccessAdminCc(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
 						<DropdownMenuItem
@@ -477,6 +494,17 @@ function MobileMenuSheet() {
 										{m.admin_users_title()}
 									</Button>
 								</>
+							)}
+							{canAccessAdminCc(session.data.user) && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</Button>
 							)}
 							<Separator className="my-1" />
 							<Button
