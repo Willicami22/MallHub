@@ -8,6 +8,7 @@ import {
 	defineAbilityForSessionUser,
 } from '@/features/.server/auth/app-ability.lib';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
+import { initializeAdminCcMockDb } from '@/features/.server/mock-db/admin-cc.mock';
 import { getLocaleFromAsyncStorage } from '@/features/.server/trpc/locale.context';
 import {
 	type AppRole,
@@ -15,19 +16,48 @@ import {
 } from '@/features/better-auth/better-auth-access-control.lib';
 import * as m from '@/paraglide/messages.js';
 
+// Initialize Admin CC Mock Database on module load
+initializeAdminCcMockDb();
+
+type SessionData = Awaited<ReturnType<typeof auth.api.getSession>>;
+type SessionUserBase = NonNullable<SessionData>['user'];
+type SessionUser = SessionUserBase & { preferredMallId?: string | null };
+type SessionRecord = NonNullable<SessionData>['session'];
+
 export const createTRPCContext = async (ctx: FetchCreateContextFnOptions) => {
-	const sessionData = await auth.api.getSession({
-		headers: ctx.req.headers,
-	});
-	const { ability, role } = defineAbilityForSessionUser(
-		sessionData?.user ?? null,
-	);
+	const sessionData = await auth.api
+		.getSession({
+			headers: ctx.req.headers,
+		})
+		.catch(() => null); // Catch DB errors if not connected
+
+	// TEMPORARY MOCK AUTH FOR DB-LESS TESTING
+	const mockUser = {
+		id: 'mock-admin-cc-123',
+		name: 'Admin CC',
+		email: 'admin@malls.com',
+		emailVerified: true,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		role: appRoles.ADMIN_CC,
+		preferredMallId: 'mall-001',
+	} as SessionUser;
+	const mockSession = {
+		id: 'mock-session-id',
+		userId: mockUser.id,
+		expiresAt: new Date(),
+	} as SessionRecord;
+	const sessionUser: SessionUser = sessionData?.user
+		? (sessionData.user as SessionUser)
+		: mockUser;
+
+	const { ability, role } = defineAbilityForSessionUser(sessionUser);
 
 	return {
 		headers: ctx.req.headers,
 		resHeaders: ctx.resHeaders,
-		session: sessionData?.session ?? null,
-		user: sessionData?.user ?? null,
+		session: sessionData?.session ?? mockSession,
+		user: sessionUser,
 		role,
 		ability,
 	};

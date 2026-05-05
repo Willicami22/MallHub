@@ -6,6 +6,7 @@ import {
 	Meta,
 	type MiddlewareFunction,
 	Outlet,
+	redirect,
 	Scripts,
 	ScrollRestoration,
 } from 'react-router';
@@ -32,6 +33,14 @@ export const middleware: MiddlewareFunction[] = [
 ];
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
+	const url = new URL(request.url);
+	const pathname = url.pathname;
+	const hasLocale = pathname.startsWith('/es') || pathname.startsWith('/en');
+
+	if (!hasLocale && pathname !== '/api' && !pathname.startsWith('/api/')) {
+		throw redirect(`/es${pathname}${url.search}${url.hash}`);
+	}
+
 	const sessionData = await auth.api.getSession({
 		headers: request.headers,
 	});
@@ -84,7 +93,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 	const message = isRouteErrorResponse(error)
 		? error.statusText || m.error_status_fallback()
 		: error instanceof Error
-			? error.message
+			? `${error.message}\n\n${error.stack}`
 			: m.error_unknown();
 
 	return (

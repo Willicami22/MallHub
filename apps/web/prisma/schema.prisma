@@ -320,6 +320,12 @@ model UserProfile {
   @@map("user_profiles")
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
 model Mall {
   id            String     @id @default(cuid())
   name          String
@@ -327,6 +333,7 @@ model Mall {
   address       String
   description   String?
   heroImageUrl  String?    @map("hero_image_url")
+  configMapSvg  String?    @map("config_map_svg") @db.Text
   status        MallStatus @default(INACTIVE)
   adminCcUserId String?    @map("admin_cc_user_id")
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -346,10 +353,29 @@ model Mall {
   moderationReports   ModerationReport[]
   billingSubscription BillingSubscription?       @relation("MallBillingSubscription")
   campaignTargets     CampaignTargetMall[]
+  events              MallEvent[]
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
   @@map("malls")
+}
+
+model MallEvent {
+  id          String      @id @default(cuid())
+  mallId      String      @map("mall_id")
+  name        String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  status      EventStatus @default(DRAFT)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at")
+
+  mall Mall @relation(fields: [mallId], references: [id], onDelete: Cascade)
+
+  @@index([mallId, status], map: "mall_events_mall_status_idx")
+  @@index([startDate, endDate], map: "mall_events_dates_idx")
+  @@map("mall_events")
 }
 
 model Store {
