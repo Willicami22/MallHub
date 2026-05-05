@@ -1,5 +1,6 @@
 import {
 	FavouriteIcon,
+	Location01Icon,
 	QrCode01Icon,
 	Settings01Icon,
 	ShoppingCart01Icon,
@@ -18,14 +19,18 @@ import {
 	CardHeader,
 	CardTitle,
 	Separator,
-	Skeleton,
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from '@mallhub/ui';
 import { Link } from 'react-router';
+import { requireAuthenticatedSession } from '@/features/.server/auth/auth-route-guard.lib';
+import type { ReservationStatus } from '@/features/.server/prisma/generated/enums';
+import { prisma } from '@/features/.server/prisma/prisma.server';
+import { resolveLocaleFromRequest } from '@/features/.server/trpc/locale.context';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
+import { buildProductReservationStepThreePath } from '@/features/reservations/lib/reservation-flow.lib';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/customer-dashboard.route';
@@ -34,6 +39,10 @@ export const meta = (_args: Route.MetaArgs) => [
 	{ title: m.customer_dashboard_meta_title() },
 	{ name: 'description', content: m.customer_dashboard_meta_description() },
 ];
+
+type ReservationsTab = 'active' | 'history';
+
+const ACTIVE_STATUSES = new Set(['PENDING', 'CONFIRMED']);
 
 function getInitials(name: string): string {
 	return name
@@ -44,25 +53,221 @@ function getInitials(name: string): string {
 		.toUpperCase();
 }
 
-// TODO-MOCK: Replace with real data
-const PLACEHOLDER_RESERVATIONS = [
-	{ id: 'r1', status: 'confirmed' as const },
-	{ id: 'r2', status: 'pending' as const },
-	{ id: 'r3', status: 'completed' as const },
-] as const;
+function formatRequestedAt(value: string): string {
+	const date = new Date(value);
 
-const STATUS_BADGE: Record<
-	'confirmed' | 'pending' | 'completed',
-	{ label: string; variant: 'default' | 'secondary' | 'outline' }
-> = {
-	confirmed: { label: 'Confirmada', variant: 'default' },
-	pending: { label: 'Pendiente', variant: 'secondary' },
-	completed: { label: 'Completada', variant: 'outline' },
+	return new Intl.DateTimeFormat(undefined, {
+		day: '2-digit',
+		month: 'short',
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+	}).format(date);
+}
+
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const session = await requireAuthenticatedSession(request);
+	const locale = resolveLocaleFromRequest(request);
+	const url = new URL(request.url);
+	const reservationsTab =
+		url.searchParams.get('reservationsTab') === 'history'
+			? ('history' as const)
+			: ('active' as const);
+
+	const reservations = await prisma.reservation.findMany({
+		where: {
+			customerUserId: session.user.id,
+		},
+		orderBy: {
+			requestedAt: 'desc',
+		},
+		select: {
+			id: true,
+			productId: true,
+			status: true,
+			quantity: true,
+			requestedAt: true,
+			store: {
+				select: {
+					name: true,
+					floor: true,
+				},
+			},
+			product: {
+				select: {
+					name: true,
+				},
+			},
+		},
+	});
+
+	return {
+		reservations: reservations.map((reservation) => ({
+			id: reservation.id,
+			productId: reservation.productId,
+			status: reservation.status,
+			quantity: reservation.quantity,
+			requestedAt: reservation.requestedAt.toISOString(),
+			storeName: reservation.store.name,
+			storeFloor: reservation.store.floor,
+			productName: reservation.product.name,
+			qrHref: localizeHref(
+				buildProductReservationStepThreePath({
+					productId: reservation.productId,
+					reservationId: reservation.id,
+				}),
+				{ locale },
+			),
+		})),
+		defaultReservationsTab: reservationsTab,
+	};
 };
 
-export default function CustomerDashboardRoute() {
+const RESERVATION_STATUS_BADGE: Record<
+	ReservationStatus,
+	{ variant: 'default' | 'secondary' | 'outline'; label: () => string }
+> = {
+	PENDING: {
+		variant: 'secondary',
+		label: () => m.customer_dashboard_reservation_status_pending(),
+	},
+	CONFIRMED: {
+		variant: 'default',
+		label: () => m.customer_dashboard_reservation_status_confirmed(),
+	},
+	COMPLETED: {
+		variant: 'outline',
+		label: () => m.customer_dashboard_reservation_status_completed(),
+	},
+	CANCELED: {
+		variant: 'outline',
+		label: () => m.customer_dashboard_reservation_status_canceled(),
+	},
+	REJECTED: {
+		variant: 'outline',
+		label: () => m.customer_dashboard_reservation_status_canceled(),
+	},
+};
+
+function ReservationCard({
+	reservation,
+}: {
+	reservation: {
+		id: string;
+		productId: string;
+		status: ReservationStatus;
+		quantity: number;
+		requestedAt: string;
+		storeName: string;
+		storeFloor: string | null;
+		productName: string;
+		qrHref: string;
+	};
+}) {
+	const statusInfo = RESERVATION_STATUS_BADGE[reservation.status];
+
+	return (
+		<Card>
+			<CardHeader className="pb-2">
+				<div className="flex items-start justify-between gap-3">
+					<div className="flex items-center gap-3">
+						<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+							<HugeiconsIcon
+								icon={ShoppingCart01Icon}
+								className="size-5 text-muted-foreground"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<span className="text-sm font-medium text-foreground">
+								{reservation.productName}
+							</span>
+							<span className="text-xs text-muted-foreground">
+								{reservation.storeName}
+							</span>
+						</div>
+					</div>
+					<Badge variant={statusInfo.variant}>{statusInfo.label()}</Badge>
+				</div>
+			</CardHeader>
+			<CardContent className="space-y-3">
+				<div className="grid gap-1 text-xs text-muted-foreground">
+					<span>
+						{m.customer_dashboard_reservation_requested_at({
+							date: formatRequestedAt(reservation.requestedAt),
+						})}
+					</span>
+					<span>
+						{m.customer_dashboard_reservation_quantity({
+							quantity: reservation.quantity,
+						})}
+					</span>
+					{reservation.storeFloor && (
+						<span className="flex items-center gap-1">
+							<HugeiconsIcon icon={Location01Icon} className="size-3.5" />
+							{m.customer_dashboard_reservation_floor({
+								floor: reservation.storeFloor,
+							})}
+						</span>
+					)}
+				</div>
+				{ACTIVE_STATUSES.has(reservation.status) && (
+					<Button
+						variant="outline"
+						size="xs"
+						nativeButton={false}
+						render={<Link to={reservation.qrHref} />}
+					>
+						<HugeiconsIcon icon={QrCode01Icon} data-icon="inline-start" />
+						{m.customer_dashboard_reservation_view_qr()}
+					</Button>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+function ReservationsEmptyState({
+	title,
+	description,
+}: {
+	title: string;
+	description: string;
+}) {
+	return (
+		<div className="flex flex-col items-center gap-3 py-16 text-center">
+			<div className="flex size-14 items-center justify-center rounded-full bg-muted">
+				<HugeiconsIcon
+					icon={QrCode01Icon}
+					className="size-7 text-muted-foreground"
+				/>
+			</div>
+			<div className="space-y-1">
+				<p className="text-sm font-medium text-foreground">{title}</p>
+				<p className="text-sm text-muted-foreground">{description}</p>
+			</div>
+			<Button
+				variant="outline"
+				size="sm"
+				nativeButton={false}
+				render={<Link to={localizeHref('/stores')} />}
+			>
+				{m.nav_stores()}
+			</Button>
+		</div>
+	);
+}
+
+export default function CustomerDashboardRoute({
+	loaderData,
+}: Route.ComponentProps) {
 	const session = useAppSession();
 	const user = session.data?.user;
+	const activeReservations = loaderData.reservations.filter((reservation) =>
+		ACTIVE_STATUSES.has(reservation.status),
+	);
+	const historyReservations = loaderData.reservations.filter(
+		(reservation) => !ACTIVE_STATUSES.has(reservation.status),
+	);
 
 	return (
 		<div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -100,48 +305,54 @@ export default function CustomerDashboardRoute() {
 				</TabsList>
 
 				<TabsContent value="reservations">
-					<div className="flex flex-col gap-4">
-						{PLACEHOLDER_RESERVATIONS.map((reservation) => {
-							const statusInfo = STATUS_BADGE[reservation.status];
-							return (
-								<Card key={reservation.id}>
-									<CardHeader className="pb-2">
-										<div className="flex items-start justify-between gap-3">
-											<div className="flex items-center gap-3">
-												<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-													<HugeiconsIcon
-														icon={ShoppingCart01Icon}
-														className="size-5 text-muted-foreground"
-													/>
-												</div>
-												<div className="flex flex-col gap-1.5">
-													<Skeleton className="h-4 w-44" />
-													<Skeleton className="h-3.5 w-28" />
-												</div>
-											</div>
-											<Badge variant={statusInfo.variant}>
-												{statusInfo.label}
-											</Badge>
-										</div>
-									</CardHeader>
-									<CardContent className="pb-3">
-										<div className="flex items-center justify-between">
-											<Skeleton className="h-3.5 w-32" />
-											{reservation.status === 'confirmed' && (
-												<Button variant="outline" size="xs">
-													<HugeiconsIcon
-														icon={QrCode01Icon}
-														data-icon="inline-start"
-													/>
-													Ver QR
-												</Button>
-											)}
-										</div>
-									</CardContent>
-								</Card>
-							);
-						})}
-					</div>
+					<Tabs
+						defaultValue={loaderData.defaultReservationsTab as ReservationsTab}
+					>
+						<TabsList className="mb-4">
+							<TabsTrigger value="active">
+								{m.customer_dashboard_reservations_active_tab()}
+							</TabsTrigger>
+							<TabsTrigger value="history">
+								{m.customer_dashboard_reservations_history_tab()}
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent value="active">
+							{activeReservations.length === 0 ? (
+								<ReservationsEmptyState
+									title={m.customer_dashboard_reservations_active_empty_title()}
+									description={m.customer_dashboard_reservations_active_empty_description()}
+								/>
+							) : (
+								<div className="flex flex-col gap-4">
+									{activeReservations.map((reservation) => (
+										<ReservationCard
+											key={reservation.id}
+											reservation={reservation}
+										/>
+									))}
+								</div>
+							)}
+						</TabsContent>
+
+						<TabsContent value="history">
+							{historyReservations.length === 0 ? (
+								<ReservationsEmptyState
+									title={m.customer_dashboard_reservations_history_empty_title()}
+									description={m.customer_dashboard_reservations_history_empty_description()}
+								/>
+							) : (
+								<div className="flex flex-col gap-4">
+									{historyReservations.map((reservation) => (
+										<ReservationCard
+											key={reservation.id}
+											reservation={reservation}
+										/>
+									))}
+								</div>
+							)}
+						</TabsContent>
+					</Tabs>
 				</TabsContent>
 
 				<TabsContent value="profile">

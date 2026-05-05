@@ -32,6 +32,10 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { withReturnTo } from '@/features/better-auth/return-to.lib';
+import {
+	buildProductReservationStepOnePath,
+	encodeSelectedVariantsParam,
+} from '@/features/reservations/lib/reservation-flow.lib';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -619,7 +623,29 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 									return;
 								}
 
-								setReserveDialogOpen(true);
+								const selectedVariantsQuery = Object.entries(selectedVariants)
+									.filter(([, option]) => option.trim().length > 0)
+									.map(([type, option]) => ({
+										type,
+										option,
+									}));
+								const reserveFlowQuery = new URLSearchParams();
+								if (selectedVariantsQuery.length > 0) {
+									reserveFlowQuery.set(
+										'variants',
+										encodeSelectedVariantsParam(selectedVariantsQuery),
+									);
+								}
+
+								const reserveHref = buildProductReservationStepOnePath(
+									product.id,
+								);
+								const reserveFlowHref =
+									reserveFlowQuery.toString().length > 0
+										? `${reserveHref}?${reserveFlowQuery.toString()}`
+										: reserveHref;
+
+								navigate(localizeHref(reserveFlowHref));
 							}}
 						>
 							{reserveMutation.isPending ? (
