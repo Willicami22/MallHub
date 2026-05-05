@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { subDays } from 'date-fns';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 import { prisma } from '@/features/.server/prisma/prisma.server';
@@ -458,6 +459,203 @@ async function seed() {
 				},
 			});
 			console.log(`  Created promotion: ${promoData.title}`);
+		}
+	}
+
+	// --- Admin CC user ---
+	const adminCcEmail = 'admin-cc@mallhub.com';
+	const existingAdminCc = await prisma.user.findUnique({
+		where: { email: adminCcEmail },
+		select: { id: true },
+	});
+	if (!existingAdminCc) {
+		await auth.api.signUpEmail({
+			body: {
+				email: adminCcEmail,
+				name: 'Admin CC Demo',
+				password: 'AdminCC123!',
+			},
+			asResponse: false,
+		});
+	}
+	const adminCcUser = await prisma.user.update({
+		where: { email: adminCcEmail },
+		data: {
+			name: 'Admin CC Demo',
+			role: appRoles.ADMIN_CC,
+			emailVerified: true,
+		},
+		select: { id: true },
+	});
+	console.log(`  Admin CC user ready: ${adminCcEmail}`);
+
+	// --- Link Admin CC to Gran Plaza ---
+	const granPlaza = createdMalls.find(
+		(m) => m.name === 'Centro Comercial Gran Plaza',
+	);
+	if (granPlaza) {
+		const platformAdmin = await prisma.user.findUniqueOrThrow({
+			where: { email: ADMIN_EMAIL },
+			select: { id: true },
+		});
+
+		await prisma.user.update({
+			where: { id: adminCcUser.id },
+			data: { preferredMallId: granPlaza.id },
+		});
+
+		await prisma.mall.update({
+			where: { id: granPlaza.id },
+			data: { adminCcUserId: adminCcUser.id },
+		});
+
+		const existingAssignment = await prisma.adminCcAssignment.findFirst({
+			where: { mallId: granPlaza.id, adminCcUserId: adminCcUser.id },
+			select: { id: true },
+		});
+		if (!existingAssignment) {
+			await prisma.adminCcAssignment.create({
+				data: {
+					mallId: granPlaza.id,
+					adminCcUserId: adminCcUser.id,
+					createdByUserId: platformAdmin.id,
+				},
+			});
+			console.log('  Created AdminCcAssignment for Gran Plaza');
+		}
+
+		// --- DailyMallMetric: last 90 days for Gran Plaza ---
+		const granPlazaStores = createdStores.filter(
+			(s) => s.mallId === granPlaza.id,
+		);
+
+		for (let i = 89; i >= 0; i--) {
+			const date = subDays(new Date(), i);
+			const metricDate = new Date(
+				Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+			);
+
+			const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+			const seed = date.getTime();
+			const rng = (s: number) => {
+				const x = Math.sin(s) * 10000;
+				return x - Math.floor(x);
+			};
+
+			const base = Math.floor(80 + rng(seed) * 120);
+			const searches = Math.floor(base * (isWeekend ? 1.5 : 1.0));
+			const reservations = Math.floor(searches * (0.08 + rng(seed + 1) * 0.07));
+			const completed = Math.floor(reservations * (0.65 + rng(seed + 2) * 0.3));
+
+			await prisma.dailyMallMetric.upsert({
+				where: { mallId_metricDate: { mallId: granPlaza.id, metricDate } },
+				create: {
+					mallId: granPlaza.id,
+					metricDate,
+					searchesCount: searches,
+					reservationsTotal: reservations,
+					reservationsCompleted: completed,
+					activeStores: granPlazaStores.length,
+				},
+				update: {},
+			});
+		}
+		console.log('  Upserted 90 days of DailyMallMetric for Gran Plaza');
+
+		// --- Customer demo user ---
+		const customerEmail = 'customer-demo@mallhub.com';
+		if (
+			!(await prisma.user.findUnique({
+				where: { email: customerEmail },
+				select: { id: true },
+			}))
+		) {
+			await auth.api.signUpEmail({
+				body: {
+					email: customerEmail,
+					name: 'Cliente Demo',
+					password: 'Customer123!',
+				},
+				asResponse: false,
+			});
+		}
+		await prisma.user.update({
+			where: { email: customerEmail },
+			data: { emailVerified: true },
+		});
+		const customerUser = await prisma.user.findUniqueOrThrow({
+			where: { email: customerEmail },
+			select: { id: true },
+		});
+		console.log(`  Customer user ready: ${customerEmail}`);
+
+		// --- Demo reservations spread over 90 days ---
+		for (const store of granPlazaStores) {
+			const storeProducts = await prisma.product.findMany({
+				where: { storeId: store.id, status: 'ACTIVE' },
+				select: { id: true },
+				take: 2,
+			});
+			if (storeProducts.length === 0) continue;
+
+			for (let i = 0; i < 20; i++) {
+				const product = storeProducts[i % storeProducts.length];
+				const qrCode = `SEED-${store.id.slice(-6)}-${product.id.slice(-6)}-${i}`;
+				if (
+					await prisma.reservation.findUnique({
+						where: { qrCodeValue: qrCode },
+						select: { id: true },
+					})
+				)
+					continue;
+
+				const daysAgo = Math.floor((i / 20) * 89) + 1;
+				const requestedAt = subDays(new Date(), daysAgo);
+				await prisma.reservation.create({
+					data: {
+						mallId: granPlaza.id,
+						storeId: store.id,
+						productId: product.id,
+						customerUserId: customerUser.id,
+						status: 'COMPLETED',
+						quantity: 1,
+						pickupFullName: 'Cliente Demo',
+						pickupPhone: '+5215512345678',
+						qrCodeValue: qrCode,
+						requestedAt,
+						completedAt: new Date(requestedAt.getTime() + 24 * 60 * 60 * 1000),
+					},
+				});
+			}
+		}
+		console.log('  Created demo reservations for Gran Plaza');
+
+		// --- Out-of-stock product for alerts demo ---
+		const zaraStore = granPlazaStores.find((s) => s.name === 'Zara');
+		if (zaraStore) {
+			const exists = await prisma.product.findFirst({
+				where: {
+					storeId: zaraStore.id,
+					name: 'Vestido midi primavera (sin stock)',
+				},
+				select: { id: true },
+			});
+			if (!exists) {
+				await prisma.product.create({
+					data: {
+						name: 'Vestido midi primavera (sin stock)',
+						category: 'Ropa',
+						description:
+							'Vestido ligero para primavera. Agotado temporalmente.',
+						priceOriginal: 849,
+						stock: 0,
+						status: 'ACTIVE',
+						storeId: zaraStore.id,
+						mallId: granPlaza.id,
+					},
+				});
+				console.log('  Created out-of-stock product for alerts demo');
+			}
 		}
 	}
 
