@@ -17,7 +17,9 @@
       "Bash(pnpm --filter @mallhub/web run lint)",
       "Bash(xargs cat *)",
       "Bash(npx paraglide-js *)",
-      "Bash(Select-String \"date-fns\")"
+      "Bash(Select-String \"date-fns\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\willi\\\\Documents\\\\Universidad\\\\9no Semestre\\\\Innovacion softwares apoyadas en nuevas tecnologias\\\\MallHub\\\\MallHub\\\\apps\\\\web\\\\app\\\\features\\\\admin-cc\" -Recurse -Include \"*.tsx\", \"*.ts\")",
+      "Bash(Select-Object FullName)"
     ]
   }
 }
