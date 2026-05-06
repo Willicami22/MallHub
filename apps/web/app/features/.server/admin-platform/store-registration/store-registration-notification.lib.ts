@@ -10,6 +10,14 @@ type StoreNotificationRecipient = {
 
 type StoreRegistrationDecision = 'APPROVED' | 'REJECTED';
 
+type StoreRegistrationRequestNotificationInput = {
+	registrationRequestId: string;
+	storeName: string;
+	mallName: string;
+	applicantUser: StoreNotificationRecipient;
+	adminCcUser: StoreNotificationRecipient | null;
+};
+
 type StoreRegistrationDecisionNotificationInput = {
 	registrationRequestId: string;
 	storeName: string;
@@ -42,6 +50,17 @@ const buildIdempotencyKey = (
 		.digest('hex');
 
 	return `admin-store-registration-decision/${digest}`;
+};
+
+const buildRequestIdempotencyKey = (
+	registrationRequestId: string,
+	recipientEmail: string,
+): string => {
+	const digest = createHash('sha256')
+		.update(`${registrationRequestId}:${recipientEmail}`)
+		.digest('hex');
+
+	return `admin-store-registration-request/${digest}`;
 };
 
 const getUniqueRecipients = (
@@ -115,6 +134,46 @@ export const notifyStoreRegistrationDecision = ({
 				decision,
 				recipient.email,
 				normalizedReason,
+			),
+		});
+	}
+};
+
+export const notifyStoreRegistrationRequest = ({
+	registrationRequestId,
+	storeName,
+	mallName,
+	applicantUser,
+	adminCcUser,
+}: StoreRegistrationRequestNotificationInput): void => {
+	const recipients = getUniqueRecipients([adminCcUser]);
+	if (recipients.length === 0) {
+		return;
+	}
+
+	const locale = getLocaleFromAsyncStorage();
+	for (const recipient of recipients) {
+		dispatchNotificationEmail({
+			to: recipient.email,
+			subject: m.admin_store_registrations_notification_request_subject(
+				{
+					storeName,
+					mallName,
+				},
+				{ locale },
+			),
+			text: m.admin_store_registrations_notification_request_text(
+				{
+					name: recipient.name,
+					storeName,
+					mallName,
+					applicant: applicantUser.name,
+				},
+				{ locale },
+			),
+			idempotencyKey: buildRequestIdempotencyKey(
+				registrationRequestId,
+				recipient.email,
 			),
 		});
 	}

@@ -5,7 +5,9 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Button } from '@mallhub/ui';
+import { Link } from 'react-router';
 import * as m from '@/paraglide/messages.js';
+import { localizeHref } from '@/paraglide/runtime.js';
 
 function DecorativeSvg() {
 	return (
@@ -120,7 +122,13 @@ export function LandingBusinessBenefits() {
 								</li>
 							))}
 						</ul>
-						<Button variant="secondary" size="lg" className="mt-6 w-full">
+						<Button
+							variant="secondary"
+							size="lg"
+							className="mt-6 w-full"
+							nativeButton={false}
+							render={<Link to={localizeHref('/store-local/register')} />}
+						>
 							{m.landing_business_store_cta()}
 						</Button>
 					</div>

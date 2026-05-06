@@ -4,10 +4,12 @@ export type StoreLocalCredentials = {
 };
 
 export type RegisterStorePayload = {
+	mallId: string;
 	storeName: string;
-	slug: string;
-	ownerEmail: string;
-	password: string;
+	category: string;
+	mail: string;
+	contactPhone: string;
+	description?: string;
 };
 
 export type PasswordResetRequest = {

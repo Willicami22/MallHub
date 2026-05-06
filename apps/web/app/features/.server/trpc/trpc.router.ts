@@ -68,6 +68,7 @@ import { listPublicStoreProductsQuery } from '@/features/.server/browse/list-pub
 import { listPublicStoresQuery } from '@/features/.server/browse/list-public-stores.query';
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
+import { createStoreRegistrationMutation } from '@/features/.server/store-registration/create-store-registration.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
 
 ensurePlatformMetricsAggregationRuntime();
@@ -100,6 +101,9 @@ export const appRouter = t.router({
 		getProduct: getPublicProductQuery,
 		listAllProducts: listAllPublicProductsQuery,
 		listPromotions: listPublicPromotionsQuery,
+	}),
+	storeRegistrations: t.router({
+		create: createStoreRegistrationMutation,
 	}),
 	adminUsers: t.router({
 		list: listUsersQuery,
