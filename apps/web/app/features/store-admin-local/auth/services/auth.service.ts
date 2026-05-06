@@ -66,7 +66,7 @@ export const authService = {
 	): Promise<{ store: Store }> {
 		await mockLatency(500);
 
-		if (shouldMockFail(input.ownerEmail)) {
+		if (shouldMockFail(input.mail)) {
 			throw new ServiceError('No se pudo registrar la tienda (simulación).', {
 				code: 'UNKNOWN',
 			});
@@ -75,7 +75,6 @@ export const authService = {
 		const store: Store = {
 			...MOCK_STORE_SEED,
 			id: `store_${crypto.randomUUID()}`,
-			slug: input.slug,
 			name: input.storeName,
 			updatedAt: new Date().toISOString(),
 		};

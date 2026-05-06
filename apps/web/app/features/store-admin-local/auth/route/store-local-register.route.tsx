@@ -8,7 +8,7 @@ export const meta = () => [
 	{ title: 'Registrar tienda' },
 	{
 		name: 'description',
-		content: 'Alta de tienda para el panel local (simulado).',
+		content: 'Solicitud de alta de tienda para el panel local.',
 	},
 ];
 
@@ -21,9 +21,8 @@ export default function StoreLocalRegisterRoute() {
 						Registrar tienda
 					</h2>
 					<p className="text-sm text-muted-foreground">
-						Tras el registro simulado se fija la tienda activa y se te dirige al
-						acceso para iniciar sesión en MallHub. Correos con{' '}
-						<code className="text-xs">error@</code> fuerzan error.
+						Tu solicitud quedará pendiente de aprobación del mall seleccionado.
+						Te notificaremos cuando haya una decisión.
 					</p>
 				</div>
 				<Separator />

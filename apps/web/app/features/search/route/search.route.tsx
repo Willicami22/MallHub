@@ -1,6 +1,5 @@
 import {
 	Building04Icon,
-	FilterIcon,
 	Search01Icon,
 	ShoppingBag01Icon,
 	Tag01Icon,
@@ -254,7 +253,7 @@ export default function SearchRoute() {
 
 	// ── Primary filters ─────────────────────────────────────────────────────────
 	const [query, setQuery] = useState('');
-	const [filter, setFilter] = useState<FilterType>('all');
+	const [filter, _setFilter] = useState<FilterType>('all');
 	const [selectedMallId, setSelectedMallId] = useState(initialMall);
 
 	// ── Advanced filters (filter panel) ────────────────────────────────────────
