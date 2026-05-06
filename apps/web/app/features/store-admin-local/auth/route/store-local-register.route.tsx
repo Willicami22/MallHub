@@ -1,8 +1,11 @@
 import { Button, Separator } from '@mallhub/ui';
-import { Link } from 'react-router';
+import { Link, redirect } from 'react-router';
+import { auth } from '@/features/.server/auth/better-auth-server.lib';
 import { AuthLayout } from '@/features/better-auth/components/auth-layout';
+import { withReturnTo } from '@/features/better-auth/return-to.lib';
 import { StoreRegisterForm } from '@/features/store-admin-local/auth/components/store-register-form';
 import { localizeHref } from '@/paraglide/runtime.js';
+import type { Route } from './+types/store-local-register.route';
 
 export const meta = () => [
 	{ title: 'Registrar tienda' },
@@ -11,6 +14,19 @@ export const meta = () => [
 		content: 'Solicitud de alta de tienda para el panel local.',
 	},
 ];
+
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) {
+		const loginHref = withReturnTo(
+			localizeHref('/auth/login'),
+			localizeHref('/store-local/register'),
+		);
+		throw redirect(loginHref);
+	}
+
+	return null;
+};
 
 export default function StoreLocalRegisterRoute() {
 	return (
