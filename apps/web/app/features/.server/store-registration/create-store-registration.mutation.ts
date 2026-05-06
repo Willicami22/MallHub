@@ -15,7 +15,7 @@ const createStoreRegistrationInputSchema = z.object({
 	description: z.string().trim().max(2000).optional(),
 });
 
-export const createStoreRegistrationMutation = procedures.auth
+export const createStoreRegistrationMutation = procedures.adminLocal
 	.input(createStoreRegistrationInputSchema)
 	.mutation(async ({ ctx, input }) => {
 		const locale = getLocaleFromAsyncStorage();
