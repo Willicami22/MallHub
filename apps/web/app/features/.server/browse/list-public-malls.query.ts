@@ -31,6 +31,7 @@ export const listPublicMallsQuery = procedures.public
 				city: true,
 				address: true,
 				description: true,
+				logoImageUrl: true,
 				heroImageUrl: true,
 				_count: {
 					select: {
@@ -51,6 +52,7 @@ export const listPublicMallsQuery = procedures.public
 				city: mall.city,
 				address: mall.address,
 				description: mall.description,
+				logoImageUrl: mall.logoImageUrl,
 				heroImageUrl: mall.heroImageUrl,
 				activeStoreCount: mall._count.stores,
 			})),

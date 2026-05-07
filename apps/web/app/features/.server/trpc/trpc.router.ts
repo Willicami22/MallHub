@@ -62,6 +62,7 @@ import { getPublicMallQuery } from '@/features/.server/browse/get-public-mall.qu
 import { getPublicProductQuery } from '@/features/.server/browse/get-public-product.query';
 import { getPublicStoreQuery } from '@/features/.server/browse/get-public-store.query';
 import { listAllPublicProductsQuery } from '@/features/.server/browse/list-all-public-products.query';
+import { listPublicMallEventsQuery } from '@/features/.server/browse/list-public-mall-events.query';
 import { listPublicMallsQuery } from '@/features/.server/browse/list-public-malls.query';
 import { listPublicPromotionsQuery } from '@/features/.server/browse/list-public-promotions.query';
 import { listPublicStoreProductsQuery } from '@/features/.server/browse/list-public-store-products.query';
@@ -100,6 +101,7 @@ export const appRouter = t.router({
 		getProduct: getPublicProductQuery,
 		listAllProducts: listAllPublicProductsQuery,
 		listPromotions: listPublicPromotionsQuery,
+		listMallEvents: listPublicMallEventsQuery,
 	}),
 	adminUsers: t.router({
 		list: listUsersQuery,
