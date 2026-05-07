@@ -652,6 +652,7 @@ model Reservation {
   pickupPhone    String            @map("pickup_phone")
   pickupNote     String?           @map("pickup_note")
   qrCodeValue    String            @unique @map("qr_code_value")
+  scheduledAt    DateTime?         @map("scheduled_at")
   requestedAt    DateTime          @default(now()) @map("requested_at")
   confirmedAt    DateTime?         @map("confirmed_at")
   completedAt    DateTime?         @map("completed_at")
