@@ -2,13 +2,16 @@ import {
 	Building04Icon,
 	Calendar03Icon,
 	DashboardSquare01Icon,
+	Logout01Icon,
 	ShoppingBag01Icon,
 	UserIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Button, Separator } from '@mallhub/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { NavLink, useNavigate } from 'react-router';
-import { useAuth } from '@/features/store-admin-local/auth/hooks/use-auth';
+import { signOut } from '@/features/better-auth/better-auth-client.lib';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { localizeHref } from '@/paraglide/runtime.js';
 
 const nav = [
@@ -26,9 +29,17 @@ const nav = [
 	},
 ] as const;
 
-export function StoreLocalSidebar() {
+export function StoreLocalSidebar({ storeName }: { storeName: string }) {
 	const navigate = useNavigate();
-	const { user, signOut } = useAuth();
+	const queryClient = useQueryClient();
+	const session = useAppSession();
+	const email = session.data?.user.email ?? '—';
+
+	const handleSignOut = async () => {
+		await signOut();
+		queryClient.clear();
+		navigate(localizeHref('/'));
+	};
 
 	return (
 		<aside className="flex w-64 shrink-0 flex-col border-r bg-card">
@@ -40,9 +51,7 @@ export function StoreLocalSidebar() {
 					/>
 				</div>
 				<div className="flex min-w-0 flex-col">
-					<span className="truncate text-sm font-semibold">
-						Panel de tienda
-					</span>
+					<span className="truncate text-sm font-semibold">{storeName}</span>
 					<span className="truncate text-xs text-muted-foreground">
 						Panel local
 					</span>
@@ -76,7 +85,7 @@ export function StoreLocalSidebar() {
 						className="size-4 text-muted-foreground"
 					/>
 					<div className="min-w-0 flex-1">
-						<p className="truncate text-xs font-medium">{user?.email ?? '—'}</p>
+						<p className="truncate text-xs font-medium">{email}</p>
 					</div>
 				</div>
 				<Button
@@ -84,11 +93,10 @@ export function StoreLocalSidebar() {
 					size="sm"
 					className="w-full"
 					onClick={() => {
-						void signOut().then(() =>
-							navigate(localizeHref('/store-local/login')),
-						);
+						void handleSignOut();
 					}}
 				>
+					<HugeiconsIcon icon={Logout01Icon} className="size-4" />
 					Cerrar sesión
 				</Button>
 			</div>

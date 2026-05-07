@@ -1,5 +1,5 @@
 import { toast } from '@mallhub/ui';
-import { useAuth } from '@/features/store-admin-local/auth/hooks/use-auth';
+import { useOutletContext } from 'react-router';
 import { ReservationsList } from '@/features/store-admin-local/reservations/components/reservations-list';
 import { useReservations } from '@/features/store-admin-local/reservations/hooks/use-reservations';
 import {
@@ -16,7 +16,7 @@ export const meta = () => [
 ];
 
 export default function StoreReservationsRoute(_props: Route.ComponentProps) {
-	const { activeStoreId } = useAuth();
+	const { storeId: activeStoreId } = useOutletContext<{ storeId: string }>();
 	const { listQuery, transitionMutation } = useReservations(activeStoreId);
 
 	const errorMessage =

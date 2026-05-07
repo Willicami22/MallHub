@@ -1,4 +1,4 @@
-import { useAuth } from '@/features/store-admin-local/auth/hooks/use-auth';
+import { useOutletContext } from 'react-router';
 import { StoreDashboard } from '@/features/store-admin-local/store-dashboard/components/store-dashboard';
 import type { Route } from './+types/store-dashboard.route';
 
@@ -8,6 +8,6 @@ export const meta = () => [
 ];
 
 export default function StoreDashboardRoute(_props: Route.ComponentProps) {
-	const { activeStoreId } = useAuth();
-	return <StoreDashboard storeId={activeStoreId} />;
+	const { storeId } = useOutletContext<{ storeId: string }>();
+	return <StoreDashboard storeId={storeId} />;
 }

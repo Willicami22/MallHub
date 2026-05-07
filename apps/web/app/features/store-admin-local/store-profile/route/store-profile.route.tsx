@@ -1,5 +1,5 @@
 import { toast } from '@mallhub/ui';
-import { useAuth } from '@/features/store-admin-local/auth/hooks/use-auth';
+import { useOutletContext } from 'react-router';
 import {
 	ListEmptyState,
 	ResourceBoundary,
@@ -19,7 +19,7 @@ export const meta = () => [
 ];
 
 export default function StoreProfileRoute(_props: Route.ComponentProps) {
-	const { activeStoreId } = useAuth();
+	const { storeId: activeStoreId } = useOutletContext<{ storeId: string }>();
 	const {
 		profileQuery,
 		updateMutation,

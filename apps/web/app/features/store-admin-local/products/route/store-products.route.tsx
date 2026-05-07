@@ -1,6 +1,6 @@
 import { Button, toast } from '@mallhub/ui';
 import { useState } from 'react';
-import { useAuth } from '@/features/store-admin-local/auth/hooks/use-auth';
+import { useOutletContext } from 'react-router';
 import { ProductFormDialog } from '@/features/store-admin-local/products/components/product-form-dialog';
 import { ProductsTable } from '@/features/store-admin-local/products/components/products-table';
 import { useProducts } from '@/features/store-admin-local/products/hooks/use-products';
@@ -20,7 +20,7 @@ export const meta = () => [
 ];
 
 export default function StoreProductsRoute(_props: Route.ComponentProps) {
-	const { activeStoreId } = useAuth();
+	const { storeId: activeStoreId } = useOutletContext<{ storeId: string }>();
 	const search = useProductsUiStore((state) => state.search);
 	const setSearch = useProductsUiStore((state) => state.setSearch);
 	const { products, listQuery, upsertMutation, deleteMutation } =

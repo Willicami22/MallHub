@@ -40,16 +40,12 @@ export default [
 					'features/store-admin-local/shell/store-local-public-layout.route.tsx',
 					[
 						route(
-							'login',
-							'features/store-admin-local/auth/route/store-local-login.route.tsx',
-						),
-						route(
 							'register',
 							'features/store-admin-local/auth/route/store-local-register.route.tsx',
 						),
 						route(
-							'forgot-password',
-							'features/store-admin-local/auth/route/store-local-forgot-password.route.tsx',
+							'pending',
+							'features/store-admin-local/auth/route/store-local-pending.route.tsx',
 						),
 					],
 				),
