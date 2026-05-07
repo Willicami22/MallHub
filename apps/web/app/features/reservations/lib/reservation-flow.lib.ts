@@ -213,6 +213,12 @@ export function buildProductReservationStepThreePath({
 	return `/products/${productId}/reserve/confirmation/${reservationId}`;
 }
 
+export function buildCustomerReservationDetailPath(
+	reservationId: string,
+): string {
+	return `/dashboard/reservations/${reservationId}`;
+}
+
 export function buildVariantSnapshot(
 	selectedVariants: SelectedVariant[],
 ): string | null {

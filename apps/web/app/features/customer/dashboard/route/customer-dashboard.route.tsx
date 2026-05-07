@@ -30,7 +30,7 @@ import type { ReservationStatus } from '@/features/.server/prisma/generated/enum
 import { prisma } from '@/features/.server/prisma/prisma.server';
 import { resolveLocaleFromRequest } from '@/features/.server/trpc/locale.context';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
-import { buildProductReservationStepThreePath } from '@/features/reservations/lib/reservation-flow.lib';
+import { buildCustomerReservationDetailPath } from '@/features/reservations/lib/reservation-flow.lib';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/customer-dashboard.route';
@@ -40,9 +40,11 @@ export const meta = (_args: Route.MetaArgs) => [
 	{ name: 'description', content: m.customer_dashboard_meta_description() },
 ];
 
-type ReservationsTab = 'active' | 'history';
+type ReservationsTab = 'active' | 'completed' | 'canceled';
 
-const ACTIVE_STATUSES = new Set(['PENDING', 'CONFIRMED']);
+const ACTIVE_STATUSES = new Set<ReservationStatus>(['PENDING', 'CONFIRMED']);
+const COMPLETED_STATUSES = new Set<ReservationStatus>(['COMPLETED']);
+const CANCELED_STATUSES = new Set<ReservationStatus>(['CANCELED', 'REJECTED']);
 
 function getInitials(name: string): string {
 	return name
@@ -69,10 +71,11 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 	const session = await requireAuthenticatedSession(request);
 	const locale = resolveLocaleFromRequest(request);
 	const url = new URL(request.url);
-	const reservationsTab =
-		url.searchParams.get('reservationsTab') === 'history'
-			? ('history' as const)
-			: ('active' as const);
+	const rawReservationsTab = url.searchParams.get('reservationsTab');
+	const reservationsTab: ReservationsTab =
+		rawReservationsTab === 'completed' || rawReservationsTab === 'canceled'
+			? rawReservationsTab
+			: 'active';
 
 	const reservations = await prisma.reservation.findMany({
 		where: {
@@ -85,6 +88,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 			id: true,
 			productId: true,
 			status: true,
+			statusReason: true,
 			quantity: true,
 			requestedAt: true,
 			store: {
@@ -106,17 +110,17 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 			id: reservation.id,
 			productId: reservation.productId,
 			status: reservation.status,
+			statusReason: reservation.statusReason,
 			quantity: reservation.quantity,
 			requestedAt: reservation.requestedAt.toISOString(),
 			storeName: reservation.store.name,
 			storeFloor: reservation.store.floor,
 			productName: reservation.product.name,
-			qrHref: localizeHref(
-				buildProductReservationStepThreePath({
-					productId: reservation.productId,
-					reservationId: reservation.id,
-				}),
-				{ locale },
+			detailHref: localizeHref(
+				buildCustomerReservationDetailPath(reservation.id),
+				{
+					locale,
+				},
 			),
 		})),
 		defaultReservationsTab: reservationsTab,
@@ -158,15 +162,24 @@ function ReservationCard({
 		status: ReservationStatus;
 		quantity: number;
 		requestedAt: string;
+		statusReason: string | null;
 		storeName: string;
 		storeFloor: string | null;
 		productName: string;
-		qrHref: string;
+		detailHref: string;
 	};
 }) {
 	const statusInfo = RESERVATION_STATUS_BADGE[reservation.status];
+	const isActiveReservation = ACTIVE_STATUSES.has(reservation.status);
+	const isCanceledReservation = CANCELED_STATUSES.has(reservation.status);
+	const detailButtonLabel = isActiveReservation
+		? m.customer_dashboard_reservation_view_qr()
+		: m.admin_campaigns_action_view_detail();
+	const reasonText =
+		reservation.statusReason?.trim() ||
+		m.reservation_flow_step_three_floor_empty();
 
-	return (
+	const cardContent = (
 		<Card>
 			<CardHeader className="pb-2">
 				<div className="flex items-start justify-between gap-3">
@@ -209,21 +222,41 @@ function ReservationCard({
 							})}
 						</span>
 					)}
+					{isCanceledReservation && (
+						<span>
+							{m.admin_billing_notification_reason_line({
+								reason: reasonText,
+							})}
+						</span>
+					)}
 				</div>
-				{ACTIVE_STATUSES.has(reservation.status) && (
+				{!isActiveReservation && (
 					<Button
 						variant="outline"
 						size="xs"
 						nativeButton={false}
-						render={<Link to={reservation.qrHref} />}
+						render={<Link to={reservation.detailHref} />}
 					>
 						<HugeiconsIcon icon={QrCode01Icon} data-icon="inline-start" />
-						{m.customer_dashboard_reservation_view_qr()}
+						{detailButtonLabel}
 					</Button>
 				)}
 			</CardContent>
 		</Card>
 	);
+
+	if (isActiveReservation) {
+		return (
+			<Link
+				to={reservation.detailHref}
+				className="block rounded-xl transition-opacity hover:opacity-95"
+			>
+				{cardContent}
+			</Link>
+		);
+	}
+
+	return cardContent;
 }
 
 function ReservationsEmptyState({
@@ -265,8 +298,11 @@ export default function CustomerDashboardRoute({
 	const activeReservations = loaderData.reservations.filter((reservation) =>
 		ACTIVE_STATUSES.has(reservation.status),
 	);
-	const historyReservations = loaderData.reservations.filter(
-		(reservation) => !ACTIVE_STATUSES.has(reservation.status),
+	const completedReservations = loaderData.reservations.filter((reservation) =>
+		COMPLETED_STATUSES.has(reservation.status),
+	);
+	const canceledReservations = loaderData.reservations.filter((reservation) =>
+		CANCELED_STATUSES.has(reservation.status),
 	);
 
 	return (
@@ -312,8 +348,11 @@ export default function CustomerDashboardRoute({
 							<TabsTrigger value="active">
 								{m.customer_dashboard_reservations_active_tab()}
 							</TabsTrigger>
-							<TabsTrigger value="history">
-								{m.customer_dashboard_reservations_history_tab()}
+							<TabsTrigger value="completed">
+								{m.customer_dashboard_reservation_status_completed()}
+							</TabsTrigger>
+							<TabsTrigger value="canceled">
+								{m.customer_dashboard_reservation_status_canceled()}
 							</TabsTrigger>
 						</TabsList>
 
@@ -335,15 +374,33 @@ export default function CustomerDashboardRoute({
 							)}
 						</TabsContent>
 
-						<TabsContent value="history">
-							{historyReservations.length === 0 ? (
+						<TabsContent value="completed">
+							{completedReservations.length === 0 ? (
 								<ReservationsEmptyState
 									title={m.customer_dashboard_reservations_history_empty_title()}
 									description={m.customer_dashboard_reservations_history_empty_description()}
 								/>
 							) : (
 								<div className="flex flex-col gap-4">
-									{historyReservations.map((reservation) => (
+									{completedReservations.map((reservation) => (
+										<ReservationCard
+											key={reservation.id}
+											reservation={reservation}
+										/>
+									))}
+								</div>
+							)}
+						</TabsContent>
+
+						<TabsContent value="canceled">
+							{canceledReservations.length === 0 ? (
+								<ReservationsEmptyState
+									title={m.customer_dashboard_reservations_history_empty_title()}
+									description={m.customer_dashboard_reservations_history_empty_description()}
+								/>
+							) : (
+								<div className="flex flex-col gap-4">
+									{canceledReservations.map((reservation) => (
 										<ReservationCard
 											key={reservation.id}
 											reservation={reservation}

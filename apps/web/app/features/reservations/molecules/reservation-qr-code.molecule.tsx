@@ -57,9 +57,11 @@ function createVisualCodeMatrix(value: string, size = 21): boolean[][] {
 export function ReservationQrCodeMolecule({
 	value,
 	className,
+	cellClassName,
 }: {
 	value: string;
 	className?: string;
+	cellClassName?: string;
 }) {
 	const matrix = createVisualCodeMatrix(value.toUpperCase());
 	const cells = matrix.flatMap((row, rowIndex) =>
@@ -83,7 +85,7 @@ export function ReservationQrCodeMolecule({
 				<div
 					key={cell.id}
 					className={cn(
-						'size-1.5',
+						cellClassName ?? 'size-1.5',
 						cell.isFilled ? 'bg-foreground' : 'bg-transparent',
 					)}
 				/>

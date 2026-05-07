@@ -93,6 +93,8 @@ export async function createReservationFromFlow({
 	quantity,
 	pickupFullName,
 	pickupPhone,
+	pickupNote,
+	scheduledAt,
 	selectedVariants,
 }: {
 	productId: string;
@@ -100,6 +102,8 @@ export async function createReservationFromFlow({
 	quantity: number;
 	pickupFullName: string;
 	pickupPhone: string;
+	pickupNote?: string | null;
+	scheduledAt?: Date | null;
 	selectedVariants: SelectedVariant[];
 }): Promise<{ reservationId: string; qrCodeValue: string }> {
 	const product = await prisma.product.findFirst({
@@ -131,6 +135,18 @@ export async function createReservationFromFlow({
 	}
 
 	const variantSnapshot = buildVariantSnapshot(selectedVariants);
+	const normalizedNote = pickupNote?.trim() ?? '';
+	const mergedPickupNote = (() => {
+		if (normalizedNote.length > 0 && variantSnapshot) {
+			return `${normalizedNote}\n\n${variantSnapshot}`;
+		}
+
+		if (normalizedNote.length > 0) {
+			return normalizedNote;
+		}
+
+		return variantSnapshot;
+	})();
 	const qrCodeValue = `mh-res-${randomUUID()}`;
 
 	const reservation = await prisma.$transaction(async (tx) => {
@@ -167,8 +183,9 @@ export async function createReservationFromFlow({
 				quantity,
 				pickupFullName: pickupFullName.trim(),
 				pickupPhone: pickupPhone.trim(),
-				pickupNote: variantSnapshot,
+				pickupNote: mergedPickupNote,
 				qrCodeValue,
+				scheduledAt: scheduledAt ?? null,
 			},
 			select: {
 				id: true,

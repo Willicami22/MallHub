@@ -14,6 +14,7 @@ export function ReservationStepTwoFormOrganism({
 	pickupPhone,
 	quantity,
 	selectedVariantsJson,
+	scheduledAt,
 	isSubmitting,
 	pickupFullNameLabel,
 	pickupPhoneLabel,
@@ -29,6 +30,7 @@ export function ReservationStepTwoFormOrganism({
 	pickupPhone: string;
 	quantity: number;
 	selectedVariantsJson: string;
+	scheduledAt: string;
 	isSubmitting: boolean;
 	pickupFullNameLabel: string;
 	pickupPhoneLabel: string;
@@ -48,6 +50,7 @@ export function ReservationStepTwoFormOrganism({
 				name="selectedVariants"
 				value={selectedVariantsJson}
 			/>
+			<input type="hidden" name="scheduledAt" value={scheduledAt} />
 			<FieldGroup>
 				<Field data-invalid={Boolean(pickupFullNameRequiredMessage)}>
 					<FieldLabel htmlFor="pickup-full-name">

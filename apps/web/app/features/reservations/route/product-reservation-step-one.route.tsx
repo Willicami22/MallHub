@@ -10,6 +10,7 @@ import {
 	encodeSelectedVariantsParam,
 	isStoreOpenNow,
 	isVariantSelectionValid,
+	parseOpenHoursRange,
 	parseQuantityParam,
 	parseVariantGroups,
 	type SelectedVariant,
@@ -26,6 +27,138 @@ import type { Route } from './+types/product-reservation-step-one.route';
 export const meta = (_args: Route.MetaArgs) => [
 	{ title: m.reservation_flow_step_one_meta_title() },
 ];
+
+const PICKUP_DAYS_WINDOW = 7;
+const PICKUP_SLOT_MINUTES = 30;
+
+type PickupDateOption = {
+	value: string;
+	label: string;
+	disabled?: boolean;
+};
+
+type PickupTimeOption = {
+	value: string;
+	label: string;
+};
+
+function formatMinutesToTime(minutes: number): string {
+	const toTwoDigits = (value: number) => String(value).padStart(2, '0');
+	const safeMinutes = Math.max(0, minutes);
+	const hours = Math.floor(safeMinutes / 60);
+	const remainingMinutes = safeMinutes % 60;
+
+	return `${toTwoDigits(hours)}:${toTwoDigits(remainingMinutes)}`;
+}
+
+function toDateParam(date: Date): string {
+	const toTwoDigits = (value: number) => String(value).padStart(2, '0');
+
+	return `${date.getFullYear()}-${toTwoDigits(date.getMonth() + 1)}-${toTwoDigits(date.getDate())}`;
+}
+
+function parseScheduledAtParam(rawValue: string | null): Date | null {
+	if (!rawValue) {
+		return null;
+	}
+
+	const scheduledAt = new Date(rawValue);
+	if (Number.isNaN(scheduledAt.getTime())) {
+		return null;
+	}
+
+	return scheduledAt;
+}
+
+function buildPickupDateOptions(openHours: string | null): PickupDateOption[] {
+	const range = parseOpenHoursRange(openHours);
+	if (!range || range.opensAtMinutes >= range.closesAtMinutes) {
+		return [];
+	}
+
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const formatter = new Intl.DateTimeFormat(undefined, {
+		weekday: 'short',
+		day: '2-digit',
+		month: 'short',
+	});
+
+	return Array.from({ length: PICKUP_DAYS_WINDOW }, (_, offset) => {
+		const date = new Date(today);
+		date.setDate(today.getDate() + offset);
+
+		return {
+			value: toDateParam(date),
+			label: formatter.format(date),
+		};
+	});
+}
+
+function buildPickupTimeOptions(openHours: string | null): PickupTimeOption[] {
+	const range = parseOpenHoursRange(openHours);
+	if (!range) {
+		return [];
+	}
+
+	const lastSlotStartAtMinutes = range.closesAtMinutes - PICKUP_SLOT_MINUTES;
+	if (range.opensAtMinutes > lastSlotStartAtMinutes) {
+		return [];
+	}
+
+	const options: PickupTimeOption[] = [];
+	for (
+		let startAtMinutes = range.opensAtMinutes;
+		startAtMinutes <= lastSlotStartAtMinutes;
+		startAtMinutes += PICKUP_SLOT_MINUTES
+	) {
+		options.push({
+			value: String(startAtMinutes),
+			label: formatMinutesToTime(startAtMinutes),
+		});
+	}
+
+	return options;
+}
+
+function toScheduledAtIso({
+	dateParam,
+	timeParam,
+}: {
+	dateParam: string;
+	timeParam: string;
+}): string | null {
+	if (!dateParam || !timeParam) {
+		return null;
+	}
+
+	const dateMatch = dateParam.match(/^(\d{4})-(\d{2})-(\d{2})$/u);
+	if (!dateMatch) {
+		return null;
+	}
+
+	const [, yearValue, monthValue, dayValue] = dateMatch;
+	const minutesOfDay = Number(timeParam);
+	if (!Number.isInteger(minutesOfDay) || minutesOfDay < 0) {
+		return null;
+	}
+
+	const scheduledAt = new Date(
+		Number(yearValue),
+		Number(monthValue) - 1,
+		Number(dayValue),
+		Math.floor(minutesOfDay / 60),
+		minutesOfDay % 60,
+		0,
+		0,
+	);
+
+	if (Number.isNaN(scheduledAt.getTime())) {
+		return null;
+	}
+
+	return scheduledAt.toISOString();
+}
 
 function buildInitialSelectedVariants({
 	groups,
@@ -57,6 +190,8 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 			product: null,
 			initialQuantity: 1,
 			initialSelectedVariants: [] as SelectedVariant[],
+			initialPickupDate: null as string | null,
+			initialPickupTime: null as string | null,
 		};
 	}
 
@@ -68,6 +203,8 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 			product: null,
 			initialQuantity: 1,
 			initialSelectedVariants: [] as SelectedVariant[],
+			initialPickupDate: null as string | null,
+			initialPickupTime: null as string | null,
 			backToProductHref: localizeHref('/stores', { locale }),
 		};
 	}
@@ -81,6 +218,9 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 		url.searchParams.get('variants'),
 	);
 	const variantGroups = parseVariantGroups(product.variantsJson);
+	const initialScheduledAt = parseScheduledAtParam(
+		url.searchParams.get('scheduledAt'),
+	);
 
 	return {
 		product,
@@ -89,6 +229,14 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 			groups: variantGroups,
 			rawSelectedVariants,
 		}),
+		initialPickupDate: initialScheduledAt
+			? toDateParam(initialScheduledAt)
+			: (null as string | null),
+		initialPickupTime: initialScheduledAt
+			? String(
+					initialScheduledAt.getHours() * 60 + initialScheduledAt.getMinutes(),
+				)
+			: (null as string | null),
 		backToProductHref: localizeHref(`/products/${product.id}`, { locale }),
 	};
 };
@@ -102,10 +250,38 @@ export default function ProductReservationStepOneRoute({
 		() => parseVariantGroups(loaderData.product?.variantsJson ?? '[]'),
 		[loaderData.product?.variantsJson],
 	);
+	const pickupDateOptions = useMemo(
+		() => buildPickupDateOptions(loaderData.product?.store.openHours ?? null),
+		[loaderData.product?.store.openHours],
+	);
+	const pickupTimeOptions = useMemo(
+		() => buildPickupTimeOptions(loaderData.product?.store.openHours ?? null),
+		[loaderData.product?.store.openHours],
+	);
 	const [quantity, setQuantity] = useState(loaderData.initialQuantity);
 	const [selectedVariants, setSelectedVariants] = useState(
 		loaderData.initialSelectedVariants,
 	);
+	const [pickupDate, setPickupDate] = useState(
+		loaderData.initialPickupDate ?? '',
+	);
+	const [pickupTime, setPickupTime] = useState(
+		loaderData.initialPickupTime ?? '',
+	);
+	const resolvedPickupDate = pickupDateOptions.some(
+		(option) => option.value === pickupDate,
+	)
+		? pickupDate
+		: (pickupDateOptions[0]?.value ?? '');
+	const resolvedPickupTime = pickupTimeOptions.some(
+		(option) => option.value === pickupTime,
+	)
+		? pickupTime
+		: (pickupTimeOptions[0]?.value ?? '');
+	const scheduledAtIso = toScheduledAtIso({
+		dateParam: resolvedPickupDate,
+		timeParam: resolvedPickupTime,
+	});
 
 	if (!loaderData.product) {
 		return (
@@ -139,7 +315,8 @@ export default function ProductReservationStepOneRoute({
 		loaderData.product.stock > 0 &&
 		quantity >= 1 &&
 		quantity <= loaderData.product.stock &&
-		isVariantSelectionValid(variantGroups, selectedVariants);
+		isVariantSelectionValid(variantGroups, selectedVariants) &&
+		Boolean(scheduledAtIso);
 	const isNavigatingToStepTwo =
 		navigation.state !== 'idle' &&
 		navigation.location?.pathname ===
@@ -173,6 +350,10 @@ export default function ProductReservationStepOneRoute({
 				selectedVariants={selectedVariants}
 				quantity={quantity}
 				stock={loaderData.product.stock}
+				pickupDateValue={resolvedPickupDate}
+				pickupDateOptions={pickupDateOptions}
+				pickupTimeValue={resolvedPickupTime}
+				pickupTimeOptions={pickupTimeOptions}
 				isStoreClosed={storeIsClosed}
 				isSubmitting={isNavigatingToStepTwo}
 				continueDisabled={!canContinue}
@@ -180,10 +361,19 @@ export default function ProductReservationStepOneRoute({
 				variantInvalidMessage={m.reservation_flow_step_one_variants_invalid()}
 				quantityLabel={m.reservation_flow_step_one_quantity_label()}
 				quantityInvalidMessage={m.reservation_flow_step_one_quantity_invalid()}
+				pickupDateLabel={m.reservation_flow_step_one_pickup_date_label()}
+				pickupDateDescription={m.reservation_flow_step_one_pickup_date_description()}
+				pickupDateUnavailableMessage={m.reservation_flow_step_one_pickup_date_unavailable()}
+				pickupTimeLabel={m.reservation_flow_step_one_pickup_time_label()}
+				pickupTimeDescription={m.reservation_flow_step_one_pickup_time_description()}
+				pickupTimePlaceholder={m.reservation_flow_step_one_pickup_time_placeholder()}
+				pickupTimeUnavailableMessage={m.reservation_flow_step_one_pickup_time_unavailable()}
 				storeClosedTitle={m.reservation_flow_step_one_store_closed_title()}
 				storeClosedDescription={m.reservation_flow_step_one_store_closed_description()}
 				outOfStockMessage={m.reservation_flow_step_one_out_of_stock()}
 				continueLabel={m.reservation_flow_step_one_continue()}
+				onPickupDateChange={setPickupDate}
+				onPickupTimeChange={setPickupTime}
 				onSelectVariant={(groupType, option) =>
 					setSelectedVariants((previousSelectedVariants) => {
 						const selectedByType = new Map(
@@ -215,6 +405,9 @@ export default function ProductReservationStepOneRoute({
 							'variants',
 							encodeSelectedVariantsParam(selectedVariants),
 						);
+					}
+					if (scheduledAtIso) {
+						searchParams.set('scheduledAt', scheduledAtIso);
 					}
 
 					navigate(
