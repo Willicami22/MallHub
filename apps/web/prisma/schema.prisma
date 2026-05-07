@@ -320,17 +320,28 @@ model UserProfile {
   @@map("user_profiles")
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
 model Mall {
-  id            String     @id @default(cuid())
-  name          String
-  city          String
-  address       String
-  description   String?
-  heroImageUrl  String?    @map("hero_image_url")
-  status        MallStatus @default(INACTIVE)
-  adminCcUserId String?    @map("admin_cc_user_id")
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @default(now()) @updatedAt @map("updated_at")
+  id              String     @id @default(cuid())
+  name            String
+  city            String
+  address         String
+  description     String?
+  phone           String?
+  logoImageUrl    String?    @map("logo_image_url")
+  heroImageUrl    String?    @map("hero_image_url")
+  configMapSvg    String?    @map("config_map_svg") @db.Text
+  openHoursJson   Json?      @map("open_hours_json")
+  socialLinksJson Json?      @map("social_links_json")
+  status          MallStatus @default(INACTIVE)
+  adminCcUserId   String?    @map("admin_cc_user_id")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @default(now()) @updatedAt @map("updated_at")
 
   adminCcUser         User?                      @relation("MallAdmin", fields: [adminCcUserId], references: [id], onDelete: SetNull)
   preferredByUsers    User[]                     @relation("PreferredMall")
@@ -346,10 +357,44 @@ model Mall {
   moderationReports   ModerationReport[]
   billingSubscription BillingSubscription?       @relation("MallBillingSubscription")
   campaignTargets     CampaignTargetMall[]
+  events              MallEvent[]
+  galleryImages       MallGalleryImage[]
 
   @@index([status], map: "malls_status_idx")
   @@index([adminCcUserId], map: "malls_adminCcUserId_idx")
   @@map("malls")
+}
+
+model MallGalleryImage {
+  id        String   @id @default(cuid())
+  mallId    String   @map("mall_id")
+  imageUrl  String   @map("image_url")
+  label     String?
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  mall Mall @relation(fields: [mallId], references: [id], onDelete: Cascade)
+
+  @@index([mallId, sortOrder], map: "mall_gallery_images_mall_sort_idx")
+  @@map("mall_gallery_images")
+}
+
+model MallEvent {
+  id          String      @id @default(cuid())
+  mallId      String      @map("mall_id")
+  name        String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  status      EventStatus @default(DRAFT)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at")
+
+  mall Mall @relation(fields: [mallId], references: [id], onDelete: Cascade)
+
+  @@index([mallId, status], map: "mall_events_mall_status_idx")
+  @@index([startDate, endDate], map: "mall_events_dates_idx")
+  @@map("mall_events")
 }
 
 model Store {

@@ -1,3 +1,4 @@
+import { adminCcRouter } from '@/features/.server/admin-cc/admin-cc.router';
 import { createAdminCcAssignmentMutation } from '@/features/.server/admin-platform/admin-cc-assignment/create-admin-cc-assignment.mutation';
 import { listAdminCcAssignmentsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-admin-cc-assignments.query';
 import { listAssignableMallsQuery } from '@/features/.server/admin-platform/admin-cc-assignment/list-assignable-malls.query';
@@ -172,6 +173,7 @@ export const appRouter = t.router({
 		expire: expireCampaignMutation,
 		upsertDailyMetric: upsertCampaignDailyMetricMutation,
 	}),
+	adminCc: adminCcRouter,
 });
 
 export type AppRouter = typeof appRouter;

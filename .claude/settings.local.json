@@ -1,22 +1,47 @@
 {
-	"permissions": {
-		"allow": [
-			"Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev\\)\")",
-			"Bash(node *)",
-			"Bash(pnpm prisma *)",
-			"Bash(pnpm --filter @mallhub/web run i18n:compile)",
-			"Bash(pnpm format *)",
-			"Bash(pnpm lint *)",
-			"Bash(pnpm type-check *)",
-			"Bash(pnpm --filter @mallhub/web run prisma:seed)",
-			"Bash(grep -r \"localStorage\" \"C:/Users/willi/Documents/Universidad/9no Semestre/Innovacion softwares apoyadas en nuevas tecnologias/MallHub/MallHub/apps/web/app/features\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.server/*\")",
-			"Bash(timeout 30 bash *)",
-			"Bash(xargs grep *)",
-			"Bash(pnpm --filter @mallhub/web run prisma:migrate)",
-			"Bash(npx prisma *)",
-			"Bash(pnpm --filter @mallhub/web run lint)",
-			"Bash(xargs cat *)",
-			"Bash(npx paraglide-js *)"
-		]
-	}
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev\\)\")",
+      "Bash(node *)",
+      "Bash(pnpm prisma *)",
+      "Bash(pnpm --filter @mallhub/web run i18n:compile)",
+      "Bash(pnpm format *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm type-check *)",
+      "Bash(pnpm --filter @mallhub/web run prisma:seed)",
+      "Bash(grep -r \"localStorage\" \"C:/Users/willi/Documents/Universidad/9no Semestre/Innovacion softwares apoyadas en nuevas tecnologias/MallHub/MallHub/apps/web/app/features\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.server/*\")",
+      "Bash(timeout 30 bash *)",
+      "Bash(xargs grep *)",
+      "Bash(pnpm --filter @mallhub/web run prisma:migrate)",
+      "Bash(npx prisma *)",
+      "Bash(pnpm --filter @mallhub/web run lint)",
+      "Bash(xargs cat *)",
+      "Bash(npx paraglide-js *)",
+      "Bash(Select-String \"date-fns\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\willi\\\\Documents\\\\Universidad\\\\9no Semestre\\\\Innovacion softwares apoyadas en nuevas tecnologias\\\\MallHub\\\\MallHub\\\\apps\\\\web\\\\app\\\\features\\\\admin-cc\" -Recurse -Include \"*.tsx\", \"*.ts\")",
+      "Bash(Select-Object FullName)",
+      "Bash(pnpm --filter @mallhub/web run type-check)",
+      "Bash(python -c ' *)",
+      "Bash(pnpm --filter @mallhub/web exec biome format --write \"app/features/admin-cc/dashboard/route/admin-cc-dashboard.route.tsx\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\willi\\\\Documents\\\\Universidad\\\\9no Semestre\\\\Innovacion softwares apoyadas en nuevas tecnologias\\\\MallHub\\\\MallHub\\\\apps\\\\web\\\\app\\\\features\\\\admin-cc\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\willi\\\\Documents\\\\Universidad\\\\9no Semestre\\\\Innovacion softwares apoyadas en nuevas tecnologias\\\\MallHub\\\\MallHub\\\\apps\\\\web\\\\app\\\\features\\\\admin-cc\\\\routes.ts\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\willi\\\\Documents\\\\Universidad\\\\9no Semestre\\\\Innovacion softwares apoyadas en nuevas tecnologias\\\\MallHub\\\\MallHub\\\\apps\\\\web\\\\app\\\\features\\\\.server\\\\admin-cc\\\\ai-reports\\\\generate-ai-report.query.ts\")",
+      "Bash(pnpm --filter @mallhub/web add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner)",
+      "Bash(npx biome *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); keys=[k for k in d.keys\\(\\) if 'store' in k.lower\\(\\) or 'tienda' in k.lower\\(\\)]; print\\(json.dumps\\({k:d[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); keys=[k for k in d.keys\\(\\) if 'admin_cc' in k.lower\\(\\)]; print\\(json.dumps\\({k:d[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); keys=[k for k in d.keys\\(\\) if 'admin_cc_stores' in k.lower\\(\\)]; print\\(json.dumps\\({k:d[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(pnpm run *)",
+      "Bash(npx react-router *)",
+      "Bash(npx tsc *)",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); keys=[k for k in data if k.startswith\\('admin_cc_reports'\\)]; print\\(json.dumps\\({k:data[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(pnpm add *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('exports keys:', list\\(p.get\\('exports',{}\\).keys\\(\\)\\)[:5]\\)\")",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('main:', p.get\\('main'\\)\\); print\\('module:', p.get\\('module'\\)\\)\")",
+      "Bash(pnpm remove *)",
+      "Bash(Remove-Item *)"
+    ]
+  }
 }

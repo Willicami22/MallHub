@@ -45,6 +45,7 @@ import {
 	TooltipTrigger,
 	toast,
 } from '@mallhub/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -67,6 +68,10 @@ function getInitials(name: string): string {
 
 function canAccessAdminPlatform(user: { role?: string | null }): boolean {
 	return user.role === appRoles.ADMIN_PLATFORM;
+}
+
+function canAccessAdminCc(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_CC;
 }
 
 const NAV_LINKS = [
@@ -209,6 +214,7 @@ function UserMenu() {
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 	const [isSigningOut, setIsSigningOut] = useState(false);
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -246,6 +252,7 @@ function UserMenu() {
 
 		try {
 			await signOut();
+			queryClient.clear();
 			navigate(localizeHref('/'));
 		} catch (error) {
 			console.error('[navbar.user-menu.sign-out] Error', { error });
@@ -327,6 +334,19 @@ function UserMenu() {
 							</DropdownMenuGroup>
 						</>
 					)}
+					{canAccessAdminCc(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
 						<DropdownMenuItem
@@ -362,6 +382,7 @@ function MobileMenuSheet() {
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 	const [isSigningOut, setIsSigningOut] = useState(false);
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -375,6 +396,7 @@ function MobileMenuSheet() {
 
 		try {
 			await signOut();
+			queryClient.clear();
 			navigate(localizeHref('/'));
 		} catch (error) {
 			console.error('[navbar.mobile-menu.sign-out] Error', { error });
@@ -477,6 +499,17 @@ function MobileMenuSheet() {
 										{m.admin_users_title()}
 									</Button>
 								</>
+							)}
+							{canAccessAdminCc(session.data.user) && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</Button>
 							)}
 							<Separator className="my-1" />
 							<Button
