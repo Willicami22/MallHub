@@ -8,40 +8,14 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Badge, Button, Card, CardContent, Skeleton } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
-import {
-	Badge,
-	Button,
-	Card,
-	CardContent,
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-	Input,
-	Skeleton,
-	Spinner,
-	Textarea,
-	toast,
-} from '@mallhub/ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { TRPCClientError } from '@trpc/client';
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
-import { withReturnTo } from '@/features/better-auth/return-to.lib';
 import {
 	buildProductReservationStepOnePath,
 	encodeSelectedVariantsParam,
 } from '@/features/reservations/lib/reservation-flow.lib';
+import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -109,50 +83,6 @@ function NotFound() {
 	);
 }
 
-// ─── Guest reserve modal ──────────────────────────────────────────────────────
-
-function GuestReserveDialog({
-	open,
-	onClose,
-	registerHref,
-	loginHref,
-}: {
-	open: boolean;
-	onClose: () => void;
-	registerHref: string;
-	loginHref: string;
-}) {
-	return (
-		<Dialog
-			open={open}
-			onOpenChange={(nextOpen) => {
-				if (!nextOpen) onClose();
-			}}
-		>
-			<DialogContent className="sm:max-w-sm">
-				<DialogHeader>
-					<DialogTitle>{m.product_detail_reserve_guest_title()}</DialogTitle>
-					<DialogDescription>
-						{m.product_detail_reserve_guest_description()}
-					</DialogDescription>
-				</DialogHeader>
-				<DialogFooter>
-					<Button nativeButton={false} render={<Link to={registerHref} />}>
-						{m.product_detail_reserve_guest_register()}
-					</Button>
-					<Button
-						variant="outline"
-						nativeButton={false}
-						render={<Link to={loginHref} />}
-					>
-						{m.product_detail_reserve_guest_login()}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-	);
-}
-
 // ─── Variant selector ─────────────────────────────────────────────────────────
 
 function VariantSelector({
@@ -199,165 +129,6 @@ function VariantSelector({
 	);
 }
 
-function ReserveDialog({
-	open,
-	onClose,
-	isSubmitting,
-	defaultPickupFullName,
-	defaultPickupPhone,
-	onSubmit,
-}: {
-	open: boolean;
-	onClose: () => void;
-	isSubmitting: boolean;
-	defaultPickupFullName: string;
-	defaultPickupPhone: string;
-	onSubmit: (values: {
-		pickupFullName: string;
-		pickupPhone: string;
-		pickupNote: string;
-		quantity: number;
-	}) => Promise<void>;
-}) {
-	const [pickupFullName, setPickupFullName] = useState(defaultPickupFullName);
-	const [pickupPhone, setPickupPhone] = useState(defaultPickupPhone);
-	const [pickupNote, setPickupNote] = useState('');
-	const [quantityInput, setQuantityInput] = useState('1');
-
-	useEffect(() => {
-		if (!open) return;
-		setPickupFullName(defaultPickupFullName);
-		setPickupPhone(defaultPickupPhone);
-		setPickupNote('');
-		setQuantityInput('1');
-	}, [open, defaultPickupFullName, defaultPickupPhone]);
-
-	const quantity = Number.parseInt(quantityInput, 10);
-	const isQuantityValid = Number.isInteger(quantity) && quantity >= 1;
-	const canSubmit =
-		pickupFullName.trim().length > 0 &&
-		pickupPhone.trim().length > 0 &&
-		isQuantityValid;
-
-	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		if (!canSubmit || isSubmitting) {
-			return;
-		}
-		await onSubmit({
-			pickupFullName: pickupFullName.trim(),
-			pickupPhone: pickupPhone.trim(),
-			pickupNote: pickupNote.trim(),
-			quantity,
-		});
-	};
-
-	return (
-		<Dialog
-			open={open}
-			onOpenChange={(nextOpen) => {
-				if (!nextOpen) onClose();
-			}}
-		>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>{m.product_detail_reserve_dialog_title()}</DialogTitle>
-					<DialogDescription>
-						{m.product_detail_reserve_dialog_description()}
-					</DialogDescription>
-				</DialogHeader>
-				<form className="space-y-4" onSubmit={handleSubmit}>
-					<FieldGroup>
-						<Field>
-							<FieldLabel htmlFor="pickup-full-name">
-								{m.product_detail_reserve_pickup_name_label()}
-							</FieldLabel>
-							<Input
-								id="pickup-full-name"
-								value={pickupFullName}
-								onChange={(event) => setPickupFullName(event.target.value)}
-								placeholder={m.product_detail_reserve_pickup_name_placeholder()}
-								disabled={isSubmitting}
-								autoComplete="name"
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel htmlFor="pickup-phone">
-								{m.product_detail_reserve_pickup_phone_label()}
-							</FieldLabel>
-							<Input
-								id="pickup-phone"
-								value={pickupPhone}
-								onChange={(event) => setPickupPhone(event.target.value)}
-								placeholder={m.product_detail_reserve_pickup_phone_placeholder()}
-								disabled={isSubmitting}
-								autoComplete="tel"
-							/>
-						</Field>
-
-						<Field data-invalid={!isQuantityValid}>
-							<FieldLabel htmlFor="pickup-quantity">
-								{m.product_detail_reserve_quantity_label()}
-							</FieldLabel>
-							<Input
-								id="pickup-quantity"
-								type="number"
-								min={1}
-								step={1}
-								value={quantityInput}
-								onChange={(event) => setQuantityInput(event.target.value)}
-								aria-invalid={!isQuantityValid}
-								disabled={isSubmitting}
-							/>
-							{!isQuantityValid && (
-								<FieldError>
-									{m.product_detail_reserve_quantity_invalid()}
-								</FieldError>
-							)}
-						</Field>
-
-						<Field>
-							<FieldLabel htmlFor="pickup-note">
-								{m.product_detail_reserve_note_label()}
-							</FieldLabel>
-							<Textarea
-								id="pickup-note"
-								value={pickupNote}
-								onChange={(event) => setPickupNote(event.target.value)}
-								placeholder={m.product_detail_reserve_note_placeholder()}
-								disabled={isSubmitting}
-								rows={3}
-							/>
-						</Field>
-					</FieldGroup>
-
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={onClose}
-							disabled={isSubmitting}
-						>
-							{m.product_detail_reserve_cancel()}
-						</Button>
-						<Button type="submit" disabled={!canSubmit || isSubmitting}>
-							{isSubmitting ? (
-								<>
-									<Spinner />
-									{m.product_detail_reserve_submitting()}
-								</>
-							) : (
-								m.product_detail_reserve_confirm()
-							)}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
-	);
-}
-
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 type GuestModal = 'reserve' | 'favorites' | null;
@@ -365,16 +136,10 @@ type GuestModal = 'reserve' | 'favorites' | null;
 export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const { productId } = params;
 	const trpc = useTRPC();
-	const [guestModal, setGuestModal] = useState<GuestModal>(null);
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [guestDialogOpen, setGuestDialogOpen] = useState(false);
-	const [reserveDialogOpen, setReserveDialogOpen] = useState(false);
-
-	const reserveMutation = useMutation(
-		trpc.reservations.create.mutationOptions(),
-	);
+	const [guestModal, setGuestModal] = useState<GuestModal>(null);
 
 	const productQuery = useQuery({
 		...trpc.browse.getProduct.queryOptions({ productId }),
@@ -404,63 +169,10 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const inStock = (product?.stock ?? 0) > 0;
 	const storeId = product?.store.id;
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
-	const registerHref = withReturnTo(localizeHref('/auth/register'), returnTo);
-	const loginHref = withReturnTo(localizeHref('/auth/login'), returnTo);
 
 	if (isNotFound) {
 		return <NotFound />;
 	}
-
-	const variantGroups = parseVariants(product?.variantsJson ?? null);
-	const inStock = (product?.stock ?? 0) > 0;
-	const storeId = product?.store.id;
-	const returnTo = localizeHref(`/products/${productId}`);
-	const handleReserveSubmit = async ({
-		pickupFullName,
-		pickupPhone,
-		pickupNote,
-		quantity,
-	}: {
-		pickupFullName: string;
-		pickupPhone: string;
-		pickupNote: string;
-		quantity: number;
-	}) => {
-		if (!product) return;
-
-		const selection = Object.entries(selectedVariants)
-			.filter(([, option]) => option.trim().length > 0)
-			.map(([type, option]) => ({ type, option }));
-
-		try {
-			await reserveMutation.mutateAsync({
-				productId: product.id,
-				quantity,
-				pickupFullName,
-				pickupPhone,
-				pickupNote: pickupNote.length > 0 ? pickupNote : null,
-				selectedVariants: selection,
-			});
-			setReserveDialogOpen(false);
-			toast.success(m.product_detail_reserve_success_toast());
-			navigate(localizeHref('/dashboard'));
-		} catch (error) {
-			if (error instanceof TRPCClientError) {
-				toast.error(
-					m.product_detail_reserve_error_toast({
-						message: error.data?.message ?? m.auth_unexpected_error(),
-					}),
-				);
-				return;
-			}
-
-			toast.error(
-				m.product_detail_reserve_error_toast({
-					message: m.auth_unexpected_error(),
-				}),
-			);
-		}
-	};
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -632,26 +344,18 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 					<div className="pt-1">
 						<Button
 							className="w-full"
-							disabled={
-								!inStock || productQuery.isPending || reserveMutation.isPending
-							}
+							disabled={!inStock || productQuery.isPending}
 							onClick={() => {
-								if (inStock) setGuestModal('reserve');
-								if (!inStock || !product) {
-									return;
-								}
+								if (!inStock || !product) return;
 
 								if (!session.data?.user) {
-									setGuestDialogOpen(true);
+									setGuestModal('reserve');
 									return;
 								}
 
 								const selectedVariantsQuery = Object.entries(selectedVariants)
 									.filter(([, option]) => option.trim().length > 0)
-									.map(([type, option]) => ({
-										type,
-										option,
-									}));
+									.map(([type, option]) => ({ type, option }));
 								const reserveFlowQuery = new URLSearchParams();
 								if (selectedVariantsQuery.length > 0) {
 									reserveFlowQuery.set(
@@ -671,22 +375,14 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 								navigate(localizeHref(reserveFlowHref));
 							}}
 						>
-							{reserveMutation.isPending ? (
-								<>
-									<Spinner />
-									{m.product_detail_reserve_submitting()}
-								</>
-							) : inStock ? (
-								m.product_detail_reserve_button()
-							) : (
-								m.product_detail_reserve_disabled()
-							)}
+							{inStock
+								? m.product_detail_reserve_button()
+								: m.product_detail_reserve_disabled()}
 						</Button>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Guest modal — reserve or favorites */}
 			<GuestAuthDialog
 				open={guestModal !== null}
 				onClose={() => setGuestModal(null)}
@@ -701,21 +397,6 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 						? m.guest_auth_favorites_description()
 						: m.product_detail_reserve_guest_description()
 				}
-			{/* Guest reservation modal */}
-			<GuestReserveDialog
-				open={guestDialogOpen}
-				onClose={() => setGuestDialogOpen(false)}
-				registerHref={registerHref}
-				loginHref={loginHref}
-			/>
-
-			<ReserveDialog
-				open={reserveDialogOpen}
-				onClose={() => setReserveDialogOpen(false)}
-				isSubmitting={reserveMutation.isPending}
-				defaultPickupFullName={session.data?.user.name ?? ''}
-				defaultPickupPhone=""
-				onSubmit={handleReserveSubmit}
 			/>
 
 			<div className="h-8" />
