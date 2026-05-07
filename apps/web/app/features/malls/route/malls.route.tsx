@@ -107,6 +107,15 @@ export default function MallsRoute() {
 											</div>
 										)}
 										<div className="absolute inset-0 bg-linear-to-b from-transparent to-background/20" />
+										{mall.logoImageUrl && (
+											<div className="absolute bottom-2 left-3 h-9 w-9 overflow-hidden rounded-md border bg-background shadow-sm">
+												<img
+													src={mall.logoImageUrl}
+													alt={mall.name}
+													className="h-full w-full object-cover"
+												/>
+											</div>
+										)}
 									</div>
 									<CardHeader className="pb-2 pt-4">
 										<div className="flex items-start justify-between gap-2">

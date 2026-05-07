@@ -2,6 +2,10 @@ import {
 	ArrowLeft01Icon,
 	ArrowRight01Icon,
 	Building04Icon,
+	Calendar01Icon,
+	Call02Icon,
+	Clock01Icon,
+	LinkSquare01Icon,
 	Location01Icon,
 	Megaphone01Icon,
 	RefreshIcon,
@@ -40,6 +44,16 @@ export const meta = ({ data }: Route.MetaArgs) => {
 const STORE_PLACEHOLDER_COUNT = 8;
 const PROMO_PLACEHOLDER_COUNT = 3;
 const CAMPAIGN_PLACEHOLDER_COUNT = 2;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type OpenHourEntry = {
+	day: string;
+	open: string;
+	close: string;
+	closed: boolean;
+};
+type SocialLinks = Record<string, string>;
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -150,6 +164,106 @@ function SectionHeader({
 				{title}
 			</h2>
 			<p className="text-sm text-muted-foreground">{subtitle}</p>
+		</div>
+	);
+}
+
+// ─── Gallery section ──────────────────────────────────────────────────────────
+
+type GalleryImage = { id: string; imageUrl: string; label: string | null };
+
+function GallerySection({ images }: { images: GalleryImage[] }) {
+	if (images.length === 0) return null;
+
+	return (
+		<section className="mb-10" aria-label={m.mall_detail_gallery_title()}>
+			<SectionHeader
+				title={m.mall_detail_gallery_title()}
+				subtitle={m.mall_detail_gallery_subtitle()}
+			/>
+			<div className="flex gap-3 overflow-x-auto pb-2">
+				{images.map((img) => (
+					<div
+						key={img.id}
+						className="relative h-44 w-72 shrink-0 overflow-hidden rounded-lg border bg-muted"
+					>
+						<img
+							src={img.imageUrl}
+							alt={img.label ?? ''}
+							className="h-full w-full object-cover"
+							loading="lazy"
+						/>
+						{img.label && (
+							<div className="absolute right-0 bottom-0 left-0 bg-black/40 px-2 py-1">
+								<span className="text-xs text-white">{img.label}</span>
+							</div>
+						)}
+					</div>
+				))}
+			</div>
+		</section>
+	);
+}
+
+// ─── Open hours section ───────────────────────────────────────────────────────
+
+function OpenHoursSection({ openHoursJson }: { openHoursJson: unknown }) {
+	if (!Array.isArray(openHoursJson) || openHoursJson.length === 0) return null;
+	const entries = openHoursJson as OpenHourEntry[];
+
+	return (
+		<section className="mb-10" aria-label={m.mall_detail_hours_title()}>
+			<div className="mb-4 flex items-center gap-2">
+				<HugeiconsIcon icon={Clock01Icon} className="size-5 text-foreground" />
+				<h2 className="text-lg font-semibold tracking-tight text-foreground">
+					{m.mall_detail_hours_title()}
+				</h2>
+			</div>
+			<div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 md:grid-cols-4">
+				{entries.map((entry) => (
+					<div
+						key={entry.day}
+						className="flex items-center justify-between gap-2"
+					>
+						<span className="text-sm font-medium text-foreground">
+							{entry.day}
+						</span>
+						<span className="text-sm text-muted-foreground">
+							{entry.closed
+								? m.mall_detail_hours_closed()
+								: `${entry.open} – ${entry.close}`}
+						</span>
+					</div>
+				))}
+			</div>
+		</section>
+	);
+}
+
+// ─── Social links section ─────────────────────────────────────────────────────
+
+function SocialLinksRow({ socialLinksJson }: { socialLinksJson: unknown }) {
+	if (!socialLinksJson || typeof socialLinksJson !== 'object') return null;
+	const links = socialLinksJson as SocialLinks;
+	const entries = Object.entries(links).filter(
+		([, url]) => typeof url === 'string' && url.length > 0,
+	);
+	if (entries.length === 0) return null;
+
+	return (
+		<div className="mt-2 flex flex-wrap gap-2">
+			{entries.map(([platform, url]) => (
+				<a
+					key={platform}
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-1.5 rounded-md border bg-muted/50 px-2.5 py-1 text-xs text-foreground transition-colors hover:bg-muted"
+				>
+					<HugeiconsIcon icon={LinkSquare01Icon} className="size-3.5" />
+					<span className="capitalize">{platform}</span>
+				</a>
+			))}
 		</div>
 	);
 }
@@ -369,6 +483,82 @@ function PromotionsSection({
 	);
 }
 
+// ─── Events section ───────────────────────────────────────────────────────────
+
+type MallEvent = {
+	id: string;
+	name: string;
+	description: string | null;
+	startDate: Date;
+	endDate: Date;
+};
+
+function EventsSection({
+	events,
+	isLoading,
+	isError,
+	onRetry,
+}: {
+	events: MallEvent[] | undefined;
+	isLoading: boolean;
+	isError: boolean;
+	onRetry: () => void;
+}) {
+	if (!isLoading && !isError && (!events || events.length === 0)) return null;
+
+	return (
+		<section className="mb-10" aria-label={m.mall_detail_events_title()}>
+			<SectionHeader
+				title={m.mall_detail_events_title()}
+				subtitle={m.mall_detail_events_subtitle()}
+			/>
+			{isError && !isLoading && <SectionError onRetry={onRetry} />}
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{isLoading
+					? Array.from({ length: 2 }, (_, i) => `skeleton-${i}`).map((key) => (
+							<Card key={key} className="p-4">
+								<div className="flex flex-col gap-2">
+									<Skeleton className="h-5 w-3/4" />
+									<Skeleton className="h-3.5 w-1/2" />
+									<Skeleton className="mt-2 h-3 w-full" />
+								</div>
+							</Card>
+						))
+					: events?.map((event) => (
+							<Card key={event.id} className="flex flex-col gap-0">
+								<CardHeader className="pb-2 pt-4">
+									<div className="flex items-start justify-between gap-2">
+										<span className="text-sm font-semibold leading-snug text-foreground">
+											{event.name}
+										</span>
+									</div>
+									<div className="flex items-center gap-1 text-xs text-muted-foreground">
+										<HugeiconsIcon
+											icon={Calendar01Icon}
+											className="size-3.5 shrink-0"
+										/>
+										<span>
+											{m.mall_detail_event_dates({
+												start: formatDate(event.startDate),
+												end: formatDate(event.endDate),
+											})}
+										</span>
+									</div>
+								</CardHeader>
+								{event.description && (
+									<CardContent className="pb-4">
+										<p className="line-clamp-2 text-sm text-muted-foreground">
+											{event.description}
+										</p>
+									</CardContent>
+								)}
+							</Card>
+						))}
+			</div>
+		</section>
+	);
+}
+
 // ─── Campaigns section ────────────────────────────────────────────────────────
 
 type Campaign = {
@@ -477,6 +667,10 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 		trpc.browse.listPromotions.queryOptions({ mallId }),
 	);
 
+	const eventsQuery = useQuery(
+		trpc.browse.listMallEvents.queryOptions({ mallId }),
+	);
+
 	const campaignsQuery = useQuery(
 		trpc.campaigns.listActive.queryOptions({ mallId }),
 	);
@@ -484,6 +678,7 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 	const mall = mallQuery.data?.mall;
 	const stores = storesQuery.data?.stores;
 	const promotions = promotionsQuery.data?.promotions;
+	const events = eventsQuery.data?.events;
 	const campaigns = campaignsQuery.data?.campaigns;
 
 	const isMallLoading = mallQuery.isPending;
@@ -539,28 +734,54 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 				</div>
 
 				<div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
-					<div className="flex flex-col gap-1.5">
-						{isMallLoading ? (
-							<>
-								<Skeleton className="h-7 w-52" />
-								<Skeleton className="h-4 w-36" />
-							</>
-						) : (
-							<>
-								<h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-									{mall?.name}
-								</h1>
-								<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-									<HugeiconsIcon
-										icon={Location01Icon}
-										className="size-4 shrink-0"
-									/>
-									<span>{mall?.city}</span>
-									<span aria-hidden="true">·</span>
-									<span className="truncate">{mall?.address}</span>
-								</div>
-							</>
+					<div className="flex gap-3">
+						{/* Logo */}
+						{mall?.logoImageUrl && (
+							<div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted">
+								<img
+									src={mall.logoImageUrl}
+									alt={mall.name}
+									className="h-full w-full object-cover"
+								/>
+							</div>
 						)}
+
+						<div className="flex flex-col gap-1.5">
+							{isMallLoading ? (
+								<>
+									<Skeleton className="h-7 w-52" />
+									<Skeleton className="h-4 w-36" />
+									<Skeleton className="h-4 w-28" />
+								</>
+							) : (
+								<>
+									<h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+										{mall?.name}
+									</h1>
+									<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+										<HugeiconsIcon
+											icon={Location01Icon}
+											className="size-4 shrink-0"
+										/>
+										<span>{mall?.city}</span>
+										<span aria-hidden="true">·</span>
+										<span className="truncate">{mall?.address}</span>
+									</div>
+									{mall?.phone && (
+										<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+											<HugeiconsIcon
+												icon={Call02Icon}
+												className="size-4 shrink-0"
+											/>
+											<span>{mall.phone}</span>
+										</div>
+									)}
+									{mall?.socialLinksJson && (
+										<SocialLinksRow socialLinksJson={mall.socialLinksJson} />
+									)}
+								</>
+							)}
+						</div>
 					</div>
 
 					<div className="flex shrink-0 items-center gap-2">
@@ -598,6 +819,16 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 				<>
 					{!isOnline && <OfflineBanner />}
 
+					{/* Gallery (shown when data is ready and there are images) */}
+					{mall?.galleryImages && mall.galleryImages.length > 0 && (
+						<GallerySection images={mall.galleryImages} />
+					)}
+
+					{/* Open hours (shown when data is ready) */}
+					{mall?.openHoursJson && (
+						<OpenHoursSection openHoursJson={mall.openHoursJson} />
+					)}
+
 					{/* Scenario 1: content sections (read-only, no auth-gated actions) */}
 					<StoresSection
 						mallId={mallId}
@@ -613,6 +844,13 @@ export default function MallDetailRoute({ params }: Route.ComponentProps) {
 						isLoading={promotionsQuery.isPending}
 						isError={promotionsQuery.isError}
 						onRetry={() => void promotionsQuery.refetch()}
+					/>
+
+					<EventsSection
+						events={events}
+						isLoading={eventsQuery.isPending}
+						isError={eventsQuery.isError}
+						onRetry={() => void eventsQuery.refetch()}
 					/>
 
 					<CampaignsSection
