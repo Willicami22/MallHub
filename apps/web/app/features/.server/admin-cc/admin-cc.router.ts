@@ -1,15 +1,18 @@
 import { t } from '@/features/.server/trpc/trpc.init';
 import { generateAiReportMutation } from './ai-reports/generate-ai-report.mutation';
+import { addGalleryImageMutation } from './config/add-gallery-image.mutation';
+import { deleteGalleryImageMutation } from './config/delete-gallery-image.mutation';
 import { getMallConfigQuery } from './config/get-mall-config.query';
+import { getUploadPresignedUrlMutation } from './config/get-upload-presigned-url.mutation';
 import { updateMallConfigMutation } from './config/update-mall-config.mutation';
+import { updateMallImagesMutation } from './config/update-mall-images.mutation';
 import { getAdminCcKpisQuery } from './dashboard/get-admin-cc-kpis.query';
-import { addStoreMutation } from './stores/add-store.mutation';
+import { approveStoreRegistrationMutation } from './stores/approve-store-registration.mutation';
 import { getMallStoresQuery } from './stores/get-mall-stores.query';
-import {
-	reactivateStoreMutation,
-	suspendStoreMutation,
-	updateStoreStatusMutation,
-} from './stores/update-store-status.mutation';
+import { getPendingCountQuery } from './stores/get-pending-count.query';
+import { reactivateStoreMutation } from './stores/reactivate-store.mutation';
+import { rejectStoreRegistrationMutation } from './stores/reject-store-registration.mutation';
+import { suspendStoreMutation } from './stores/suspend-store.mutation';
 
 export const adminCcDashboardRouter = t.router({
 	getKpis: getAdminCcKpisQuery,
@@ -18,14 +21,19 @@ export const adminCcDashboardRouter = t.router({
 export const adminCcConfigRouter = t.router({
 	getConfig: getMallConfigQuery,
 	updateConfig: updateMallConfigMutation,
+	updateImages: updateMallImagesMutation,
+	getUploadPresignedUrl: getUploadPresignedUrlMutation,
+	addGalleryImage: addGalleryImageMutation,
+	deleteGalleryImage: deleteGalleryImageMutation,
 });
 
 export const adminCcStoresRouter = t.router({
 	getStores: getMallStoresQuery,
-	updateStatus: updateStoreStatusMutation,
+	getPendingCount: getPendingCountQuery,
+	approveRegistration: approveStoreRegistrationMutation,
+	rejectRegistration: rejectStoreRegistrationMutation,
 	suspend: suspendStoreMutation,
 	reactivate: reactivateStoreMutation,
-	add: addStoreMutation,
 });
 
 export const adminCcReportsRouter = t.router({

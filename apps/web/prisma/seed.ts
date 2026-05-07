@@ -659,6 +659,91 @@ async function seed() {
 		}
 	}
 
+	// --- Demo store owner user for pending registrations ---
+	const storeOwnerEmail = 'store-owner-demo@mallhub.com';
+	if (
+		!(await prisma.user.findUnique({
+			where: { email: storeOwnerEmail },
+			select: { id: true },
+		}))
+	) {
+		await auth.api.signUpEmail({
+			body: {
+				email: storeOwnerEmail,
+				name: 'Propietario Demo',
+				password: 'StoreOwner123!',
+			},
+			asResponse: false,
+		});
+	}
+	await prisma.user.update({
+		where: { email: storeOwnerEmail },
+		data: { emailVerified: true },
+	});
+	const storeOwnerUser = await prisma.user.findUniqueOrThrow({
+		where: { email: storeOwnerEmail },
+		select: { id: true },
+	});
+	console.log(`  Store owner user ready: ${storeOwnerEmail}`);
+
+	// --- Pending store registration requests for Gran Plaza ---
+	if (granPlaza) {
+		const pendingRegistrationsData = [
+			{
+				storeName: 'SportZone',
+				category: 'Deportes',
+				description:
+					'Tienda especializada en equipamiento deportivo y ropa activa de las mejores marcas.',
+				contactEmail: 'contacto@sportzone.com',
+				contactPhone: '+5215512340001',
+			},
+			{
+				storeName: 'El Rincón del Café',
+				category: 'Alimentos',
+				description:
+					'Cafetería artesanal con granos de origen y pastelería hecha en casa.',
+				contactEmail: 'hola@rincondecafe.com',
+				contactPhone: '+5215512340002',
+			},
+			{
+				storeName: 'TechWorld',
+				category: 'Electrónica',
+				description:
+					'Accesorios y gadgets tecnológicos para el hogar y la oficina.',
+				contactEmail: 'ventas@techworld.mx',
+				contactPhone: '+5215512340003',
+			},
+		];
+
+		for (const regData of pendingRegistrationsData) {
+			const existing = await prisma.storeRegistrationRequest.findFirst({
+				where: { storeName: regData.storeName, mallId: granPlaza.id },
+				select: { id: true },
+			});
+			if (!existing) {
+				await prisma.storeRegistrationRequest.create({
+					data: {
+						mallId: granPlaza.id,
+						applicantUserId: storeOwnerUser.id,
+						storeName: regData.storeName,
+						category: regData.category,
+						description: regData.description,
+						contactEmail: regData.contactEmail,
+						contactPhone: regData.contactPhone,
+						status: 'PENDING',
+					},
+				});
+				console.log(
+					`  Created pending registration: ${regData.storeName} @ Gran Plaza`,
+				);
+			} else {
+				console.log(
+					`  Pending registration already exists: ${regData.storeName}`,
+				);
+			}
+		}
+	}
+
 	console.log('Database seeding completed.');
 }
 

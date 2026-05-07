@@ -17,6 +17,15 @@ const requiredServerEnvKeys = [
 
 const optionalServerEnvKeys = ['RESEND_FROM_NAME'] as const;
 
+const readStringEnvWithDefault = (
+	key: string,
+	defaultValue: string,
+): string => {
+	const value = process.env[key];
+	if (value === undefined || value.trim().length === 0) return defaultValue;
+	return value.trim();
+};
+
 type RequiredServerEnvKey = (typeof requiredServerEnvKeys)[number];
 type OptionalServerEnvKey = (typeof optionalServerEnvKeys)[number];
 
@@ -87,5 +96,16 @@ export const serverEnv = Object.freeze({
 	),
 	NOTIFICATIONS_WORKER_LIMIT_DURATION_MS: parseIntegerEnv(
 		'NOTIFICATIONS_WORKER_LIMIT_DURATION_MS',
+	),
+	MINIO_ENDPOINT: readStringEnvWithDefault(
+		'MINIO_ENDPOINT',
+		'http://localhost:9000',
+	),
+	MINIO_ACCESS_KEY: readStringEnvWithDefault('MINIO_ACCESS_KEY', 'minioadmin'),
+	MINIO_SECRET_KEY: readStringEnvWithDefault('MINIO_SECRET_KEY', 'minioadmin'),
+	MINIO_BUCKET: readStringEnvWithDefault('MINIO_BUCKET', 'mallhub'),
+	MINIO_PUBLIC_URL: readStringEnvWithDefault(
+		'MINIO_PUBLIC_URL',
+		'http://localhost:9000',
 	),
 });

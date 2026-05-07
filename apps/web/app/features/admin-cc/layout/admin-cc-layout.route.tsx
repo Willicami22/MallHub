@@ -5,36 +5,15 @@ import {
 	ShoppingBag01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Button, cn } from '@mallhub/ui';
+import { Badge, Button, cn } from '@mallhub/ui';
+import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet, useLocation } from 'react-router';
 import { requireRoleSession } from '@/features/.server/auth/auth-route-guard.lib';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
+import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/admin-cc-layout.route';
-
-const ADMIN_CC_WORKSPACE_LINKS = [
-	{
-		href: '/admin-cc/dashboard',
-		label: () => m.admin_cc_nav_dashboard(),
-		icon: DashboardSquare01Icon,
-	},
-	{
-		href: '/admin-cc/stores',
-		label: () => m.admin_cc_nav_stores(),
-		icon: ShoppingBag01Icon,
-	},
-	{
-		href: '/admin-cc/ai-reports',
-		label: () => m.admin_cc_nav_ai_reports(),
-		icon: AiBrain01Icon,
-	},
-	{
-		href: '/admin-cc/config',
-		label: () => m.admin_cc_nav_config(),
-		icon: Settings01Icon,
-	},
-] as const;
 
 export const loader = async (ctx: Route.LoaderArgs) => {
 	const requestUrl = new URL(ctx.request.url);
@@ -62,6 +41,40 @@ export const loader = async (ctx: Route.LoaderArgs) => {
 
 export default function AdminCcLayoutRoute() {
 	const location = useLocation();
+	const trpc = useTRPC();
+
+	const { data: pendingCountData } = useQuery({
+		...trpc.adminCc.stores.getPendingCount.queryOptions(),
+		gcTime: 0,
+	});
+	const pendingCount = pendingCountData?.count ?? 0;
+
+	const ADMIN_CC_WORKSPACE_LINKS = [
+		{
+			href: '/admin-cc/dashboard',
+			label: () => m.admin_cc_nav_dashboard(),
+			icon: DashboardSquare01Icon,
+			badge: null,
+		},
+		{
+			href: '/admin-cc/stores',
+			label: () => m.admin_cc_nav_stores(),
+			icon: ShoppingBag01Icon,
+			badge: pendingCount > 0 ? pendingCount : null,
+		},
+		{
+			href: '/admin-cc/ai-reports',
+			label: () => m.admin_cc_nav_ai_reports(),
+			icon: AiBrain01Icon,
+			badge: null,
+		},
+		{
+			href: '/admin-cc/config',
+			label: () => m.admin_cc_nav_config(),
+			icon: Settings01Icon,
+			badge: null,
+		},
+	] as const;
 
 	return (
 		<>
@@ -93,6 +106,14 @@ export default function AdminCcLayoutRoute() {
 								>
 									<HugeiconsIcon icon={item.icon} data-icon="inline-start" />
 									{item.label()}
+									{item.badge !== null && (
+										<Badge
+											variant="destructive"
+											className="ml-1 h-4 min-w-4 rounded-full px-1 text-[10px]"
+										>
+											{item.badge}
+										</Badge>
+									)}
 								</Button>
 							);
 						})}

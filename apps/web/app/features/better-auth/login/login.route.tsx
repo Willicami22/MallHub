@@ -19,7 +19,7 @@ import {
 	Spinner,
 	toast,
 } from '@mallhub/ui';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -195,6 +195,7 @@ const LoginFormWithOptions = withLoginForm({
 export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const session = useAppSession();
+	const queryClient = useQueryClient();
 	const trpc = useTRPC();
 	const loginMutation = useMutation(trpc.auth.signInEmail.mutationOptions());
 	const postAuthHref = loaderData.returnTo ?? localizeHref('/');
@@ -276,6 +277,7 @@ export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 							size="lg"
 							onClick={async () => {
 								await signOut();
+								queryClient.clear();
 							}}
 						>
 							{m.login_sign_out()}

@@ -45,6 +45,7 @@ import {
 	TooltipTrigger,
 	toast,
 } from '@mallhub/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -213,6 +214,7 @@ function UserMenu() {
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 	const [isSigningOut, setIsSigningOut] = useState(false);
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -250,6 +252,7 @@ function UserMenu() {
 
 		try {
 			await signOut();
+			queryClient.clear();
 			navigate(localizeHref('/'));
 		} catch (error) {
 			console.error('[navbar.user-menu.sign-out] Error', { error });
@@ -379,6 +382,7 @@ function MobileMenuSheet() {
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 	const [isSigningOut, setIsSigningOut] = useState(false);
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -392,6 +396,7 @@ function MobileMenuSheet() {
 
 		try {
 			await signOut();
+			queryClient.clear();
 			navigate(localizeHref('/'));
 		} catch (error) {
 			console.error('[navbar.mobile-menu.sign-out] Error', { error });
