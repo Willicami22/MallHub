@@ -755,6 +755,62 @@ async function seed() {
 		}
 	}
 
+	// --- Demo admin-local user with an approved ACTIVE store ---
+	const adminLocalEmail = 'admin-local-demo@mallhub.com';
+	if (
+		!(await prisma.user.findUnique({
+			where: { email: adminLocalEmail },
+			select: { id: true },
+		}))
+	) {
+		await auth.api.signUpEmail({
+			body: {
+				email: adminLocalEmail,
+				name: 'Local Admin Demo',
+				password: 'LocalAdmin123!',
+			},
+			asResponse: false,
+		});
+	}
+	const adminLocalUser = await prisma.user.update({
+		where: { email: adminLocalEmail },
+		data: {
+			name: 'Local Admin Demo',
+			role: appRoles.ADMIN_LOCAL,
+			emailVerified: true,
+		},
+		select: { id: true },
+	});
+	console.log(`  Admin local user ready: ${adminLocalEmail}`);
+
+	if (granPlaza) {
+		const existingLocalStore = await prisma.store.findFirst({
+			where: { ownerUserId: adminLocalUser.id },
+			select: { id: true, name: true },
+		});
+		if (!existingLocalStore) {
+			await prisma.store.create({
+				data: {
+					name: 'Boutique Elegance',
+					category: 'Moda',
+					description:
+						'Ropa y accesorios de diseñador para ocasiones especiales.',
+					floor: '2',
+					localNumber: '201-A',
+					openHoursJson: makeHours('10:00', '21:00'),
+					status: 'ACTIVE',
+					mallId: granPlaza.id,
+					ownerUserId: adminLocalUser.id,
+				},
+			});
+			console.log('  Created ACTIVE store for admin-local-demo');
+		} else {
+			console.log(
+				`  Admin-local store already exists: ${existingLocalStore.name}`,
+			);
+		}
+	}
+
 	console.log('Database seeding completed.');
 }
 
