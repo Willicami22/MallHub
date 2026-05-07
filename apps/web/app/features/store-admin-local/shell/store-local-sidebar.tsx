@@ -3,6 +3,7 @@ import {
 	Calendar03Icon,
 	DashboardSquare01Icon,
 	Logout01Icon,
+	Settings02Icon,
 	ShoppingBag01Icon,
 	UserIcon,
 } from '@hugeicons/core-free-icons';
@@ -26,6 +27,11 @@ const nav = [
 		to: '/store-local/profile',
 		label: 'Perfil y promos',
 		icon: Building04Icon,
+	},
+	{
+		to: '/store-local/config',
+		label: 'Configuración de Tienda',
+		icon: Settings02Icon,
 	},
 ] as const;
 

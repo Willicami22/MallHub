@@ -68,6 +68,10 @@ export default [
 							'profile',
 							'features/store-admin-local/store-profile/route/store-profile.route.tsx',
 						),
+						route(
+							'config',
+							'features/store-admin-local/store-config/route/store-config.route.tsx',
+						),
 					],
 				),
 			]),

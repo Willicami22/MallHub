@@ -9,16 +9,16 @@ import type { Route } from './+types/store-local-app-layout.route';
 export const loader = async ({ request }: Route.LoaderArgs) => {
 	const session = await requireRoleSession(request, [appRoles.ADMIN_LOCAL]);
 
-	const activeStore = await prisma.store.findFirst({
-		where: { ownerUserId: session.user.id, status: 'ACTIVE' },
-		select: { id: true, name: true },
+	const store = await prisma.store.findFirst({
+		where: { ownerUserId: session.user.id, status: { not: 'SUSPENDED' } },
+		select: { id: true, name: true, status: true },
 	});
 
-	if (!activeStore) {
+	if (!store) {
 		throw redirect(localizeHref('/store-local/pending'));
 	}
 
-	return { store: activeStore };
+	return { store };
 };
 
 export default function StoreLocalAppLayoutRoute({

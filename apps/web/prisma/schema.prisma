@@ -406,7 +406,8 @@ model Store {
   description  String?
   logoImageUrl String?     @map("logo_image_url")
   floor        String?
-  openHours    String?     @map("open_hours")
+  localNumber  String?     @map("local_number")
+  openHoursJson Json?      @map("open_hours_json")
   phone        String?
   contactEmail String?     @map("contact_email")
   status       StoreStatus @default(PENDING_APPROVAL)
