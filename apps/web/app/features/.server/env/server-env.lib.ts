@@ -15,7 +15,7 @@ const requiredServerEnvKeys = [
 	'NOTIFICATIONS_WORKER_LIMIT_DURATION_MS',
 ] as const;
 
-const optionalServerEnvKeys = ['RESEND_FROM_NAME'] as const;
+const optionalServerEnvKeys = ['RESEND_FROM_NAME', 'OPENAI_API_KEY'] as const;
 
 const readStringEnvWithDefault = (
 	key: string,
@@ -97,6 +97,7 @@ export const serverEnv = Object.freeze({
 	NOTIFICATIONS_WORKER_LIMIT_DURATION_MS: parseIntegerEnv(
 		'NOTIFICATIONS_WORKER_LIMIT_DURATION_MS',
 	),
+	OPENAI_API_KEY: readOptionalStringEnv('OPENAI_API_KEY'),
 	MINIO_ENDPOINT: readStringEnvWithDefault(
 		'MINIO_ENDPOINT',
 		'http://localhost:9000',

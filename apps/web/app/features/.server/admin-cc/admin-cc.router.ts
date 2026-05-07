@@ -1,5 +1,7 @@
 import { t } from '@/features/.server/trpc/trpc.init';
-import { generateAiReportMutation } from './ai-reports/generate-ai-report.mutation';
+import { askQuestionMutation } from './ai-reports/ask-question.mutation';
+import { detectAlertsMutation } from './ai-reports/detect-alerts.mutation';
+import { generateReportMutation } from './ai-reports/generate-report.mutation';
 import { addGalleryImageMutation } from './config/add-gallery-image.mutation';
 import { deleteGalleryImageMutation } from './config/delete-gallery-image.mutation';
 import { getMallConfigQuery } from './config/get-mall-config.query';
@@ -37,7 +39,9 @@ export const adminCcStoresRouter = t.router({
 });
 
 export const adminCcReportsRouter = t.router({
-	generate: generateAiReportMutation,
+	generateReport: generateReportMutation,
+	detectAlerts: detectAlertsMutation,
+	askQuestion: askQuestionMutation,
 });
 
 export const adminCcRouter = t.router({

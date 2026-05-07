@@ -34,7 +34,14 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); keys=[k for k in d.keys\\(\\) if 'admin_cc_stores' in k.lower\\(\\)]; print\\(json.dumps\\({k:d[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
       "Bash(pnpm run *)",
       "Bash(npx react-router *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); keys=[k for k in data if k.startswith\\('admin_cc_reports'\\)]; print\\(json.dumps\\({k:data[k] for k in keys}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(pnpm add *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('exports keys:', list\\(p.get\\('exports',{}\\).keys\\(\\)\\)[:5]\\)\")",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('main:', p.get\\('main'\\)\\); print\\('module:', p.get\\('module'\\)\\)\")",
+      "Bash(pnpm remove *)",
+      "Bash(Remove-Item *)"
     ]
   }
 }

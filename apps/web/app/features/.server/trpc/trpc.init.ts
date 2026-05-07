@@ -8,16 +8,12 @@ import {
 	defineAbilityForSessionUser,
 } from '@/features/.server/auth/app-ability.lib';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
-import { initializeAdminCcMockDb } from '@/features/.server/mock-db/admin-cc.mock';
 import { getLocaleFromAsyncStorage } from '@/features/.server/trpc/locale.context';
 import {
 	type AppRole,
 	appRoles,
 } from '@/features/better-auth/better-auth-access-control.lib';
 import * as m from '@/paraglide/messages.js';
-
-// Initialize Admin CC Mock Database on module load
-initializeAdminCcMockDb();
 
 type SessionData = Awaited<ReturnType<typeof auth.api.getSession>>;
 type SessionUserBase = NonNullable<SessionData>['user'];
