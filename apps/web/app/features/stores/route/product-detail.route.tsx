@@ -8,8 +8,13 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Badge, Button, Card, CardContent, Skeleton } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
+import {
+	buildProductReservationStepOnePath,
+	encodeSelectedVariantsParam,
+} from '@/features/reservations/lib/reservation-flow.lib';
 import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
@@ -80,11 +85,15 @@ function NotFound() {
 
 // ─── Variant selector ─────────────────────────────────────────────────────────
 
-function VariantSelector({ groups }: { groups: VariantGroup[] }) {
-	const [selected, setSelected] = useState<Record<string, string>>(() =>
-		Object.fromEntries(groups.map((g) => [g.type, g.options[0] ?? ''])),
-	);
-
+function VariantSelector({
+	groups,
+	selected,
+	onSelect,
+}: {
+	groups: VariantGroup[];
+	selected: Record<string, string>;
+	onSelect: (type: string, option: string) => void;
+}) {
 	if (groups.length === 0) return null;
 
 	return (
@@ -102,9 +111,7 @@ function VariantSelector({ groups }: { groups: VariantGroup[] }) {
 								<button
 									key={option}
 									type="button"
-									onClick={() =>
-										setSelected((prev) => ({ ...prev, [group.type]: option }))
-									}
+									onClick={() => onSelect(group.type, option)}
 									className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
 										isActive
 											? 'border-primary bg-primary text-primary-foreground'
@@ -129,6 +136,9 @@ type GuestModal = 'reserve' | 'favorites' | null;
 export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	const { productId } = params;
 	const trpc = useTRPC();
+	const session = useAppSession();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [guestModal, setGuestModal] = useState<GuestModal>(null);
 
 	const productQuery = useQuery({
@@ -141,14 +151,28 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 		!productQuery.isPending &&
 		(productQuery.isError || !productQuery.data?.product);
 
+	const variantGroups = useMemo(
+		() => parseVariants(product?.variantsJson ?? null),
+		[product?.variantsJson],
+	);
+	const [selectedVariants, setSelectedVariants] = useState<
+		Record<string, string>
+	>({});
+	useEffect(() => {
+		setSelectedVariants(
+			Object.fromEntries(
+				variantGroups.map((group) => [group.type, group.options[0] ?? '']),
+			),
+		);
+	}, [variantGroups]);
+
+	const inStock = (product?.stock ?? 0) > 0;
+	const storeId = product?.store.id;
+	const returnTo = `${location.pathname}${location.search}${location.hash}`;
+
 	if (isNotFound) {
 		return <NotFound />;
 	}
-
-	const variantGroups = parseVariants(product?.variantsJson ?? null);
-	const inStock = (product?.stock ?? 0) > 0;
-	const storeId = product?.store.id;
-	const returnTo = localizeHref(`/products/${productId}`);
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -292,7 +316,16 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 
 					{/* Variants */}
 					{!productQuery.isPending && variantGroups.length > 0 && (
-						<VariantSelector groups={variantGroups} />
+						<VariantSelector
+							groups={variantGroups}
+							selected={selectedVariants}
+							onSelect={(type, option) =>
+								setSelectedVariants((previous) => ({
+									...previous,
+									[type]: option,
+								}))
+							}
+						/>
 					)}
 
 					{/* Description */}
@@ -313,7 +346,33 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 							className="w-full"
 							disabled={!inStock || productQuery.isPending}
 							onClick={() => {
-								if (inStock) setGuestModal('reserve');
+								if (!inStock || !product) return;
+
+								if (!session.data?.user) {
+									setGuestModal('reserve');
+									return;
+								}
+
+								const selectedVariantsQuery = Object.entries(selectedVariants)
+									.filter(([, option]) => option.trim().length > 0)
+									.map(([type, option]) => ({ type, option }));
+								const reserveFlowQuery = new URLSearchParams();
+								if (selectedVariantsQuery.length > 0) {
+									reserveFlowQuery.set(
+										'variants',
+										encodeSelectedVariantsParam(selectedVariantsQuery),
+									);
+								}
+
+								const reserveHref = buildProductReservationStepOnePath(
+									product.id,
+								);
+								const reserveFlowHref =
+									reserveFlowQuery.toString().length > 0
+										? `${reserveHref}?${reserveFlowQuery.toString()}`
+										: reserveHref;
+
+								navigate(localizeHref(reserveFlowHref));
 							}}
 						>
 							{inStock
@@ -324,7 +383,6 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 				</CardContent>
 			</Card>
 
-			{/* Guest modal — reserve or favorites */}
 			<GuestAuthDialog
 				open={guestModal !== null}
 				onClose={() => setGuestModal(null)}

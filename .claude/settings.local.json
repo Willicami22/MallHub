@@ -41,7 +41,9 @@
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('exports keys:', list\\(p.get\\('exports',{}\\).keys\\(\\)\\)[:5]\\)\")",
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); print\\('type:', p.get\\('type'\\)\\); print\\('main:', p.get\\('main'\\)\\); print\\('module:', p.get\\('module'\\)\\)\")",
       "Bash(pnpm remove *)",
-      "Bash(Remove-Item *)"
+      "Bash(Remove-Item *)",
+      "Bash(pnpm --filter @mallhub/web exec prettier --write \"app/features/stores/route/product-detail.route.tsx\" \"app/routes.ts\")",
+      "Bash(pnpm exec *)"
     ]
   }
 }

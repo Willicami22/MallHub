@@ -34,11 +34,27 @@ export default [
 				'products/:productId',
 				'features/stores/route/product-detail.route.tsx',
 			),
+			route(
+				'products/:productId/reserve',
+				'features/reservations/route/product-reservation-step-one.route.tsx',
+			),
+			route(
+				'products/:productId/reserve/contact',
+				'features/reservations/route/product-reservation-step-two.route.tsx',
+			),
+			route(
+				'products/:productId/reserve/confirmation/:reservationId',
+				'features/reservations/route/product-reservation-step-three.route.tsx',
+			),
 			route('search', 'features/search/route/search.route.tsx'),
 			layout('features/layout/authenticated-layout.route.tsx', [
 				route(
 					'dashboard',
 					'features/customer/dashboard/route/customer-dashboard.route.tsx',
+				),
+				route(
+					'dashboard/reservations/:reservationId',
+					'features/customer/dashboard/route/customer-reservation-detail.route.tsx',
 				),
 			]),
 			...prefix('admin-cc', [
