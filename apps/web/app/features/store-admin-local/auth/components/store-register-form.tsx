@@ -1,5 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail01Icon } from '@hugeicons/core-free-icons';
+import {
+	LockPasswordIcon,
+	Mail01Icon,
+	ViewIcon,
+	ViewOffSlashIcon,
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
 	Button,
@@ -10,6 +15,7 @@ import {
 	Input,
 	InputGroup,
 	InputGroupAddon,
+	InputGroupButton,
 	InputGroupInput,
 	Select,
 	SelectContent,
@@ -21,8 +27,11 @@ import {
 	toast,
 } from '@mallhub/ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { TRPCClientError } from '@trpc/client';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import {
 	type RegisterStoreFormValues,
 	registerStoreSchema,
@@ -34,7 +43,11 @@ import { localizeHref } from '@/paraglide/runtime.js';
 export function StoreRegisterForm() {
 	const navigate = useNavigate();
 	const trpc = useTRPC();
+	const session = useAppSession();
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const mallsQuery = useQuery(trpc.browse.listMalls.queryOptions({}));
+	const signUpMutation = useMutation(trpc.auth.signUpEmail.mutationOptions());
 	const registerStore = useMutation(
 		trpc.storeRegistrations.create.mutationOptions({
 			onSuccess: () => {
@@ -43,6 +56,7 @@ export function StoreRegisterForm() {
 			},
 		}),
 	);
+	const isSubmitting = registerStore.isPending || signUpMutation.isPending;
 
 	const form = useForm<RegisterStoreFormValues>({
 		resolver: zodResolver(registerStoreSchema),
@@ -51,6 +65,8 @@ export function StoreRegisterForm() {
 			storeName: '',
 			category: '',
 			mail: '',
+			password: '',
+			confirmPassword: '',
 			contactPhone: '',
 			description: '',
 		},
@@ -58,6 +74,15 @@ export function StoreRegisterForm() {
 
 	const onSubmit = form.handleSubmit(async (values) => {
 		try {
+			if (!session.data?.user) {
+				await signUpMutation.mutateAsync({
+					name: values.storeName,
+					email: values.mail,
+					password: values.password,
+					phone: values.contactPhone,
+				});
+			}
+
 			const payload: RegisterStorePayload = {
 				mallId: values.mallId,
 				storeName: values.storeName,
@@ -67,8 +92,10 @@ export function StoreRegisterForm() {
 				description: values.description?.trim() || undefined,
 			};
 			await registerStore.mutateAsync(payload);
-		} catch {
-			// TanStack Query expone `registerStore.error` en el siguiente render.
+		} catch (error) {
+			if (error instanceof TRPCClientError) {
+				toast.error(error.message);
+			}
 		}
 	});
 
@@ -86,7 +113,7 @@ export function StoreRegisterForm() {
 							<Select
 								value={field.value}
 								onValueChange={field.onChange}
-								disabled={registerStore.isPending || mallsQuery.isLoading}
+								disabled={isSubmitting || mallsQuery.isLoading}
 							>
 								<SelectTrigger
 									className="w-full"
@@ -117,7 +144,7 @@ export function StoreRegisterForm() {
 					<FieldLabel htmlFor="reg-store-name">Nombre de la tienda</FieldLabel>
 					<Input
 						id="reg-store-name"
-						disabled={registerStore.isPending}
+						disabled={isSubmitting}
 						{...form.register('storeName')}
 					/>
 					<FieldError>{form.formState.errors.storeName?.message}</FieldError>
@@ -128,7 +155,7 @@ export function StoreRegisterForm() {
 					<Input
 						id="reg-category"
 						placeholder="Moda, tecnología, hogar..."
-						disabled={registerStore.isPending}
+						disabled={isSubmitting}
 						{...form.register('category')}
 					/>
 					<FieldError>{form.formState.errors.category?.message}</FieldError>
@@ -145,11 +172,71 @@ export function StoreRegisterForm() {
 							type="email"
 							autoComplete="email"
 							aria-invalid={Boolean(form.formState.errors.mail)}
-							disabled={registerStore.isPending}
+							disabled={isSubmitting}
 							{...form.register('mail')}
 						/>
 					</InputGroup>
 					<FieldError>{form.formState.errors.mail?.message}</FieldError>
+				</Field>
+
+				<Field data-invalid={Boolean(form.formState.errors.password)}>
+					<FieldLabel htmlFor="reg-password">Contraseña</FieldLabel>
+					<InputGroup>
+						<InputGroupAddon align="inline-start">
+							<HugeiconsIcon icon={LockPasswordIcon} />
+						</InputGroupAddon>
+						<InputGroupInput
+							id="reg-password"
+							type={showPassword ? 'text' : 'password'}
+							autoComplete="new-password"
+							aria-invalid={Boolean(form.formState.errors.password)}
+							disabled={isSubmitting}
+							{...form.register('password')}
+						/>
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton
+								aria-label="Mostrar u ocultar contrasena"
+								onClick={() => setShowPassword((prev) => !prev)}
+							>
+								<HugeiconsIcon
+									icon={showPassword ? ViewOffSlashIcon : ViewIcon}
+								/>
+							</InputGroupButton>
+						</InputGroupAddon>
+					</InputGroup>
+					<FieldError>{form.formState.errors.password?.message}</FieldError>
+				</Field>
+
+				<Field data-invalid={Boolean(form.formState.errors.confirmPassword)}>
+					<FieldLabel htmlFor="reg-confirm-password">
+						Confirmar contraseña
+					</FieldLabel>
+					<InputGroup>
+						<InputGroupAddon align="inline-start">
+							<HugeiconsIcon icon={LockPasswordIcon} />
+						</InputGroupAddon>
+						<InputGroupInput
+							id="reg-confirm-password"
+							type={showConfirmPassword ? 'text' : 'password'}
+							autoComplete="new-password"
+							aria-invalid={Boolean(form.formState.errors.confirmPassword)}
+							disabled={isSubmitting}
+							{...form.register('confirmPassword')}
+						/>
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton
+								aria-label="Mostrar u ocultar contrasena"
+								onClick={() => setShowConfirmPassword((prev) => !prev)}
+							>
+								<HugeiconsIcon
+									icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon}
+								/>
+							</InputGroupButton>
+						</InputGroupAddon>
+					</InputGroup>
+					<FieldError>
+						{form.formState.errors.confirmPassword?.message}
+					</FieldError>
 				</Field>
 
 				<Field data-invalid={Boolean(form.formState.errors.contactPhone)}>
@@ -157,7 +244,7 @@ export function StoreRegisterForm() {
 					<Input
 						id="reg-contact-phone"
 						autoComplete="tel"
-						disabled={registerStore.isPending}
+						disabled={isSubmitting}
 						{...form.register('contactPhone')}
 					/>
 					<FieldError>{form.formState.errors.contactPhone?.message}</FieldError>
@@ -168,7 +255,7 @@ export function StoreRegisterForm() {
 					<Textarea
 						id="reg-description"
 						rows={4}
-						disabled={registerStore.isPending}
+						disabled={isSubmitting}
 						{...form.register('description')}
 					/>
 					<FieldError>{form.formState.errors.description?.message}</FieldError>
@@ -178,6 +265,12 @@ export function StoreRegisterForm() {
 			{registerStore.error ? (
 				<p className="text-sm text-destructive" role="alert">
 					{registerStore.error.message}
+				</p>
+			) : null}
+
+			{signUpMutation.error ? (
+				<p className="text-sm text-destructive" role="alert">
+					{signUpMutation.error.message}
 				</p>
 			) : null}
 
@@ -191,9 +284,9 @@ export function StoreRegisterForm() {
 				type="submit"
 				size="lg"
 				className="w-full"
-				disabled={registerStore.isPending}
+				disabled={isSubmitting}
 			>
-				{registerStore.isPending ? (
+				{isSubmitting ? (
 					<>
 						<Spinner />
 						Creando tienda…
