@@ -14,6 +14,7 @@ import {
 	decodeSelectedVariantsParam,
 	encodeSelectedVariantsParam,
 	isVariantSelectionValid,
+	parseOpenHoursRange,
 	parseQuantityParam,
 	parseVariantGroups,
 	type SelectedVariant,
@@ -30,6 +31,60 @@ import type { Route } from './+types/product-reservation-step-two.route';
 export const meta = (_args: Route.MetaArgs) => [
 	{ title: m.reservation_flow_step_two_meta_title() },
 ];
+
+const PICKUP_DAYS_WINDOW = 7;
+const PICKUP_SLOT_MINUTES = 30;
+
+function parseScheduledAtValue(value: string): Date | null {
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) {
+		return null;
+	}
+
+	return parsed;
+}
+
+function isValidScheduledAtForStore({
+	scheduledAt,
+	openHours,
+}: {
+	scheduledAt: Date;
+	openHours: string | null;
+}): boolean {
+	const openHoursRange = parseOpenHoursRange(openHours);
+	if (!openHoursRange) {
+		return false;
+	}
+
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const maxDate = new Date(today);
+	maxDate.setDate(maxDate.getDate() + PICKUP_DAYS_WINDOW - 1);
+	maxDate.setHours(23, 59, 59, 999);
+
+	if (scheduledAt < today || scheduledAt > maxDate) {
+		return false;
+	}
+
+	const minutesOfDay = scheduledAt.getHours() * 60 + scheduledAt.getMinutes();
+	const latestAllowedStart =
+		openHoursRange.closesAtMinutes - PICKUP_SLOT_MINUTES;
+	if (
+		minutesOfDay < openHoursRange.opensAtMinutes ||
+		minutesOfDay > latestAllowedStart
+	) {
+		return false;
+	}
+
+	if (
+		(minutesOfDay - openHoursRange.opensAtMinutes) % PICKUP_SLOT_MINUTES !==
+		0
+	) {
+		return false;
+	}
+
+	return true;
+}
 
 function buildInitialSelectedVariants({
 	groups,
@@ -63,6 +118,7 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 			product: null,
 			quantity: 1,
 			selectedVariants: [] as SelectedVariant[],
+			scheduledAtIso: null as string | null,
 			defaultPickupFullName: session.user.name ?? '',
 			defaultPickupPhone: typeof userPhone === 'string' ? userPhone : '',
 			backToProductHref: localizeHref('/stores', { locale }),
@@ -82,6 +138,8 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 		groups: variantGroups,
 		rawSelectedVariants,
 	});
+	const rawScheduledAt = url.searchParams.get('scheduledAt') ?? '';
+	const scheduledAt = parseScheduledAtValue(rawScheduledAt);
 
 	if (!isVariantSelectionValid(variantGroups, selectedVariants)) {
 		throw redirect(
@@ -95,10 +153,31 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 		);
 	}
 
+	if (
+		!scheduledAt ||
+		!isValidScheduledAtForStore({
+			scheduledAt,
+			openHours: product.store.openHours,
+		})
+	) {
+		const stepOneQuery = new URLSearchParams();
+		stepOneQuery.set('quantity', String(quantity));
+		if (rawSelectedVariants.length > 0) {
+			stepOneQuery.set(
+				'variants',
+				encodeSelectedVariantsParam(rawSelectedVariants),
+			);
+		}
+
+		const stepOneHref = `${buildProductReservationStepOnePath(product.id)}?${stepOneQuery.toString()}`;
+		throw redirect(localizeHref(stepOneHref, { locale }));
+	}
+
 	return {
 		product,
 		quantity,
 		selectedVariants,
+		scheduledAtIso: scheduledAt.toISOString(),
 		defaultPickupFullName: session.user.name ?? '',
 		defaultPickupPhone: typeof userPhone === 'string' ? userPhone : '',
 		backToProductHref: localizeHref(`/products/${product.id}`, { locale }),
@@ -122,6 +201,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
 	const selectedVariants = decodeSelectedVariantsParam(
 		String(formData.get('selectedVariants') ?? '[]'),
 	);
+	const scheduledAtRaw = String(formData.get('scheduledAt') ?? '').trim();
 
 	const fieldErrors: {
 		pickupFullName?: string;
@@ -142,6 +222,38 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
 		return { fieldErrors };
 	}
 
+	const product = await findReservableProduct(params.productId);
+	if (!product) {
+		return {
+			formError: m.reservation_create_product_not_found({}, { locale }),
+		};
+	}
+
+	const scheduledAt = parseScheduledAtValue(scheduledAtRaw);
+	if (
+		!scheduledAt ||
+		!isValidScheduledAtForStore({
+			scheduledAt,
+			openHours: product.store.openHours,
+		})
+	) {
+		return {
+			formError: m.reservation_create_validation_pickup_datetime_invalid(
+				{},
+				{ locale },
+			),
+		};
+	}
+
+	const pickupDateTimeLabel = new Intl.DateTimeFormat(undefined, {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+	}).format(scheduledAt);
+	const pickupNote = m.reservation_flow_pickup_datetime_note(
+		{ dateTime: pickupDateTimeLabel },
+		{ locale },
+	);
+
 	try {
 		const reservation = await createReservationFromFlow({
 			productId: params.productId,
@@ -149,6 +261,8 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
 			quantity,
 			pickupFullName,
 			pickupPhone,
+			pickupNote,
+			scheduledAt,
 			selectedVariants,
 		});
 
@@ -269,6 +383,7 @@ export default function ProductReservationStepTwoRoute({
 				pickupPhone={pickupPhone}
 				quantity={loaderData.quantity}
 				selectedVariantsJson={selectedVariantsJson}
+				scheduledAt={loaderData.scheduledAtIso ?? ''}
 				isSubmitting={isSubmitting}
 				pickupFullNameLabel={m.reservation_flow_step_two_pickup_name_label()}
 				pickupPhoneLabel={m.reservation_flow_step_two_pickup_phone_label()}

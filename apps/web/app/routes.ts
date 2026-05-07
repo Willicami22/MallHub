@@ -52,6 +52,10 @@ export default [
 					'dashboard',
 					'features/customer/dashboard/route/customer-dashboard.route.tsx',
 				),
+				route(
+					'dashboard/reservations/:reservationId',
+					'features/customer/dashboard/route/customer-reservation-detail.route.tsx',
+				),
 			]),
 			...prefix('admin', [
 				layout('features/layout/admin-platform-layout.route.tsx', [
