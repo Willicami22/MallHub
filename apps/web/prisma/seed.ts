@@ -94,6 +94,17 @@ async function seed() {
 	}
 
 	// --- Demo stores per mall ---
+	const makeHours = (open: string, close: string) =>
+		[
+			'Lunes',
+			'Martes',
+			'Miércoles',
+			'Jueves',
+			'Viernes',
+			'Sábado',
+			'Domingo',
+		].map((day) => ({ day, open, close, closed: false }));
+
 	const storesData = [
 		// Gran Plaza
 		{
@@ -104,7 +115,7 @@ async function seed() {
 					category: 'Moda',
 					description: 'Última tendencia en moda para toda la familia.',
 					floor: '2',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -112,7 +123,7 @@ async function seed() {
 					category: 'Tecnología',
 					description: 'Dispositivos, accesorios y soporte oficial Apple.',
 					floor: '1',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -121,7 +132,7 @@ async function seed() {
 					description:
 						'Ropa, hogar, electrónica y mucho más bajo un mismo techo.',
 					floor: '1–3',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -129,7 +140,7 @@ async function seed() {
 					category: 'Entretenimiento',
 					description: 'Las mejores películas en salas de última generación.',
 					floor: '4',
-					openHours: '11:00–23:00',
+					openHoursJson: makeHours('11:00', '23:00'),
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -143,7 +154,7 @@ async function seed() {
 					category: 'Moda',
 					description: 'Moda asequible y sostenible para toda ocasión.',
 					floor: '1',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -151,7 +162,7 @@ async function seed() {
 					category: 'Belleza',
 					description: 'Las mejores marcas de cosmética y cuidado personal.',
 					floor: '2',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -160,7 +171,7 @@ async function seed() {
 					description:
 						'Libros, revistas, música, café y más en un espacio icónico.',
 					floor: 'PB',
-					openHours: '08:00–22:00',
+					openHoursJson: makeHours('08:00', '22:00'),
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -175,7 +186,7 @@ async function seed() {
 					description:
 						'Calzado, ropa y accesorios deportivos de la marca más icónica.',
 					floor: '1',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -183,7 +194,7 @@ async function seed() {
 					category: 'Café',
 					description: 'Tu bebida favorita con la mejor experiencia de café.',
 					floor: 'PB',
-					openHours: '07:00–22:00',
+					openHoursJson: makeHours('07:00', '22:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -192,7 +203,7 @@ async function seed() {
 					description:
 						'Electrodomésticos, muebles, ropa y más con facilidades de pago.',
 					floor: '1',
-					openHours: '10:00–20:00',
+					openHoursJson: makeHours('10:00', '20:00'),
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -206,7 +217,7 @@ async function seed() {
 					category: 'Lujo y moda',
 					description: 'Las marcas más exclusivas en moda, hogar y joyería.',
 					floor: '1–2',
-					openHours: '11:00–21:00',
+					openHoursJson: makeHours('11:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 				{
@@ -214,7 +225,7 @@ async function seed() {
 					category: 'Moda joven',
 					description: 'Estilo urbano y casual para el día a día.',
 					floor: '1',
-					openHours: '10:00–21:00',
+					openHoursJson: makeHours('10:00', '21:00'),
 					status: 'ACTIVE' as const,
 				},
 			],
@@ -741,6 +752,62 @@ async function seed() {
 					`  Pending registration already exists: ${regData.storeName}`,
 				);
 			}
+		}
+	}
+
+	// --- Demo admin-local user with an approved ACTIVE store ---
+	const adminLocalEmail = 'admin-local-demo@mallhub.com';
+	if (
+		!(await prisma.user.findUnique({
+			where: { email: adminLocalEmail },
+			select: { id: true },
+		}))
+	) {
+		await auth.api.signUpEmail({
+			body: {
+				email: adminLocalEmail,
+				name: 'Local Admin Demo',
+				password: 'LocalAdmin123!',
+			},
+			asResponse: false,
+		});
+	}
+	const adminLocalUser = await prisma.user.update({
+		where: { email: adminLocalEmail },
+		data: {
+			name: 'Local Admin Demo',
+			role: appRoles.ADMIN_LOCAL,
+			emailVerified: true,
+		},
+		select: { id: true },
+	});
+	console.log(`  Admin local user ready: ${adminLocalEmail}`);
+
+	if (granPlaza) {
+		const existingLocalStore = await prisma.store.findFirst({
+			where: { ownerUserId: adminLocalUser.id },
+			select: { id: true, name: true },
+		});
+		if (!existingLocalStore) {
+			await prisma.store.create({
+				data: {
+					name: 'Boutique Elegance',
+					category: 'Moda',
+					description:
+						'Ropa y accesorios de diseñador para ocasiones especiales.',
+					floor: '2',
+					localNumber: '201-A',
+					openHoursJson: makeHours('10:00', '21:00'),
+					status: 'ACTIVE',
+					mallId: granPlaza.id,
+					ownerUserId: adminLocalUser.id,
+				},
+			});
+			console.log('  Created ACTIVE store for admin-local-demo');
+		} else {
+			console.log(
+				`  Admin-local store already exists: ${existingLocalStore.name}`,
+			);
 		}
 	}
 

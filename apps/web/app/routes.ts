@@ -47,6 +47,46 @@ export default [
 				'features/reservations/route/product-reservation-step-three.route.tsx',
 			),
 			route('search', 'features/search/route/search.route.tsx'),
+			...prefix('store-local', [
+				layout(
+					'features/store-admin-local/shell/store-local-public-layout.route.tsx',
+					[
+						route(
+							'register',
+							'features/store-admin-local/auth/route/store-local-register.route.tsx',
+						),
+						route(
+							'pending',
+							'features/store-admin-local/auth/route/store-local-pending.route.tsx',
+						),
+					],
+				),
+				layout(
+					'features/store-admin-local/shell/store-local-app-layout.route.tsx',
+					[
+						route(
+							'dashboard',
+							'features/store-admin-local/store-dashboard/route/store-dashboard.route.tsx',
+						),
+						route(
+							'products',
+							'features/store-admin-local/products/route/store-products.route.tsx',
+						),
+						route(
+							'reservations',
+							'features/store-admin-local/reservations/route/store-reservations.route.tsx',
+						),
+						route(
+							'profile',
+							'features/store-admin-local/store-profile/route/store-profile.route.tsx',
+						),
+						route(
+							'config',
+							'features/store-admin-local/store-config/route/store-config.route.tsx',
+						),
+					],
+				),
+			]),
 			layout('features/layout/authenticated-layout.route.tsx', [
 				route(
 					'dashboard',

@@ -10,6 +10,7 @@ import {
 	Settings01Icon,
 	ShoppingBag01Icon,
 	ShoppingCart01Icon,
+	Store02Icon,
 	SunIcon,
 	UserGroupIcon,
 	UserIcon,
@@ -72,6 +73,10 @@ function canAccessAdminPlatform(user: { role?: string | null }): boolean {
 
 function canAccessAdminCc(user: { role?: string | null }): boolean {
 	return user.role === appRoles.ADMIN_CC;
+}
+
+function canAccessAdminLocal(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_LOCAL;
 }
 
 const NAV_LINKS = [
@@ -347,6 +352,21 @@ function UserMenu() {
 							</DropdownMenuGroup>
 						</>
 					)}
+					{canAccessAdminLocal(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() =>
+										navigate(localizeHref('/store-local/dashboard'))
+									}
+								>
+									<HugeiconsIcon icon={Store02Icon} className="size-4" />
+									{m.nav_admin_local()}
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
 						<DropdownMenuItem
@@ -509,6 +529,19 @@ function MobileMenuSheet() {
 								>
 									<HugeiconsIcon icon={Building04Icon} className="size-4" />
 									{m.nav_admin_cc()}
+								</Button>
+							)}
+							{canAccessAdminLocal(session.data.user) && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() =>
+										navigate(localizeHref('/store-local/dashboard'))
+									}
+								>
+									<HugeiconsIcon icon={Store02Icon} className="size-4" />
+									{m.nav_admin_local()}
 								</Button>
 							)}
 							<Separator className="my-1" />

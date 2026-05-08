@@ -34,7 +34,7 @@ import {
 	useLoginForm,
 	withLoginForm,
 } from '@/features/better-auth/login/login.form';
-import { withReturnTo } from '@/features/better-auth/return-to.lib';
+
 import { useTRPC } from '@/features/trpc/trpc.context';
 import {
 	hasFieldErrors,
@@ -198,15 +198,9 @@ export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 	const queryClient = useQueryClient();
 	const trpc = useTRPC();
 	const loginMutation = useMutation(trpc.auth.signInEmail.mutationOptions());
-	const postAuthHref = loaderData.returnTo ?? localizeHref('/');
-	const registerHref = withReturnTo(
-		localizeHref('/auth/register'),
-		loaderData.returnTo,
-	);
-	const forgotPasswordHref = withReturnTo(
-		localizeHref('/auth/reset-password'),
-		loaderData.returnTo,
-	);
+	const postAuthHref = localizeHref('/');
+	const registerHref = localizeHref('/auth/register');
+	const forgotPasswordHref = localizeHref('/auth/reset-password');
 	const loginForm = useLoginForm({
 		...LOGIN_FORM_OPTIONS,
 		onSubmit: async ({ value, formApi }) => {

@@ -1,6 +1,5 @@
 import {
 	Building04Icon,
-	FilterIcon,
 	Search01Icon,
 	ShoppingBag01Icon,
 	Tag01Icon,
@@ -441,8 +440,7 @@ export default function SearchRoute() {
 				</Select>
 			</div>
 
-			{/* Type chips + Filtrar button */}
-			<div className="mb-6 flex flex-wrap items-center gap-2">
+			<div className="mb-6 flex flex-wrap gap-2">
 				<FilterChip
 					label={m.search_filter_all()}
 					active={filter === 'all'}
@@ -458,22 +456,6 @@ export default function SearchRoute() {
 					active={filter === 'stores'}
 					onClick={() => setFilter('stores')}
 				/>
-				<div className="ml-auto">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => setFilterPanelOpen(true)}
-						className="gap-1.5"
-					>
-						<HugeiconsIcon icon={FilterIcon} className="size-3.5" />
-						{m.search_filter_button()}
-						{activeFilterCount > 0 && (
-							<Badge className="ml-0.5 h-4 min-w-4 px-1 text-[10px]">
-								{activeFilterCount}
-							</Badge>
-						)}
-					</Button>
-				</div>
 			</div>
 
 			<Separator className="mb-6" />
