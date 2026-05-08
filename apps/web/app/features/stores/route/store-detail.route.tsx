@@ -22,7 +22,7 @@ import {
 } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
@@ -236,12 +236,19 @@ function CatalogTab({
 
 // ─── Info tab ─────────────────────────────────────────────────────────────────
 
+type OpenHourEntry = {
+	day: string;
+	open: string;
+	close: string;
+	closed: boolean;
+};
+
 type StoreInfo = {
 	name: string;
 	category: string | null;
 	description: string | null;
 	floor: string | null;
-	openHours: string | null;
+	openHoursJson: unknown;
 	phone: string | null;
 	contactEmail: string | null;
 	mall: { id: string; name: string; city: string };
@@ -307,11 +314,51 @@ function InfoTab({
 				label={m.store_detail_info_floor()}
 				value={store?.floor ?? null}
 			/>
-			<InfoRow
-				icon={Clock01Icon}
-				label={m.store_detail_info_hours()}
-				value={store?.openHours ?? null}
-			/>
+			{/* Open hours */}
+			{(() => {
+				const entries = Array.isArray(store?.openHoursJson)
+					? (store.openHoursJson as OpenHourEntry[])
+					: null;
+				if (!entries || entries.length === 0) {
+					return (
+						<InfoRow
+							icon={Clock01Icon}
+							label={m.store_detail_info_hours()}
+							value={null}
+						/>
+					);
+				}
+				return (
+					<div className="flex items-start gap-3 py-3">
+						<HugeiconsIcon
+							icon={Clock01Icon}
+							className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+						/>
+						<div className="flex flex-col gap-1">
+							<span className="text-xs text-muted-foreground">
+								{m.store_detail_info_hours()}
+							</span>
+							<div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
+								{entries.map((entry) => (
+									<div
+										key={entry.day}
+										className="flex items-center justify-between gap-2"
+									>
+										<span className="text-sm font-medium text-foreground">
+											{entry.day}
+										</span>
+										<span className="text-sm text-muted-foreground">
+											{entry.closed
+												? m.mall_detail_hours_closed()
+												: `${entry.open} – ${entry.close}`}
+										</span>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+				);
+			})()}
 			<InfoRow
 				icon={Call02Icon}
 				label={m.store_detail_info_phone()}
@@ -373,6 +420,7 @@ function ReviewsTab() {
 export default function StoreDetailRoute({ params }: Route.ComponentProps) {
 	const { storeId } = params;
 	const trpc = useTRPC();
+	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState<Tab>('catalog');
 	const [favoritesModalOpen, setFavoritesModalOpen] = useState(false);
 
@@ -402,9 +450,12 @@ export default function StoreDetailRoute({ params }: Route.ComponentProps) {
 				<Button
 					variant="ghost"
 					size="sm"
-					nativeButton={false}
-					render={<Link to={localizeHref('/stores')} />}
 					className="-ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
+					onClick={() =>
+						window.history.length > 1
+							? navigate(-1)
+							: navigate(localizeHref('/stores'))
+					}
 				>
 					<HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
 					{m.store_detail_back()}

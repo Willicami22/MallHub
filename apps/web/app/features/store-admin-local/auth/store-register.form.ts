@@ -30,10 +30,7 @@ const storeRegisterFormSchema = z
 			.string()
 			.trim()
 			.min(2, { error: m.store_register_store_name_min() }),
-		category: z
-			.string()
-			.trim()
-			.min(2, { error: m.store_register_category_min() }),
+		category: z.string().min(1, { error: m.store_register_category_min() }),
 		mail: z.email({ error: m.register_validation_email_invalid() }),
 		password: z.string().min(8, { error: m.register_password_too_short() }),
 		confirmPassword: z.string().min(1, {
@@ -69,7 +66,7 @@ const storeRegisterFormCodec = z.codec(
 		decode: (state) => ({
 			mallId: state.mallId,
 			storeName: state.storeName.trim(),
-			category: state.category.trim(),
+			category: state.category,
 			mail: state.mail.trim(),
 			password: state.password,
 			confirmPassword: state.confirmPassword,

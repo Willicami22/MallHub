@@ -112,7 +112,7 @@ async function seed() {
 			stores: [
 				{
 					name: 'Zara',
-					category: 'Moda',
+					category: 'Moda y ropa',
 					description: 'Última tendencia en moda para toda la familia.',
 					floor: '2',
 					openHoursJson: makeHours('10:00', '21:00'),
@@ -120,7 +120,7 @@ async function seed() {
 				},
 				{
 					name: 'Apple Store',
-					category: 'Tecnología',
+					category: 'Tecnología y electrónica',
 					description: 'Dispositivos, accesorios y soporte oficial Apple.',
 					floor: '1',
 					openHoursJson: makeHours('10:00', '21:00'),
@@ -128,7 +128,7 @@ async function seed() {
 				},
 				{
 					name: 'Liverpool',
-					category: 'Tienda departamental',
+					category: 'Tiendas por departamento',
 					description:
 						'Ropa, hogar, electrónica y mucho más bajo un mismo techo.',
 					floor: '1–3',
@@ -137,7 +137,7 @@ async function seed() {
 				},
 				{
 					name: 'Cinépolis',
-					category: 'Entretenimiento',
+					category: 'Cine y entretenimiento',
 					description: 'Las mejores películas en salas de última generación.',
 					floor: '4',
 					openHoursJson: makeHours('11:00', '23:00'),
@@ -151,7 +151,7 @@ async function seed() {
 			stores: [
 				{
 					name: 'H&M',
-					category: 'Moda',
+					category: 'Moda y ropa',
 					description: 'Moda asequible y sostenible para toda ocasión.',
 					floor: '1',
 					openHoursJson: makeHours('10:00', '21:00'),
@@ -159,7 +159,7 @@ async function seed() {
 				},
 				{
 					name: 'Sephora',
-					category: 'Belleza',
+					category: 'Belleza y cuidado personal',
 					description: 'Las mejores marcas de cosmética y cuidado personal.',
 					floor: '2',
 					openHoursJson: makeHours('10:00', '21:00'),
@@ -167,7 +167,7 @@ async function seed() {
 				},
 				{
 					name: 'Sanborns',
-					category: 'Libros y café',
+					category: 'Librerías y papelerías',
 					description:
 						'Libros, revistas, música, café y más en un espacio icónico.',
 					floor: 'PB',
@@ -182,7 +182,7 @@ async function seed() {
 			stores: [
 				{
 					name: 'Nike',
-					category: 'Deportes',
+					category: 'Deportes y fitness',
 					description:
 						'Calzado, ropa y accesorios deportivos de la marca más icónica.',
 					floor: '1',
@@ -191,7 +191,7 @@ async function seed() {
 				},
 				{
 					name: 'Starbucks',
-					category: 'Café',
+					category: 'Cafeterías',
 					description: 'Tu bebida favorita con la mejor experiencia de café.',
 					floor: 'PB',
 					openHoursJson: makeHours('07:00', '22:00'),
@@ -199,7 +199,7 @@ async function seed() {
 				},
 				{
 					name: 'Coppel',
-					category: 'Tienda departamental',
+					category: 'Tiendas por departamento',
 					description:
 						'Electrodomésticos, muebles, ropa y más con facilidades de pago.',
 					floor: '1',
@@ -214,7 +214,7 @@ async function seed() {
 			stores: [
 				{
 					name: 'Palacio de Hierro',
-					category: 'Lujo y moda',
+					category: 'Moda y ropa',
 					description: 'Las marcas más exclusivas en moda, hogar y joyería.',
 					floor: '1–2',
 					openHoursJson: makeHours('11:00', '21:00'),
@@ -222,7 +222,7 @@ async function seed() {
 				},
 				{
 					name: 'Pull & Bear',
-					category: 'Moda joven',
+					category: 'Moda y ropa',
 					description: 'Estilo urbano y casual para el día a día.',
 					floor: '1',
 					openHoursJson: makeHours('10:00', '21:00'),
@@ -702,7 +702,7 @@ async function seed() {
 		const pendingRegistrationsData = [
 			{
 				storeName: 'SportZone',
-				category: 'Deportes',
+				category: 'Deportes y fitness',
 				description:
 					'Tienda especializada en equipamiento deportivo y ropa activa de las mejores marcas.',
 				contactEmail: 'contacto@sportzone.com',
@@ -710,7 +710,7 @@ async function seed() {
 			},
 			{
 				storeName: 'El Rincón del Café',
-				category: 'Alimentos',
+				category: 'Cafeterías',
 				description:
 					'Cafetería artesanal con granos de origen y pastelería hecha en casa.',
 				contactEmail: 'hola@rincondecafe.com',
@@ -718,7 +718,7 @@ async function seed() {
 			},
 			{
 				storeName: 'TechWorld',
-				category: 'Electrónica',
+				category: 'Tecnología y electrónica',
 				description:
 					'Accesorios y gadgets tecnológicos para el hogar y la oficina.',
 				contactEmail: 'ventas@techworld.mx',
@@ -792,7 +792,7 @@ async function seed() {
 			await prisma.store.create({
 				data: {
 					name: 'Boutique Elegance',
-					category: 'Moda',
+					category: 'Moda y ropa',
 					description:
 						'Ropa y accesorios de diseñador para ocasiones especiales.',
 					floor: '2',

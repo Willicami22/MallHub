@@ -30,15 +30,53 @@ export const meta = (_args: Route.MetaArgs) => [
 const PLACEHOLDER_COUNT = 8;
 
 const CATEGORY_CHIPS: { label: string; test: (cat: string) => boolean }[] = [
-	{ label: 'Moda', test: (cat) => /moda/i.test(cat) },
-	{
-		label: 'Gastro',
-		test: (cat) => /caf[eé]|gastro|restaur|aliment/i.test(cat),
-	},
-	{ label: 'Tech', test: (cat) => /tecn|tech|electr/i.test(cat) },
-	{ label: 'Deportes', test: (cat) => /deport/i.test(cat) },
-	{ label: 'Belleza', test: (cat) => /belle|cosmét|salud/i.test(cat) },
-];
+	'Moda y ropa',
+	'Calzado',
+	'Accesorios y joyería',
+	'Tecnología y electrónica',
+	'Celulares y telecomunicaciones',
+	'Videojuegos y entretenimiento',
+	'Hogar y decoración',
+	'Muebles',
+	'Electrodomésticos',
+	'Belleza y cuidado personal',
+	'Perfumería y cosméticos',
+	'Salud y farmacia',
+	'Ópticas',
+	'Librerías y papelerías',
+	'Jugueterías',
+	'Deportes y fitness',
+	'Mascotas',
+	'Supermercados y minimercados',
+	'Tiendas por departamento',
+	'Bancos y servicios financieros',
+	'Viajes y turismo',
+	'Restaurantes',
+	'Cafeterías',
+	'Heladerías y postres',
+	'Comida rápida',
+	'Gourmet y delicatessen',
+	'Entretenimiento infantil',
+	'Cine y entretenimiento',
+	'Servicios',
+	'Educación y capacitación',
+	'Arte y regalos',
+	'Relojería',
+	'Lencería',
+	'Moda infantil',
+	'Moda deportiva',
+	'Moda masculina',
+	'Moda femenina',
+	'Productos ecológicos y sostenibles',
+	'Artesanías',
+	'Automotriz y accesorios',
+	'Coworking y oficinas de servicio',
+	'Casinos y apuestas',
+	'Eventos y experiencias temporales',
+].map((label) => ({
+	label,
+	test: (cat: string) => cat.toLowerCase() === label.toLowerCase(),
+}));
 
 function isOpenNow(openHours: string | null): boolean {
 	if (!openHours) return false;
@@ -143,7 +181,7 @@ export default function StoresRoute() {
 			{/* Filter chips */}
 			{!isLoading && stores && stores.length > 0 && (
 				<div className="mb-6 space-y-2">
-					<div className="flex flex-wrap gap-2">
+					<div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 						{CATEGORY_CHIPS.map((chip) => (
 							<FilterChip
 								key={chip.label}
@@ -158,34 +196,23 @@ export default function StoresRoute() {
 						))}
 					</div>
 
-					{allFloors.length > 0 && (
-						<div className="flex flex-wrap gap-2">
-							{allFloors.map((floor) => (
-								<FilterChip
-									key={floor}
-									label={m.stores_floor({ floor })}
-									active={activeFloor === floor}
-									onClick={() =>
-										setActiveFloor((prev) => (prev === floor ? null : floor))
-									}
-								/>
-							))}
+					<div className="flex flex-wrap gap-2">
+						{allFloors.map((floor) => (
 							<FilterChip
-								label={m.stores_filter_open_now()}
-								active={openNow}
-								onClick={() => setOpenNow((prev) => !prev)}
+								key={floor}
+								label={m.stores_floor({ floor })}
+								active={activeFloor === floor}
+								onClick={() =>
+									setActiveFloor((prev) => (prev === floor ? null : floor))
+								}
 							/>
-						</div>
-					)}
-					{allFloors.length === 0 && (
-						<div className="flex flex-wrap gap-2">
-							<FilterChip
-								label={m.stores_filter_open_now()}
-								active={openNow}
-								onClick={() => setOpenNow((prev) => !prev)}
-							/>
-						</div>
-					)}
+						))}
+						<FilterChip
+							label={m.stores_filter_open_now()}
+							active={openNow}
+							onClick={() => setOpenNow((prev) => !prev)}
+						/>
+					</div>
 				</div>
 			)}
 
@@ -233,8 +260,8 @@ export default function StoresRoute() {
 							{ length: PLACEHOLDER_COUNT },
 							(_, i) => `skeleton-${i}`,
 						).map((key) => (
-							<Card key={key} className="overflow-hidden">
-								<div className="flex h-24 items-center justify-center bg-muted">
+							<Card key={key} className="flex flex-col overflow-hidden">
+								<div className="flex h-24 shrink-0 items-center justify-center bg-muted">
 									<HugeiconsIcon
 										icon={ShoppingBag01Icon}
 										className="size-10 text-muted-foreground/30"
@@ -243,8 +270,9 @@ export default function StoresRoute() {
 								<CardHeader className="pb-1 pt-3">
 									<Skeleton className="h-4 w-32" />
 								</CardHeader>
-								<CardContent className="pb-3">
+								<CardContent className="flex flex-1 flex-col justify-between gap-1 pb-3">
 									<Skeleton className="h-3 w-20" />
+									<Skeleton className="h-3 w-16" />
 								</CardContent>
 							</Card>
 						))
@@ -252,10 +280,10 @@ export default function StoresRoute() {
 							<Link
 								key={store.id}
 								to={localizeHref(`/stores/${store.id}`)}
-								className="group"
+								className="group flex h-full flex-col"
 							>
-								<Card className="overflow-hidden transition-shadow group-hover:shadow-md">
-									<div className="relative flex h-24 items-center justify-center bg-muted">
+								<Card className="flex h-full flex-col overflow-hidden transition-shadow group-hover:shadow-md">
+									<div className="relative flex h-24 shrink-0 items-center justify-center bg-muted">
 										{store.logoImageUrl ? (
 											<img
 												src={store.logoImageUrl}
@@ -283,32 +311,30 @@ export default function StoresRoute() {
 											{store.name}
 										</span>
 									</CardHeader>
-									<CardContent className="pb-3 space-y-1">
+									<CardContent className="flex flex-1 flex-col justify-between gap-1 pb-3">
 										<span className="text-xs text-muted-foreground">
 											{store.mall.name} · {store.mall.city}
 										</span>
-										{(store.floor || store.openHours) && (
-											<div className="flex flex-wrap gap-x-2 gap-y-0.5">
-												{store.floor && (
-													<span className="flex items-center gap-1 text-xs text-muted-foreground">
-														<HugeiconsIcon
-															icon={Location01Icon}
-															className="size-3 shrink-0"
-														/>
-														{m.stores_floor({ floor: store.floor })}
-													</span>
-												)}
-												{store.openHours && (
-													<span className="flex items-center gap-1 text-xs text-muted-foreground">
-														<HugeiconsIcon
-															icon={Clock01Icon}
-															className="size-3 shrink-0"
-														/>
-														{store.openHours}
-													</span>
-												)}
-											</div>
-										)}
+										<div className="flex flex-wrap gap-x-2 gap-y-0.5">
+											{store.floor && (
+												<span className="flex items-center gap-1 text-xs text-muted-foreground">
+													<HugeiconsIcon
+														icon={Location01Icon}
+														className="size-3 shrink-0"
+													/>
+													{m.stores_floor({ floor: store.floor })}
+												</span>
+											)}
+											{store.openHours && (
+												<span className="flex items-center gap-1 text-xs text-muted-foreground">
+													<HugeiconsIcon
+														icon={Clock01Icon}
+														className="size-3 shrink-0"
+													/>
+													{store.openHours}
+												</span>
+											)}
+										</div>
 									</CardContent>
 								</Card>
 							</Link>

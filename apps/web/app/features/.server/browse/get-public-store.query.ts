@@ -19,7 +19,7 @@ export const getPublicStoreQuery = procedures.public
 				description: true,
 				logoImageUrl: true,
 				floor: true,
-				openHours: true,
+				openHoursJson: true,
 				phone: true,
 				contactEmail: true,
 				mall: {

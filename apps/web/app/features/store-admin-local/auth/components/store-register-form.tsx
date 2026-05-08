@@ -3,7 +3,6 @@ import {
 	Mail01Icon,
 	SmartPhone01Icon,
 	Store02Icon,
-	Tag01Icon,
 	ViewIcon,
 	ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons';
@@ -28,6 +27,53 @@ import {
 	Textarea,
 	toast,
 } from '@mallhub/ui';
+
+const STORE_CATEGORIES = [
+	'Moda y ropa',
+	'Calzado',
+	'Accesorios y joyería',
+	'Tecnología y electrónica',
+	'Celulares y telecomunicaciones',
+	'Videojuegos y entretenimiento',
+	'Hogar y decoración',
+	'Muebles',
+	'Electrodomésticos',
+	'Belleza y cuidado personal',
+	'Perfumería y cosméticos',
+	'Salud y farmacia',
+	'Ópticas',
+	'Librerías y papelerías',
+	'Jugueterías',
+	'Deportes y fitness',
+	'Mascotas',
+	'Supermercados y minimercados',
+	'Tiendas por departamento',
+	'Bancos y servicios financieros',
+	'Viajes y turismo',
+	'Restaurantes',
+	'Cafeterías',
+	'Heladerías y postres',
+	'Comida rápida',
+	'Gourmet y delicatessen',
+	'Entretenimiento infantil',
+	'Cine y entretenimiento',
+	'Servicios',
+	'Educación y capacitación',
+	'Arte y regalos',
+	'Relojería',
+	'Lencería',
+	'Moda infantil',
+	'Moda deportiva',
+	'Moda masculina',
+	'Moda femenina',
+	'Productos ecológicos y sostenibles',
+	'Artesanías',
+	'Automotriz y accesorios',
+	'Coworking y oficinas de servicio',
+	'Casinos y apuestas',
+	'Eventos y experiencias temporales',
+] as const;
+
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
@@ -123,6 +169,10 @@ export function StoreRegisterForm() {
 													mallIdField.handleChange(val ?? '')
 												}
 												disabled={isSubmitting || mallsQuery.isLoading}
+												items={malls.map((mall) => ({
+													value: mall.id,
+													label: `${mall.name} · ${mall.city}`,
+												}))}
 											>
 												<SelectTrigger
 													className="w-full"
@@ -192,27 +242,32 @@ export function StoreRegisterForm() {
 										!categoryField.state.meta.isValid;
 									return (
 										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={categoryField.name}>
+											<FieldLabel>
 												{m.store_register_category_label()}
 											</FieldLabel>
-											<InputGroup>
-												<InputGroupAddon align="inline-start">
-													<HugeiconsIcon icon={Tag01Icon} />
-												</InputGroupAddon>
-												<InputGroupInput
-													id={categoryField.name}
-													name={categoryField.name}
-													type="text"
-													placeholder={m.store_register_category_placeholder()}
-													value={categoryField.state.value}
-													onChange={(e) =>
-														categoryField.handleChange(e.target.value)
-													}
-													onBlur={categoryField.handleBlur}
+											<Select
+												value={categoryField.state.value}
+												onValueChange={(val) =>
+													categoryField.handleChange(val ?? '')
+												}
+												disabled={isSubmitting}
+											>
+												<SelectTrigger
+													className="w-full"
 													aria-invalid={isInvalid}
-													disabled={isSubmitting}
-												/>
-											</InputGroup>
+												>
+													<SelectValue
+														placeholder={m.store_register_category_placeholder()}
+													/>
+												</SelectTrigger>
+												<SelectContent>
+													{STORE_CATEGORIES.map((cat) => (
+														<SelectItem key={cat} value={cat}>
+															{cat}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
 											<FieldError errors={categoryField.state.meta.errors} />
 										</Field>
 									);
