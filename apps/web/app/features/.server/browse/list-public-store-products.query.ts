@@ -26,6 +26,8 @@ export const listPublicStoreProductsQuery = procedures.public
 				priceOriginal: true,
 				priceDiscount: true,
 				stock: true,
+				isReservable: true,
+				imagesJson: true,
 			},
 			orderBy: { name: 'asc' },
 			take: limit,
@@ -37,9 +39,13 @@ export const listPublicStoreProductsQuery = procedures.public
 				name: p.name,
 				category: p.category,
 				description: p.description,
-				priceOriginal: p.priceOriginal.toNumber(),
-				priceDiscount: p.priceDiscount?.toNumber() ?? null,
+				priceOriginal: Math.round(p.priceOriginal.toNumber()),
+				priceDiscount: p.priceDiscount
+					? Math.round(p.priceDiscount.toNumber())
+					: null,
 				stock: p.stock,
+				isReservable: p.isReservable,
+				images: p.imagesJson ? JSON.parse(p.imagesJson) : [],
 			})),
 		};
 	});

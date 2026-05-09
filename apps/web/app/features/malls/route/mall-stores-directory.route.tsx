@@ -38,15 +38,53 @@ type StoreEntry = {
 // ─── Category chips ───────────────────────────────────────────────────────────
 
 const CATEGORY_CHIPS: { label: string; test: (cat: string) => boolean }[] = [
-	{ label: 'Moda', test: (cat) => /moda/i.test(cat) },
-	{
-		label: 'Gastro',
-		test: (cat) => /caf[eé]|gastro|restaur|aliment/i.test(cat),
-	},
-	{ label: 'Tech', test: (cat) => /tecn|tech|electr/i.test(cat) },
-	{ label: 'Deportes', test: (cat) => /deport/i.test(cat) },
-	{ label: 'Belleza', test: (cat) => /belle|cosmét|salud/i.test(cat) },
-];
+	'Moda y ropa',
+	'Calzado',
+	'Accesorios y joyería',
+	'Tecnología y electrónica',
+	'Celulares y telecomunicaciones',
+	'Videojuegos y entretenimiento',
+	'Hogar y decoración',
+	'Muebles',
+	'Electrodomésticos',
+	'Belleza y cuidado personal',
+	'Perfumería y cosméticos',
+	'Salud y farmacia',
+	'Ópticas',
+	'Librerías y papelerías',
+	'Jugueterías',
+	'Deportes y fitness',
+	'Mascotas',
+	'Supermercados y minimercados',
+	'Tiendas por departamento',
+	'Bancos y servicios financieros',
+	'Viajes y turismo',
+	'Restaurantes',
+	'Cafeterías',
+	'Heladerías y postres',
+	'Comida rápida',
+	'Gourmet y delicatessen',
+	'Entretenimiento infantil',
+	'Cine y entretenimiento',
+	'Servicios',
+	'Educación y capacitación',
+	'Arte y regalos',
+	'Relojería',
+	'Lencería',
+	'Moda infantil',
+	'Moda deportiva',
+	'Moda masculina',
+	'Moda femenina',
+	'Productos ecológicos y sostenibles',
+	'Artesanías',
+	'Automotriz y accesorios',
+	'Coworking y oficinas de servicio',
+	'Casinos y apuestas',
+	'Eventos y experiencias temporales',
+].map((label) => ({
+	label,
+	test: (cat: string) => cat.toLowerCase() === label.toLowerCase(),
+}));
 
 // ─── Open-now helper ──────────────────────────────────────────────────────────
 
@@ -66,7 +104,7 @@ function isOpenNow(openHours: string | null): boolean {
 function StoreCard({ store }: { store: StoreEntry }) {
 	return (
 		<Link to={localizeHref(`/stores/${store.id}`)} className="group">
-			<Card className="flex flex-row items-center gap-4 px-4 py-3 transition-shadow group-hover:shadow-md">
+			<Card className="flex min-h-[4.5rem] flex-row items-center gap-4 px-4 py-3 transition-shadow group-hover:shadow-md">
 				<div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
 					{store.logoImageUrl ? (
 						<img
@@ -264,7 +302,7 @@ export default function MallStoresDirectoryRoute({
 			{!isLoading && stores && stores.length > 0 && (
 				<div className="mb-5 space-y-2">
 					{/* Category chips */}
-					<div className="flex flex-wrap gap-2">
+					<div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 						{CATEGORY_CHIPS.map((chip) => (
 							<FilterChip
 								key={chip.label}
@@ -280,25 +318,23 @@ export default function MallStoresDirectoryRoute({
 					</div>
 
 					{/* Floor + open-now chips */}
-					{allFloors.length > 0 && (
-						<div className="flex flex-wrap gap-2">
-							{allFloors.map((floor) => (
-								<FilterChip
-									key={floor}
-									label={m.mall_directory_floor({ floor })}
-									active={activeFloor === floor}
-									onClick={() =>
-										setActiveFloor((prev) => (prev === floor ? null : floor))
-									}
-								/>
-							))}
+					<div className="flex flex-wrap gap-2">
+						{allFloors.map((floor) => (
 							<FilterChip
-								label={m.mall_directory_filter_open_now()}
-								active={openNow}
-								onClick={() => setOpenNow((prev) => !prev)}
+								key={floor}
+								label={m.mall_directory_floor({ floor })}
+								active={activeFloor === floor}
+								onClick={() =>
+									setActiveFloor((prev) => (prev === floor ? null : floor))
+								}
 							/>
-						</div>
-					)}
+						))}
+						<FilterChip
+							label={m.mall_directory_filter_open_now()}
+							active={openNow}
+							onClick={() => setOpenNow((prev) => !prev)}
+						/>
+					</div>
 				</div>
 			)}
 
@@ -351,7 +387,7 @@ export default function MallStoresDirectoryRoute({
 					).map((key) => (
 						<Card
 							key={key}
-							className="flex flex-row items-center gap-4 px-4 py-3"
+							className="flex min-h-[4.5rem] flex-row items-center gap-4 px-4 py-3"
 						>
 							<Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
 							<div className="flex flex-1 flex-col gap-2">

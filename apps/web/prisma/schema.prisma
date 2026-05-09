@@ -405,8 +405,11 @@ model Store {
   category     String?
   description  String?
   logoImageUrl String?     @map("logo_image_url")
+  bannerImageUrl String?   @map("banner_image_url")
   floor        String?
-  openHours    String?     @map("open_hours")
+  localNumber  String?     @map("local_number")
+  openHoursJson Json?      @map("open_hours_json")
+  socialLinksJson Json?    @map("social_links_json")
   phone        String?
   contactEmail String?     @map("contact_email")
   status       StoreStatus @default(PENDING_APPROVAL)
@@ -596,6 +599,7 @@ model Product {
   stock         Int           @default(0)
   isReservable  Boolean       @default(true) @map("is_reservable")
   variantsJson  String?       @map("variants_json") @db.Text
+  imagesJson    String?       @map("images_json") @db.Text
   aiAssisted    Boolean       @default(false) @map("ai_assisted")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
@@ -619,9 +623,12 @@ model Promotion {
   storeId         String          @map("store_id")
   title           String
   description     String?
+  discountPercent Int             @default(0) @map("discount_percent")
   status          PromotionStatus @default(DRAFT)
   startsAt        DateTime?       @map("starts_at")
   endsAt          DateTime?       @map("ends_at")
+  viewsCount      Int             @default(0) @map("views_count")
+  clicksCount     Int             @default(0) @map("clicks_count")
   createdByUserId String?         @map("created_by_user_id")
   updatedByUserId String?         @map("updated_by_user_id")
   createdAt       DateTime        @default(now()) @map("created_at")

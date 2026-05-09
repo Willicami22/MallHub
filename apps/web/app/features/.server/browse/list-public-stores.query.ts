@@ -45,7 +45,7 @@ export const listPublicStoresQuery = procedures.public
 				description: true,
 				logoImageUrl: true,
 				floor: true,
-				openHours: true,
+				openHoursJson: true,
 				mall: {
 					select: {
 						id: true,
@@ -58,5 +58,10 @@ export const listPublicStoresQuery = procedures.public
 			take: limit,
 		});
 
-		return { stores };
+		return {
+			stores: stores.map(({ openHoursJson, ...s }) => ({
+				...s,
+				openHours: typeof openHoursJson === 'string' ? openHoursJson : null,
+			})),
+		};
 	});

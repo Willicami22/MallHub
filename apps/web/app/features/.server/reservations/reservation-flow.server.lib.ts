@@ -28,6 +28,30 @@ export type ReservationFlowProduct = {
 	};
 };
 
+const DAYS_ES = [
+	'Domingo',
+	'Lunes',
+	'Martes',
+	'Miércoles',
+	'Jueves',
+	'Viernes',
+	'Sábado',
+];
+
+export function openHoursJsonToString(openHoursJson: unknown): string | null {
+	if (!Array.isArray(openHoursJson)) return null;
+	const todayName = DAYS_ES[new Date().getDay()];
+	const entry = openHoursJson.find(
+		(e) =>
+			e !== null &&
+			typeof e === 'object' &&
+			(e as Record<string, unknown>).day === todayName &&
+			!(e as Record<string, unknown>).closed,
+	) as { open: string; close: string } | undefined;
+	if (!entry) return null;
+	return `${entry.open}-${entry.close}`;
+}
+
 export type ReservationCreationFailureCode =
 	| 'PRODUCT_NOT_FOUND'
 	| 'PRODUCT_NOT_RESERVABLE'
@@ -53,7 +77,7 @@ const SELECTABLE_PRODUCT_SHAPE = {
 			id: true,
 			name: true,
 			floor: true,
-			openHours: true,
+			openHoursJson: true,
 			mall: {
 				select: {
 					id: true,
@@ -81,9 +105,20 @@ export async function findReservableProduct(
 	}
 
 	return {
-		...product,
+		id: product.id,
+		name: product.name,
 		priceOriginal: product.priceOriginal.toNumber(),
 		priceDiscount: product.priceDiscount?.toNumber() ?? null,
+		stock: product.stock,
+		isReservable: product.isReservable,
+		variantsJson: product.variantsJson,
+		store: {
+			id: product.store.id,
+			name: product.store.name,
+			floor: product.store.floor,
+			openHours: openHoursJsonToString(product.store.openHoursJson),
+			mall: product.store.mall,
+		},
 	};
 }
 

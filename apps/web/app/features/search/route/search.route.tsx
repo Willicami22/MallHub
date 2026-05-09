@@ -1,6 +1,5 @@
 import {
 	Building04Icon,
-	FilterIcon,
 	Search01Icon,
 	ShoppingBag01Icon,
 	Tag01Icon,
@@ -28,6 +27,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { type ReactNode, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { formatCop } from '@/features/shared/lib/format-cop.lib';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
@@ -49,6 +49,8 @@ type ProductResult = {
 	priceOriginal: number;
 	priceDiscount: number | null;
 	stock: number;
+	isReservable: boolean;
+	images: string[];
 	store: { id: string; name: string; mall: { id: string; name: string } };
 };
 
@@ -60,15 +62,6 @@ type StoreResult = {
 	openHours: string | null;
 	mall: { id: string; name: string; city: string };
 };
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatPrice(value: number): string {
-	return new Intl.NumberFormat(undefined, {
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2,
-	}).format(value);
-}
 
 function normalize(str: string): string {
 	return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -130,17 +123,25 @@ function FilterSection({
 // ─── Product result card ──────────────────────────────────────────────────────
 
 function ProductCard({ product }: { product: ProductResult }) {
-	const inStock = product.stock > 0;
+	const inStock = product.stock > 0 && product.isReservable;
 	return (
 		<Link to={localizeHref(`/products/${product.id}`)} className="group">
 			<Card className="transition-shadow group-hover:shadow-md">
 				<CardHeader className="py-3">
 					<div className="flex items-center gap-3">
-						<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-							<HugeiconsIcon
-								icon={ShoppingBag01Icon}
-								className="size-5 text-muted-foreground/60"
-							/>
+						<div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+							{product.images[0] ? (
+								<img
+									src={product.images[0]}
+									alt={product.name}
+									className="h-full w-full object-cover"
+								/>
+							) : (
+								<HugeiconsIcon
+									icon={ShoppingBag01Icon}
+									className="size-5 text-muted-foreground/60"
+								/>
+							)}
 						</div>
 						<div className="min-w-0 flex-1">
 							<div className="flex flex-wrap items-center gap-1.5">
@@ -165,15 +166,15 @@ function ProductCard({ product }: { product: ProductResult }) {
 							{product.priceDiscount !== null ? (
 								<>
 									<span className="block text-sm font-bold text-foreground">
-										{formatPrice(product.priceDiscount)}
+										{formatCop(product.priceDiscount)}
 									</span>
 									<span className="block text-xs text-muted-foreground line-through">
-										{formatPrice(product.priceOriginal)}
+										{formatCop(product.priceOriginal)}
 									</span>
 								</>
 							) : (
 								<span className="block text-sm font-bold text-foreground">
-									{formatPrice(product.priceOriginal)}
+									{formatCop(product.priceOriginal)}
 								</span>
 							)}
 						</div>
@@ -441,8 +442,7 @@ export default function SearchRoute() {
 				</Select>
 			</div>
 
-			{/* Type chips + Filtrar button */}
-			<div className="mb-6 flex flex-wrap items-center gap-2">
+			<div className="mb-6 flex flex-wrap gap-2">
 				<FilterChip
 					label={m.search_filter_all()}
 					active={filter === 'all'}
@@ -458,22 +458,6 @@ export default function SearchRoute() {
 					active={filter === 'stores'}
 					onClick={() => setFilter('stores')}
 				/>
-				<div className="ml-auto">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => setFilterPanelOpen(true)}
-						className="gap-1.5"
-					>
-						<HugeiconsIcon icon={FilterIcon} className="size-3.5" />
-						{m.search_filter_button()}
-						{activeFilterCount > 0 && (
-							<Badge className="ml-0.5 h-4 min-w-4 px-1 text-[10px]">
-								{activeFilterCount}
-							</Badge>
-						)}
-					</Button>
-				</div>
 			</div>
 
 			<Separator className="mb-6" />

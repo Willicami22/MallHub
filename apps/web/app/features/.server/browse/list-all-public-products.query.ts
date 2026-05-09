@@ -21,6 +21,8 @@ export const listAllPublicProductsQuery = procedures.public
 				priceOriginal: true,
 				priceDiscount: true,
 				stock: true,
+				isReservable: true,
+				imagesJson: true,
 				store: {
 					select: {
 						id: true,
@@ -38,9 +40,13 @@ export const listAllPublicProductsQuery = procedures.public
 				id: p.id,
 				name: p.name,
 				category: p.category,
-				priceOriginal: p.priceOriginal.toNumber(),
-				priceDiscount: p.priceDiscount?.toNumber() ?? null,
+				priceOriginal: Math.round(p.priceOriginal.toNumber()),
+				priceDiscount: p.priceDiscount
+					? Math.round(p.priceDiscount.toNumber())
+					: null,
 				stock: p.stock,
+				isReservable: p.isReservable,
+				images: p.imagesJson ? JSON.parse(p.imagesJson) : [],
 				store: { id: p.store.id, name: p.store.name, mall: p.store.mall },
 			})),
 		};
