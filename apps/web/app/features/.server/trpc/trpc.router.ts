@@ -70,10 +70,20 @@ import { listPublicStoresQuery } from '@/features/.server/browse/list-public-sto
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
 import { createReservationMutation } from '@/features/.server/reservations/create-reservation.mutation';
+import { createStorePromotionMutation } from '@/features/.server/store-admin-local/create-store-promotion.mutation';
+import { deleteProductMutation } from '@/features/.server/store-admin-local/delete-product.mutation';
+import { getDashboardMetricsQuery } from '@/features/.server/store-admin-local/get-dashboard-metrics.query';
 import { getMyStoreQuery } from '@/features/.server/store-admin-local/get-my-store.query';
+import { getPendingReservationsCountQuery } from '@/features/.server/store-admin-local/get-pending-reservations-count.query';
+import { getStoreBannerUploadUrlMutation } from '@/features/.server/store-admin-local/get-store-banner-upload-url.mutation';
 import { getStoreLogoUploadUrlMutation } from '@/features/.server/store-admin-local/get-store-logo-upload-url.mutation';
+import { listMyStoreProductsQuery } from '@/features/.server/store-admin-local/list-my-store-products.query';
+import { listStorePromotionsQuery } from '@/features/.server/store-admin-local/list-store-promotions.query';
+import { listStoreReservationsQuery } from '@/features/.server/store-admin-local/list-store-reservations.query';
 import { submitStoreForReviewMutation } from '@/features/.server/store-admin-local/submit-store-for-review.mutation';
+import { transitionReservationMutation } from '@/features/.server/store-admin-local/transition-reservation.mutation';
 import { updateMyStoreMutation } from '@/features/.server/store-admin-local/update-my-store.mutation';
+import { upsertProductMutation } from '@/features/.server/store-admin-local/upsert-product.mutation';
 import { createStoreRegistrationMutation } from '@/features/.server/store-registration/create-store-registration.mutation';
 import { createStoreRegistrationWithAccountMutation } from '@/features/.server/store-registration/create-store-registration-with-account.mutation';
 import { procedures, t } from '@/features/.server/trpc/trpc.init';
@@ -195,6 +205,16 @@ export const appRouter = t.router({
 		updateMyStore: updateMyStoreMutation,
 		submitForReview: submitStoreForReviewMutation,
 		getLogoUploadUrl: getStoreLogoUploadUrlMutation,
+		getBannerUploadUrl: getStoreBannerUploadUrlMutation,
+		getDashboardMetrics: getDashboardMetricsQuery,
+		listMyStoreProducts: listMyStoreProductsQuery,
+		upsertProduct: upsertProductMutation,
+		deleteProduct: deleteProductMutation,
+		listStoreReservations: listStoreReservationsQuery,
+		transitionReservation: transitionReservationMutation,
+		getPendingReservationsCount: getPendingReservationsCountQuery,
+		listPromotions: listStorePromotionsQuery,
+		createPromotion: createStorePromotionMutation,
 	}),
 });
 

@@ -21,6 +21,8 @@ export const getPublicProductQuery = procedures.public
 				priceDiscount: true,
 				stock: true,
 				isReservable: true,
+				variantsJson: true,
+				imagesJson: true,
 				store: {
 					select: {
 						id: true,
@@ -46,11 +48,14 @@ export const getPublicProductQuery = procedures.public
 				name: product.name,
 				category: product.category,
 				description: product.description,
-				priceOriginal: product.priceOriginal.toNumber(),
-				priceDiscount: product.priceDiscount?.toNumber() ?? null,
+				priceOriginal: Math.round(product.priceOriginal.toNumber()),
+				priceDiscount: product.priceDiscount
+					? Math.round(product.priceDiscount.toNumber())
+					: null,
 				stock: product.stock,
 				isReservable: product.isReservable,
-				variantsJson: null,
+				variantsJson: product.variantsJson,
+				images: product.imagesJson ? JSON.parse(product.imagesJson) : [],
 				store: product.store,
 			},
 		};

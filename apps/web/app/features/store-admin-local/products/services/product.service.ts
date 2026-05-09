@@ -21,8 +21,13 @@ export type ProductUpsertDto = {
 	id?: string;
 	storeId: string;
 	name: string;
+	category: string | null;
 	description: string | null;
 	basePriceCents: number;
+	priceDiscountCents: number | null;
+	status: 'draft' | 'active' | 'inactive' | 'archived';
+	isReservable: boolean;
+	images: string[];
 	isPublished: boolean;
 	variants: ProductUpsertVariantDto[];
 };
@@ -63,9 +68,14 @@ export const productService = {
 			id,
 			storeId: dto.storeId,
 			name: dto.name,
+			category: dto.category,
 			description: dto.description,
+			priceDiscountCents: dto.priceDiscountCents,
+			status: dto.status,
 			basePriceCents: dto.basePriceCents,
+			isReservable: dto.isReservable,
 			isPublished: dto.isPublished,
+			images: dto.images,
 			variants: dto.variants.map((variant) => toVariant(id, variant)),
 			createdAt: dto.id
 				? (inMemoryProductsRepo.getById(id)?.createdAt ??

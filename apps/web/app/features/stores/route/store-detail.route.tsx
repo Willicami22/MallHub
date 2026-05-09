@@ -23,6 +23,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { formatCop } from '@/features/shared/lib/format-cop.lib';
 import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
@@ -36,15 +37,6 @@ export const meta = (_args: Route.MetaArgs) => [
 type Tab = 'catalog' | 'info' | 'reviews';
 
 const PRODUCT_PLACEHOLDER_COUNT = 6;
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatPrice(value: number): string {
-	return new Intl.NumberFormat(undefined, {
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2,
-	}).format(value);
-}
 
 // ─── Not found ────────────────────────────────────────────────────────────────
 
@@ -122,6 +114,8 @@ type Product = {
 	priceOriginal: number;
 	priceDiscount: number | null;
 	stock: number;
+	isReservable: boolean;
+	images: string[];
 };
 
 function CatalogTab({
@@ -182,12 +176,20 @@ function CatalogTab({
 					className="group"
 				>
 					<Card className="overflow-hidden transition-shadow group-hover:shadow-md">
-						<div className="relative flex h-40 items-center justify-center bg-muted">
-							<HugeiconsIcon
-								icon={ShoppingBag01Icon}
-								className="size-12 text-muted-foreground/20"
-							/>
-							{product.stock === 0 && (
+						<div className="relative flex h-40 items-center justify-center overflow-hidden bg-muted">
+							{product.images[0] ? (
+								<img
+									src={product.images[0]}
+									alt={product.name}
+									className="h-full w-full object-cover"
+								/>
+							) : (
+								<HugeiconsIcon
+									icon={ShoppingBag01Icon}
+									className="size-12 text-muted-foreground/20"
+								/>
+							)}
+							{(product.stock === 0 || !product.isReservable) && (
 								<Badge
 									variant="secondary"
 									className="absolute top-2 right-2 border-red-200 bg-red-50 text-red-600 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-400"
@@ -214,15 +216,15 @@ function CatalogTab({
 								{product.priceDiscount !== null ? (
 									<>
 										<span className="text-sm font-bold text-foreground">
-											{formatPrice(product.priceDiscount)}
+											{formatCop(product.priceDiscount)}
 										</span>
 										<span className="text-xs text-muted-foreground line-through">
-											{formatPrice(product.priceOriginal)}
+											{formatCop(product.priceOriginal)}
 										</span>
 									</>
 								) : (
 									<span className="text-sm font-bold text-foreground">
-										{formatPrice(product.priceOriginal)}
+										{formatCop(product.priceOriginal)}
 									</span>
 								)}
 							</div>

@@ -7,9 +7,10 @@ import type {
 import { ServiceError } from '@/features/store-admin-local/shared/types/service-error.types';
 
 const allowed: Record<ReservationStatus, ReservationStatus[]> = {
-	pending: ['confirmed', 'rejected'],
-	confirmed: ['completed', 'rejected'],
+	pending: ['confirmed', 'rejected', 'canceled'],
+	confirmed: ['completed', 'canceled'],
 	rejected: [],
+	canceled: [],
 	completed: [],
 };
 

@@ -160,6 +160,9 @@ export function StoreRegisterForm() {
 									const isInvalid =
 										mallIdField.state.meta.isTouched &&
 										!mallIdField.state.meta.isValid;
+									const selectedMall = mallIdField.state.value
+										? malls.find((m) => m.id === mallIdField.state.value)
+										: null;
 									return (
 										<Field data-invalid={isInvalid}>
 											<FieldLabel>{m.store_register_mall_label()}</FieldLabel>
@@ -180,7 +183,13 @@ export function StoreRegisterForm() {
 												>
 													<SelectValue
 														placeholder={m.store_register_mall_placeholder()}
-													/>
+													>
+														{selectedMall && (
+															<>
+																{selectedMall.name} · {selectedMall.city}
+															</>
+														)}
+													</SelectValue>
 												</SelectTrigger>
 												<SelectContent>
 													{malls.length === 0 ? (

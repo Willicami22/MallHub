@@ -62,6 +62,13 @@ export function PromotionCreateForm({
 						<Input {...form.register('title')} />
 						<FieldError>{form.formState.errors.title?.message}</FieldError>
 					</Field>
+					<Field data-invalid={Boolean(form.formState.errors.description)}>
+						<FieldLabel>Descripción</FieldLabel>
+						<Input {...form.register('description')} placeholder="Opcional" />
+						<FieldError>
+							{form.formState.errors.description?.message}
+						</FieldError>
+					</Field>
 					<Field data-invalid={Boolean(form.formState.errors.discountPercent)}>
 						<FieldLabel>Descuento %</FieldLabel>
 						<Input

@@ -1,18 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import { dashboardService } from '@/features/store-admin-local/store-dashboard/services/dashboard.service';
+import { useTRPC } from '@/features/trpc/trpc.context';
 
-const metricsKey = (storeId: string) =>
+const _metricsKey = (storeId: string) =>
 	['store-admin', 'dashboard-metrics', storeId] as const;
 
 export function useDashboardMetrics(storeId: string | null) {
-	return useQuery({
-		queryKey: metricsKey(storeId ?? 'none'),
-		queryFn: async () => {
-			if (!storeId) {
-				return null;
-			}
-			return dashboardService.getMetrics(storeId);
-		},
-		enabled: Boolean(storeId),
-	});
+	const trpc = useTRPC();
+
+	return useQuery(
+		trpc.storeAdminLocal.getDashboardMetrics.queryOptions({
+			storeId: storeId ?? '',
+		}),
+	);
 }
