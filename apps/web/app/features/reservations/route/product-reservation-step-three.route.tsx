@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { Link } from 'react-router';
 import { requireAuthenticatedSession } from '@/features/.server/auth/auth-route-guard.lib';
 import { prisma } from '@/features/.server/prisma/prisma.server';
+import { openHoursJsonToString } from '@/features/.server/reservations/reservation-flow.server.lib';
 import { resolveLocaleFromRequest } from '@/features/.server/trpc/locale.context';
 import {
 	extractSelectedVariantsFromPickupNote,
@@ -88,7 +89,7 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 				select: {
 					name: true,
 					floor: true,
-					openHours: true,
+					openHoursJson: true,
 				},
 			},
 			product: {
@@ -111,6 +112,10 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 	return {
 		reservation: {
 			...reservation,
+			store: {
+				...reservation.store,
+				openHours: openHoursJsonToString(reservation.store.openHoursJson),
+			},
 			selectedVariants: extractSelectedVariantsFromPickupNote(
 				reservation.pickupNote,
 			),

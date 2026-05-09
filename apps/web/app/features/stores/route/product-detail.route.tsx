@@ -158,7 +158,7 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 		);
 	}, [variantGroups]);
 
-	const inStock = (product?.stock ?? 0) > 0;
+	const inStock = (product?.stock ?? 0) > 0 && (product?.isReservable ?? false);
 	const storeId = product?.store.id;
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
 

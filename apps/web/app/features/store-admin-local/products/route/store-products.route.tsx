@@ -35,8 +35,14 @@ export default function StoreProductsRoute(_props: Route.ComponentProps) {
 	const { storeId: activeStoreId } = useOutletContext<{ storeId: string }>();
 	const search = useProductsUiStore((state) => state.search);
 	const setSearch = useProductsUiStore((state) => state.setSearch);
-	const { products, allProducts, listQuery, upsertMutation, deleteMutation } =
-		useProducts(activeStoreId);
+	const {
+		products,
+		allProducts,
+		listQuery,
+		upsertMutation,
+		deleteMutation,
+		getImageUploadUrlMutation,
+	} = useProducts(activeStoreId);
 	const [statusFilter, setStatusFilter] = useState<'all' | ProductStatus>(
 		'all',
 	);
@@ -314,6 +320,7 @@ export default function StoreProductsRoute(_props: Route.ComponentProps) {
 					storeId={activeStoreId}
 					initial={editing}
 					isSubmitting={upsertMutation.isPending}
+					getImageUploadUrlMutation={getImageUploadUrlMutation}
 					onSubmit={async (dto) => {
 						try {
 							await upsertMutation.mutateAsync(dto);

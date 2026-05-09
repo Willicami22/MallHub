@@ -77,8 +77,8 @@ export default [
 							'features/store-admin-local/reservations/route/store-reservations.route.tsx',
 						),
 						route(
-							'profile',
-							'features/store-admin-local/store-profile/route/store-profile.route.tsx',
+							'promotions',
+							'features/store-admin-local/promotions/route/store-promotions.route.tsx',
 						),
 						route(
 							'config',

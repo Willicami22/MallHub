@@ -16,7 +16,7 @@ import { useForm } from 'react-hook-form';
 import {
 	type PromotionFormValues,
 	promotionFormSchema,
-} from '@/features/store-admin-local/store-profile/schemas/store-profile.schemas';
+} from '@/features/store-admin-local/promotions/schemas/promotion.schemas';
 
 type PromotionCreateFormProps = {
 	onCreate: (values: PromotionFormValues) => Promise<void>;

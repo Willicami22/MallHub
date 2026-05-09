@@ -64,6 +64,9 @@ CREATE TYPE "CampaignStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'EXPIRED');
 -- CreateEnum
 CREATE TYPE "CampaignBannerType" AS ENUM ('IMAGE', 'NATIVE_CARD');
 
+-- CreateEnum
+CREATE TYPE "EventStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -188,13 +191,45 @@ CREATE TABLE "malls" (
     "city" TEXT NOT NULL,
     "address" TEXT NOT NULL,
     "description" TEXT,
+    "phone" TEXT,
+    "logo_image_url" TEXT,
     "hero_image_url" TEXT,
+    "config_map_svg" TEXT,
+    "open_hours_json" JSONB,
+    "social_links_json" JSONB,
     "status" "MallStatus" NOT NULL DEFAULT 'INACTIVE',
     "admin_cc_user_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "malls_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "mall_gallery_images" (
+    "id" TEXT NOT NULL,
+    "mall_id" TEXT NOT NULL,
+    "image_url" TEXT NOT NULL,
+    "label" TEXT,
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "mall_gallery_images_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "mall_events" (
+    "id" TEXT NOT NULL,
+    "mall_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3) NOT NULL,
+    "status" "EventStatus" NOT NULL DEFAULT 'DRAFT',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "mall_events_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -206,6 +241,11 @@ CREATE TABLE "stores" (
     "category" TEXT,
     "description" TEXT,
     "logo_image_url" TEXT,
+    "banner_image_url" TEXT,
+    "floor" TEXT,
+    "local_number" TEXT,
+    "open_hours_json" JSONB,
+    "social_links_json" JSONB,
     "phone" TEXT,
     "contact_email" TEXT,
     "status" "StoreStatus" NOT NULL DEFAULT 'PENDING_APPROVAL',
@@ -342,6 +382,8 @@ CREATE TABLE "products" (
     "price_discount" DECIMAL(12,2),
     "stock" INTEGER NOT NULL DEFAULT 0,
     "is_reservable" BOOLEAN NOT NULL DEFAULT true,
+    "variants_json" TEXT,
+    "images_json" TEXT,
     "ai_assisted" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -356,9 +398,12 @@ CREATE TABLE "promotions" (
     "store_id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "discount_percent" INTEGER NOT NULL DEFAULT 0,
     "status" "PromotionStatus" NOT NULL DEFAULT 'DRAFT',
     "starts_at" TIMESTAMP(3),
     "ends_at" TIMESTAMP(3),
+    "views_count" INTEGER NOT NULL DEFAULT 0,
+    "clicks_count" INTEGER NOT NULL DEFAULT 0,
     "created_by_user_id" TEXT,
     "updated_by_user_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -380,6 +425,7 @@ CREATE TABLE "reservations" (
     "pickup_phone" TEXT NOT NULL,
     "pickup_note" TEXT,
     "qr_code_value" TEXT NOT NULL,
+    "scheduled_at" TIMESTAMP(3),
     "requested_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "confirmed_at" TIMESTAMP(3),
     "completed_at" TIMESTAMP(3),
@@ -610,6 +656,15 @@ CREATE INDEX "malls_status_idx" ON "malls"("status");
 CREATE INDEX "malls_adminCcUserId_idx" ON "malls"("admin_cc_user_id");
 
 -- CreateIndex
+CREATE INDEX "mall_gallery_images_mall_sort_idx" ON "mall_gallery_images"("mall_id", "sort_order");
+
+-- CreateIndex
+CREATE INDEX "mall_events_mall_status_idx" ON "mall_events"("mall_id", "status");
+
+-- CreateIndex
+CREATE INDEX "mall_events_dates_idx" ON "mall_events"("start_date", "end_date");
+
+-- CreateIndex
 CREATE INDEX "stores_mallId_idx" ON "stores"("mall_id");
 
 -- CreateIndex
@@ -794,6 +849,12 @@ ALTER TABLE "user_profiles" ADD CONSTRAINT "user_profiles_user_id_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "malls" ADD CONSTRAINT "malls_admin_cc_user_id_fkey" FOREIGN KEY ("admin_cc_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "mall_gallery_images" ADD CONSTRAINT "mall_gallery_images_mall_id_fkey" FOREIGN KEY ("mall_id") REFERENCES "malls"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "mall_events" ADD CONSTRAINT "mall_events_mall_id_fkey" FOREIGN KEY ("mall_id") REFERENCES "malls"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "stores" ADD CONSTRAINT "stores_mall_id_fkey" FOREIGN KEY ("mall_id") REFERENCES "malls"("id") ON DELETE CASCADE ON UPDATE CASCADE;

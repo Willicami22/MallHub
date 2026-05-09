@@ -5,6 +5,7 @@ import {
 	Logout01Icon,
 	Settings02Icon,
 	ShoppingBag01Icon,
+	Tag01Icon,
 	UserIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -23,11 +24,7 @@ const nav = [
 	},
 	{ to: '/store-local/products', label: 'Catálogo', icon: ShoppingBag01Icon },
 	{ to: '/store-local/reservations', label: 'Reservas', icon: Calendar03Icon },
-	{
-		to: '/store-local/profile',
-		label: 'Perfil y promos',
-		icon: Building04Icon,
-	},
+	{ to: '/store-local/promotions', label: 'Promociones', icon: Tag01Icon },
 	{
 		to: '/store-local/config',
 		label: 'Configuración de Tienda',

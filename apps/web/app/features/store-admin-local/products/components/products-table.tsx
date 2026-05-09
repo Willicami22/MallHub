@@ -1,6 +1,7 @@
 import {
 	Badge,
 	Button,
+	Switch,
 	Table,
 	TableBody,
 	TableCell,
@@ -46,20 +47,22 @@ export function ProductsTable({
 	onDelete,
 }: ProductsTableProps) {
 	return (
-		<div className="space-y-4">
-			<div className="rounded-xl border">
+		<div className="overflow-hidden rounded-xl border">
+			<div className="overflow-x-auto">
 				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead>Producto</TableHead>
-							<TableHead>Categoría</TableHead>
+							<TableHead className="hidden sm:table-cell">Categoría</TableHead>
 							<TableHead>Precio COP</TableHead>
-							<TableHead>Variantes</TableHead>
+							<TableHead className="hidden md:table-cell">Variantes</TableHead>
 							<TableHead>Estado</TableHead>
-							<TableHead>Stock</TableHead>
-							<TableHead className="min-w-[18rem] text-right">
-								Acciones
+							<TableHead>
+								<span className="whitespace-nowrap">
+									Disponible para reserva
+								</span>
 							</TableHead>
+							<TableHead className="text-right">Acciones</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -68,16 +71,30 @@ export function ProductsTable({
 								(sum, variant) => sum + variant.stock,
 								0,
 							);
+							const isAvailable = product.isReservable && totalStock > 0;
 
 							return (
 								<TableRow key={product.id}>
 									<TableCell>
-										<span className="font-medium">{product.name}</span>
+										<div className="flex min-w-0 items-center gap-2">
+											{product.images[0] ? (
+												<img
+													src={product.images[0]}
+													alt={product.name}
+													className="h-9 w-9 shrink-0 rounded-md border object-cover"
+												/>
+											) : (
+												<div className="h-9 w-9 shrink-0 rounded-md border bg-muted" />
+											)}
+											<span className="truncate font-medium">
+												{product.name}
+											</span>
+										</div>
 									</TableCell>
-									<TableCell className="text-sm text-muted-foreground">
+									<TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
 										{product.category ?? '—'}
 									</TableCell>
-									<TableCell className="text-sm text-muted-foreground">
+									<TableCell className="text-sm">
 										<div className="flex flex-col">
 											<span className="font-medium text-foreground">
 												{formatCop(
@@ -86,13 +103,13 @@ export function ProductsTable({
 											</span>
 											{product.priceDiscountCents !== null ? (
 												<span className="text-xs text-muted-foreground line-through">
-													{formatCop(product.basePriceCents)} original
+													{formatCop(product.basePriceCents)}
 												</span>
 											) : null}
 										</div>
 									</TableCell>
-									<TableCell className="text-sm text-muted-foreground">
-										{product.variants.length} SKU
+									<TableCell className="hidden text-sm text-muted-foreground md:table-cell">
+										{product.variants.length} SKU · stock {totalStock}
 									</TableCell>
 									<TableCell>
 										<Badge variant={statusBadgeVariant[product.status]}>
@@ -100,17 +117,22 @@ export function ProductsTable({
 										</Badge>
 									</TableCell>
 									<TableCell>
-										<Badge
-											variant={
-												product.isReservable && totalStock > 0
-													? 'default'
-													: 'secondary'
-											}
-										>
-											{product.isReservable && totalStock > 0
-												? 'Disponible'
-												: 'Sin stock'}
-										</Badge>
+										<div className="flex items-center gap-2">
+											<Switch
+												checked={isAvailable}
+												onCheckedChange={() => onToggleAvailability(product)}
+												aria-label={
+													isAvailable
+														? 'Marcar como sin stock'
+														: 'Marcar como disponible'
+												}
+											/>
+											<span
+												className={`whitespace-nowrap text-xs font-medium ${isAvailable ? 'text-foreground' : 'text-muted-foreground'}`}
+											>
+												{isAvailable ? 'Disponible' : 'Sin stock'}
+											</span>
+										</div>
 									</TableCell>
 									<TableCell className="text-right">
 										<div className="flex flex-wrap justify-end gap-1">
@@ -119,7 +141,6 @@ export function ProductsTable({
 												variant="ghost"
 												size="sm"
 												onClick={() => onEdit(product)}
-												aria-label="Editar"
 											>
 												Editar
 											</Button>
@@ -128,7 +149,6 @@ export function ProductsTable({
 												variant="ghost"
 												size="sm"
 												onClick={() => onDuplicate(product)}
-												aria-label="Duplicar"
 											>
 												Duplicar
 											</Button>
@@ -137,7 +157,6 @@ export function ProductsTable({
 												variant="ghost"
 												size="sm"
 												onClick={() => onToggleStatus(product)}
-												aria-label="Cambiar estado"
 											>
 												{product.status === 'active' ? 'Desactivar' : 'Activar'}
 											</Button>
@@ -145,19 +164,8 @@ export function ProductsTable({
 												type="button"
 												variant="ghost"
 												size="sm"
-												onClick={() => onToggleAvailability(product)}
-												aria-label="Cambiar stock"
-											>
-												{product.isReservable && totalStock > 0
-													? 'Sin stock'
-													: 'Disponible'}
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
+												className="text-destructive hover:text-destructive"
 												onClick={() => onDelete(product)}
-												aria-label="Eliminar"
 											>
 												Eliminar
 											</Button>

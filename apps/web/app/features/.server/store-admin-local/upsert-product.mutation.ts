@@ -23,7 +23,7 @@ const upsertProductInputSchema = z.object({
 	isReservable: z.boolean(),
 	images: z.array(z.string().trim().url()).min(1),
 	isPublished: z.boolean(),
-	variants: z.array(productVariantInputSchema).min(1),
+	variants: z.array(productVariantInputSchema),
 });
 
 const mapProductStatus = (

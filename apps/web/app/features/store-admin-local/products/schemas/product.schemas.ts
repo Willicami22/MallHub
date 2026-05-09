@@ -34,9 +34,7 @@ export const productFormSchema = z.object({
 		.int()
 		.min(0, { error: 'Precio base en COP inválido' }),
 	isPublished: z.boolean(),
-	variants: z
-		.array(variantSchema)
-		.min(1, { error: 'Añade al menos una variante' }),
+	variants: z.array(variantSchema),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

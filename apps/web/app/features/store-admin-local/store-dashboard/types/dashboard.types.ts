@@ -1,18 +1,12 @@
-export type DashboardMetricKey =
-	| 'revenueCents'
-	| 'orders'
-	| 'conversionRate'
-	| 'activeListings';
-
-export type DashboardMetric = {
-	key: DashboardMetricKey;
-	label: string;
-	value: string;
-	hint: string;
-	deltaLabel: string;
+export type TopProduct = {
+	productId: string;
+	name: string;
+	count: number;
 };
 
-export type DashboardMetricsDto = {
-	generatedAt: string;
-	metrics: DashboardMetric[];
+export type OutOfStockProduct = {
+	id: string;
+	name: string;
+	stock: number;
+	isReservable: boolean;
 };

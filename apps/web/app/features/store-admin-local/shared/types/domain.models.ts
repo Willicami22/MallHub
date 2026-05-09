@@ -8,8 +8,8 @@ export type Store = {
 	description: string | null;
 	logoImageUrl: string | null;
 	bannerImageUrl: string | null;
-	openHoursJson: any | null;
-	socialLinksJson: any | null;
+	openHoursJson: unknown;
+	socialLinksJson: unknown;
 	status: StoreStatus;
 	createdAt: string;
 	updatedAt: string;

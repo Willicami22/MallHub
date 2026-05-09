@@ -75,6 +75,7 @@ import { deleteProductMutation } from '@/features/.server/store-admin-local/dele
 import { getDashboardMetricsQuery } from '@/features/.server/store-admin-local/get-dashboard-metrics.query';
 import { getMyStoreQuery } from '@/features/.server/store-admin-local/get-my-store.query';
 import { getPendingReservationsCountQuery } from '@/features/.server/store-admin-local/get-pending-reservations-count.query';
+import { getProductImageUploadUrlMutation } from '@/features/.server/store-admin-local/get-product-image-upload-url.mutation';
 import { getStoreBannerUploadUrlMutation } from '@/features/.server/store-admin-local/get-store-banner-upload-url.mutation';
 import { getStoreLogoUploadUrlMutation } from '@/features/.server/store-admin-local/get-store-logo-upload-url.mutation';
 import { listMyStoreProductsQuery } from '@/features/.server/store-admin-local/list-my-store-products.query';
@@ -206,6 +207,7 @@ export const appRouter = t.router({
 		submitForReview: submitStoreForReviewMutation,
 		getLogoUploadUrl: getStoreLogoUploadUrlMutation,
 		getBannerUploadUrl: getStoreBannerUploadUrlMutation,
+		getProductImageUploadUrl: getProductImageUploadUrlMutation,
 		getDashboardMetrics: getDashboardMetricsQuery,
 		listMyStoreProducts: listMyStoreProductsQuery,
 		upsertProduct: upsertProductMutation,
