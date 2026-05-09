@@ -1,5 +1,20 @@
-import { toast } from '@mallhub/ui';
+import { Notification01Icon, RefreshIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+	Alert,
+	AlertDescription,
+	AlertTitle,
+	Button,
+	toast,
+} from '@mallhub/ui';
+import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router';
+import { RejectReservationDialog } from '@/features/store-admin-local/reservations/components/reject-reservation-dialog';
+import { ReservationDetailSheet } from '@/features/store-admin-local/reservations/components/reservation-detail-sheet';
+import {
+	ReservationsFilterBar,
+	type ReservationsFilters,
+} from '@/features/store-admin-local/reservations/components/reservations-filter-bar';
 import { ReservationsList } from '@/features/store-admin-local/reservations/components/reservations-list';
 import { useReservations } from '@/features/store-admin-local/reservations/hooks/use-reservations';
 import {
@@ -7,7 +22,7 @@ import {
 	ResourceBoundary,
 	TableSkeletonRows,
 } from '@/features/store-admin-local/shared/components/resource-boundary';
-import { isServiceError } from '@/features/store-admin-local/shared/types/service-error.types';
+import type { Reservation } from '@/features/store-admin-local/shared/types/domain.models';
 import type { Route } from './+types/store-reservations.route';
 
 export const meta = () => [
@@ -17,35 +32,85 @@ export const meta = () => [
 
 export default function StoreReservationsRoute(_props: Route.ComponentProps) {
 	const { storeId: activeStoreId } = useOutletContext<{ storeId: string }>();
-	const { listQuery, transitionMutation } = useReservations(activeStoreId);
+
+	const [filters, setFilters] = useState<ReservationsFilters>({
+		status: [],
+		dateFrom: '',
+		dateTo: '',
+	});
+
+	const [selectedReservation, setSelectedReservation] =
+		useState<Reservation | null>(null);
+	const [rejectId, setRejectId] = useState<string | null>(null);
+	const [busyId, setBusyId] = useState<string | null>(null);
+
+	// Polling state
+	const [lastKnownPendingCount, setLastKnownPendingCount] = useState<
+		number | null
+	>(null);
+	const [showNewReservationAlert, setShowNewReservationAlert] = useState(false);
+
+	const { listQuery, pendingCountQuery, transitionMutation } = useReservations(
+		activeStoreId,
+		filters,
+	);
+
+	// Detect new pending reservations
+	useEffect(() => {
+		if (pendingCountQuery.data) {
+			const currentCount = pendingCountQuery.data.count;
+			if (
+				lastKnownPendingCount !== null &&
+				currentCount > lastKnownPendingCount
+			) {
+				setShowNewReservationAlert(true);
+			}
+			setLastKnownPendingCount(currentCount);
+		}
+	}, [pendingCountQuery.data, lastKnownPendingCount]);
 
 	const errorMessage =
-		listQuery.error && isServiceError(listQuery.error)
-			? listQuery.error.message
-			: (listQuery.error?.message ?? null);
+		listQuery.error?.message ?? 'Error al cargar las reservas';
 
-	const rows = listQuery.data ?? [];
+	const rows = listQuery.data?.reservations ?? [];
+	const filteredRowsCount = rows.length;
+	const hasActiveFilters =
+		filters.status.length > 0 || filters.dateFrom || filters.dateTo;
+
+	const handleRefresh = async () => {
+		setShowNewReservationAlert(false);
+		await listQuery.refetch();
+	};
 
 	const runTransition = async (
 		reservationId: string,
 		next: 'confirmed' | 'rejected' | 'completed',
+		reason?: string,
 	) => {
-		if (!activeStoreId) {
-			return;
-		}
+		if (!activeStoreId) return;
+
+		setBusyId(reservationId);
 		try {
 			await transitionMutation.mutateAsync({
 				reservationId,
 				next,
-				sId: activeStoreId,
+				storeId: activeStoreId,
+				reason,
 			});
 			toast.success('Reserva actualizada');
+			if (next === 'rejected') {
+				setRejectId(null);
+			}
+			await listQuery.refetch();
+			if (next === 'confirmed' || next === 'rejected') {
+				await pendingCountQuery.refetch();
+			}
 		} catch (error) {
-			const message =
-				error && isServiceError(error)
-					? error.message
-					: 'No se pudo actualizar la reserva';
-			toast.error(message);
+			toast.error(
+				error instanceof Error ? error.message : 'No se pudo actualizar',
+			);
+		} finally {
+			setBusyId(null);
 		}
 	};
 
@@ -53,11 +118,28 @@ export default function StoreReservationsRoute(_props: Route.ComponentProps) {
 		<div className="space-y-6">
 			<div>
 				<h1 className="text-2xl font-semibold tracking-tight">Reservas</h1>
-				<p className="text-sm text-muted-foreground">
-					Acciones con reglas de estado en el servicio (sin efectos encadenados
-					ocultos).
-				</p>
 			</div>
+
+			{showNewReservationAlert && (
+				<Alert className="border-primary/50 bg-primary/5">
+					<HugeiconsIcon
+						icon={Notification01Icon}
+						className="size-4 text-primary"
+					/>
+					<AlertTitle className="text-primary">
+						Nueva reserva recibida
+					</AlertTitle>
+					<AlertDescription className="flex items-center justify-between">
+						<span>Tienes nuevas reservas pendientes de atención.</span>
+						<Button size="sm" onClick={handleRefresh}>
+							<HugeiconsIcon icon={RefreshIcon} className="mr-2 size-4" />
+							Actualizar lista
+						</Button>
+					</AlertDescription>
+				</Alert>
+			)}
+
+			<ReservationsFilterBar filters={filters} onChange={setFilters} />
 
 			<ResourceBoundary
 				isLoading={listQuery.isLoading}
@@ -65,7 +147,7 @@ export default function StoreReservationsRoute(_props: Route.ComponentProps) {
 				errorMessage={errorMessage}
 				isEmpty={!activeStoreId}
 				onRetry={() => {
-					void listQuery.refetch();
+					listQuery.refetch();
 				}}
 				loadingFallback={<TableSkeletonRows rows={4} />}
 				empty={
@@ -75,27 +157,45 @@ export default function StoreReservationsRoute(_props: Route.ComponentProps) {
 					/>
 				}
 			>
-				{rows.length === 0 ? (
+				{filteredRowsCount === 0 ? (
 					<ListEmptyState
-						title="Sin reservas"
-						description="Cuando lleguen solicitudes aparecerán aquí."
+						title={hasActiveFilters ? 'No hay coincidencias' : 'Sin reservas'}
+						description={
+							hasActiveFilters
+								? 'No se encontraron reservas con los filtros actuales.'
+								: 'No tienes ninguna reserva todavía.'
+						}
 					/>
 				) : (
 					<ReservationsList
 						reservations={rows}
-						isBusy={transitionMutation.isPending}
-						onConfirm={(id) => {
-							void runTransition(id, 'confirmed');
-						}}
-						onReject={(id) => {
-							void runTransition(id, 'rejected');
-						}}
-						onComplete={(id) => {
-							void runTransition(id, 'completed');
-						}}
+						busyId={busyId}
+						onConfirm={(id) => runTransition(id, 'confirmed')}
+						onReject={(id) => setRejectId(id)}
+						onComplete={(id) => runTransition(id, 'completed')}
+						onViewDetails={setSelectedReservation}
 					/>
 				)}
 			</ResourceBoundary>
+
+			<ReservationDetailSheet
+				reservation={selectedReservation}
+				open={!!selectedReservation}
+				onOpenChange={(open) => {
+					if (!open) setSelectedReservation(null);
+				}}
+			/>
+
+			<RejectReservationDialog
+				open={!!rejectId}
+				onOpenChange={(open) => {
+					if (!open) setRejectId(null);
+				}}
+				isBusy={transitionMutation.isPending && busyId === rejectId}
+				onConfirm={(reason) => {
+					if (rejectId) runTransition(rejectId, 'rejected', reason);
+				}}
+			/>
 		</div>
 	);
 }

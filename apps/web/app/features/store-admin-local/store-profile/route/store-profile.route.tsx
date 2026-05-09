@@ -23,6 +23,8 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 	const {
 		profileQuery,
 		updateMutation,
+		getLogoUploadUrlMutation,
+		getBannerUploadUrlMutation,
 		promotionsQuery,
 		createPromotionMutation,
 	} = useStoreProfile(activeStoreId);
@@ -43,13 +45,16 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 		}
 		try {
 			await updateMutation.mutateAsync({
-				sId: activeStoreId,
-				dto: {
-					name: values.name,
-					slug: values.slug,
-					description:
-						values.description.trim() === '' ? null : values.description.trim(),
-				},
+				name: values.name,
+				description:
+					values.description.trim() === ''
+						? undefined
+						: values.description.trim(),
+				logoImageUrl: values.logoImageUrl,
+				bannerImageUrl:
+					values.bannerImageUrl === '' ? undefined : values.bannerImageUrl,
+				openHours: values.openHours,
+				socialLinks: values.socialLinks,
 			});
 			toast.success('Perfil actualizado');
 		} catch (error) {
@@ -60,6 +65,9 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 			toast.error(message);
 		}
 	};
+
+	const storeData = profileQuery.data?.store ?? null;
+	const promotionsData = promotionsQuery.data?.promotions ?? [];
 
 	return (
 		<div className="space-y-8">
@@ -89,9 +97,11 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 				}
 			>
 				<StoreProfileEditor
-					store={profileQuery.data ?? null}
+					store={storeData as any}
 					onSave={handleSaveProfile}
 					isSaving={updateMutation.isPending}
+					getLogoUploadUrlMutation={getLogoUploadUrlMutation}
+					getBannerUploadUrlMutation={getBannerUploadUrlMutation}
 				/>
 			</ResourceBoundary>
 
@@ -120,13 +130,12 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 							}
 							try {
 								await createPromotionMutation.mutateAsync({
-									sId: activeStoreId,
-									dto: {
-										title: values.title,
-										discountPercent: values.discountPercent,
-										startsAt: new Date(values.startsAt).toISOString(),
-										endsAt: new Date(values.endsAt).toISOString(),
-									},
+									storeId: activeStoreId,
+									title: values.title,
+									description: values.description,
+									discountPercent: values.discountPercent,
+									startsAt: new Date(values.startsAt).toISOString(),
+									endsAt: new Date(values.endsAt).toISOString(),
 								});
 								toast.success('Promoción creada');
 							} catch {
@@ -134,7 +143,7 @@ export default function StoreProfileRoute(_props: Route.ComponentProps) {
 							}
 						}}
 					/>
-					<PromotionHistory promotions={promotionsQuery.data ?? []} />
+					<PromotionHistory promotions={promotionsData as any} />
 				</div>
 			</ResourceBoundary>
 		</div>

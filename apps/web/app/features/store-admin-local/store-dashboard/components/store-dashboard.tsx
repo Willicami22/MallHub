@@ -1,6 +1,5 @@
 import { DashboardSquare01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@mallhub/ui';
 import {
 	ListEmptyState,
 	MetricCardsSkeleton,
@@ -9,12 +8,13 @@ import {
 import { isServiceError } from '@/features/store-admin-local/shared/types/service-error.types';
 import { MetricCards } from '@/features/store-admin-local/store-dashboard/components/metric-cards';
 import { useDashboardMetrics } from '@/features/store-admin-local/store-dashboard/hooks/use-dashboard-metrics';
+import type { DashboardMetric } from '@/features/store-admin-local/store-dashboard/types/dashboard.types';
 
 type StoreDashboardProps = {
 	storeId: string | null;
 };
 
-export function StoreDashboard({ storeId }: StoreDashboardProps) {
+export function StoreDashboard({ storeId }: Readonly<StoreDashboardProps>) {
 	const metricsQuery = useDashboardMetrics(storeId);
 
 	const errorMessage =
@@ -36,10 +36,6 @@ export function StoreDashboard({ storeId }: StoreDashboardProps) {
 						<h1 className="text-2xl font-semibold tracking-tight">
 							Panel de tienda
 						</h1>
-						<p className="text-sm text-muted-foreground">
-							Resumen operativo y señales clave (datos simulados hasta conectar
-							Supabase).
-						</p>
 					</div>
 				</div>
 			</div>
@@ -50,7 +46,7 @@ export function StoreDashboard({ storeId }: StoreDashboardProps) {
 				errorMessage={errorMessage}
 				isEmpty={!storeId}
 				onRetry={() => {
-					void metricsQuery.refetch();
+					metricsQuery.refetch();
 				}}
 				loadingFallback={<MetricCardsSkeleton />}
 				empty={
@@ -61,19 +57,13 @@ export function StoreDashboard({ storeId }: StoreDashboardProps) {
 				}
 			>
 				{metricsQuery.data ? (
-					<MetricCards metrics={metricsQuery.data.metrics} />
+					<MetricCards
+						metrics={metricsQuery.data.metrics as DashboardMetric[]}
+					/>
 				) : null}
 			</ResourceBoundary>
 
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">Próximos pasos</CardTitle>
-					<CardDescription className="text-sm">
-						Conecta RPC de Supabase en `dashboard.service.ts` y mapea el DTO
-						real.
-					</CardDescription>
-				</CardHeader>
-			</Card>
+			{/* Removed developer note about Supabase RPC */}
 		</div>
 	);
 }

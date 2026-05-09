@@ -5,9 +5,16 @@ const seed: Product[] = [
 		id: 'prod_1',
 		storeId: 'store_seed_1',
 		name: 'Bolso urbano',
+		category: 'Accesorios',
 		description: 'Edición limitada',
+		priceDiscountCents: 7990,
+		status: 'active',
 		basePriceCents: 8990,
+		isReservable: true,
 		isPublished: true,
+		images: [
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1200',
+		],
 		variants: [
 			{
 				id: 'var_1',

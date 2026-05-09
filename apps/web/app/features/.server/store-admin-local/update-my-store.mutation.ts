@@ -10,20 +10,38 @@ const openHourSchema = z.object({
 	closed: z.boolean(),
 });
 
+const socialLinkSchema = z.object({
+	platform: z.string(),
+	url: z.string().url('URL inválida').or(z.literal('')),
+});
+
 const updateMyStoreInput = z.object({
 	name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres.'),
 	category: z
 		.string()
 		.trim()
-		.min(2, 'La categoría debe tener al menos 2 caracteres.'),
-	floor: z.string().trim().min(1, 'El piso es obligatorio.'),
-	localNumber: z.string().trim().min(1, 'El número de local es obligatorio.'),
-	openHours: z.array(openHourSchema).min(1, 'Los horarios son obligatorios.'),
+		.min(2, 'La categoría debe tener al menos 2 caracteres.')
+		.optional(),
+	floor: z.string().trim().min(1, 'El piso es obligatorio.').optional(),
+	localNumber: z
+		.string()
+		.trim()
+		.min(1, 'El número de local es obligatorio.')
+		.optional(),
+	openHours: z.array(openHourSchema).optional(),
+	socialLinks: z.array(socialLinkSchema).optional(),
 	logoImageUrl: z
 		.string()
 		.trim()
 		.min(1, 'El logo es obligatorio.')
-		.url('Ingresa una URL válida para el logo.'),
+		.url('Ingresa una URL válida para el logo.')
+		.optional(),
+	bannerImageUrl: z
+		.string()
+		.trim()
+		.url('Ingresa una URL válida para el banner.')
+		.optional()
+		.or(z.literal('')),
 	phone: z.string().trim().optional(),
 	contactEmail: z
 		.union([z.string().email('Correo electrónico inválido.'), z.literal('')])
@@ -59,14 +77,30 @@ export const updateMyStoreMutation = procedures.adminLocal
 			where: { id: store.id },
 			data: {
 				name: input.name,
-				category: input.category,
-				floor: input.floor,
-				localNumber: input.localNumber,
-				openHoursJson: input.openHours,
-				logoImageUrl: input.logoImageUrl,
-				phone: input.phone ?? null,
-				contactEmail: input.contactEmail || null,
-				description: input.description ?? null,
+				...(input.category !== undefined && { category: input.category }),
+				...(input.floor !== undefined && { floor: input.floor }),
+				...(input.localNumber !== undefined && {
+					localNumber: input.localNumber,
+				}),
+				...(input.openHours !== undefined && {
+					openHoursJson: input.openHours,
+				}),
+				...(input.socialLinks !== undefined && {
+					socialLinksJson: input.socialLinks,
+				}),
+				...(input.logoImageUrl !== undefined && {
+					logoImageUrl: input.logoImageUrl,
+				}),
+				...(input.bannerImageUrl !== undefined && {
+					bannerImageUrl: input.bannerImageUrl || null,
+				}),
+				...(input.phone !== undefined && { phone: input.phone || null }),
+				...(input.contactEmail !== undefined && {
+					contactEmail: input.contactEmail || null,
+				}),
+				...(input.description !== undefined && {
+					description: input.description || null,
+				}),
 			},
 			select: { id: true, status: true },
 		});

@@ -1,63 +1,55 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-	type PromotionCreateDto,
-	type StoreProfileUpdateDto,
-	storeProfileService,
-} from '@/features/store-admin-local/store-profile/services/store-profile.service';
-
-const profileKey = (storeId: string) =>
-	['store-admin', 'store-profile', storeId] as const;
-const promosKey = (storeId: string) =>
-	['store-admin', 'promotions', storeId] as const;
+import { useTRPC } from '@/features/trpc/trpc.context';
 
 export function useStoreProfile(storeId: string | null) {
 	const queryClient = useQueryClient();
+	const trpc = useTRPC();
 
 	const profileQuery = useQuery({
-		queryKey: profileKey(storeId ?? 'none'),
-		queryFn: async () => {
-			if (!storeId) {
-				return null;
-			}
-			return storeProfileService.getProfile(storeId);
-		},
+		...trpc.storeAdminLocal.getMyStore.queryOptions(),
 		enabled: Boolean(storeId),
 	});
 
 	const updateMutation = useMutation({
-		mutationFn: ({ sId, dto }: { sId: string; dto: StoreProfileUpdateDto }) =>
-			storeProfileService.updateProfile(sId, dto),
-		onSuccess: async (_, variables) => {
+		...trpc.storeAdminLocal.updateMyStore.mutationOptions(),
+		onSuccess: async () => {
 			await queryClient.invalidateQueries({
-				queryKey: profileKey(variables.sId),
+				queryKey: trpc.storeAdminLocal.getMyStore.queryKey(),
 			});
 		},
 	});
 
+	const getLogoUploadUrlMutation = useMutation({
+		...trpc.storeAdminLocal.getLogoUploadUrl.mutationOptions(),
+	});
+
+	const getBannerUploadUrlMutation = useMutation({
+		...trpc.storeAdminLocal.getBannerUploadUrl.mutationOptions(),
+	});
+
 	const promotionsQuery = useQuery({
-		queryKey: promosKey(storeId ?? 'none'),
-		queryFn: async () => {
-			if (!storeId) {
-				return [];
-			}
-			return storeProfileService.listPromotions(storeId);
-		},
+		...trpc.storeAdminLocal.listPromotions.queryOptions({
+			storeId: storeId ?? '',
+		}),
 		enabled: Boolean(storeId),
 	});
 
 	const createPromotionMutation = useMutation({
-		mutationFn: ({ sId, dto }: { sId: string; dto: PromotionCreateDto }) =>
-			storeProfileService.createPromotion(sId, dto),
-		onSuccess: async (_, variables) => {
-			await queryClient.invalidateQueries({
-				queryKey: promosKey(variables.sId),
-			});
+		...trpc.storeAdminLocal.createPromotion.mutationOptions(),
+		onSuccess: async () => {
+			if (storeId) {
+				await queryClient.invalidateQueries({
+					queryKey: trpc.storeAdminLocal.listPromotions.queryKey({ storeId }),
+				});
+			}
 		},
 	});
 
 	return {
 		profileQuery,
 		updateMutation,
+		getLogoUploadUrlMutation,
+		getBannerUploadUrlMutation,
 		promotionsQuery,
 		createPromotionMutation,
 	};

@@ -1,37 +1,33 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { reservationService } from '@/features/store-admin-local/reservations/services/reservation.service';
-import type { ReservationStatus } from '@/features/store-admin-local/shared/types/domain.models';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useTRPC } from '@/features/trpc/trpc.context';
 
-const key = (storeId: string) =>
-	['store-admin', 'reservations', storeId] as const;
-
-export function useReservations(storeId: string | null) {
-	const queryClient = useQueryClient();
+export function useReservations(
+	storeId: string | null,
+	filters?: { status?: string[]; dateFrom?: string; dateTo?: string },
+) {
+	const trpc = useTRPC();
 
 	const listQuery = useQuery({
-		queryKey: key(storeId ?? 'none'),
-		queryFn: async () => {
-			if (!storeId) {
-				return [];
-			}
-			return reservationService.listByStore(storeId);
-		},
-		enabled: Boolean(storeId),
+		...trpc.storeAdminLocal.listStoreReservations.queryOptions({
+			storeId: storeId ?? '',
+			status: filters?.status,
+			dateFrom: filters?.dateFrom,
+			dateTo: filters?.dateTo,
+		}),
+		enabled: !!storeId,
 	});
 
-	const transitionMutation = useMutation({
-		mutationFn: ({
-			reservationId,
-			next,
-		}: {
-			reservationId: string;
-			next: ReservationStatus;
-			sId: string;
-		}) => reservationService.transition(reservationId, next),
-		onSuccess: async (_, variables) => {
-			await queryClient.invalidateQueries({ queryKey: key(variables.sId) });
-		},
+	const pendingCountQuery = useQuery({
+		...trpc.storeAdminLocal.getPendingReservationsCount.queryOptions({
+			storeId: storeId ?? '',
+		}),
+		enabled: !!storeId,
+		refetchInterval: 30_000, // Poll every 30s
 	});
 
-	return { listQuery, transitionMutation };
+	const transitionMutation = useMutation(
+		trpc.storeAdminLocal.transitionReservation.mutationOptions(),
+	);
+
+	return { listQuery, pendingCountQuery, transitionMutation };
 }

@@ -1,10 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
-import {
-	type ProductUpsertDto,
-	productService,
-} from '@/features/store-admin-local/products/services/product.service';
 import { useProductsUiStore } from '@/features/store-admin-local/products/store/products-ui.store';
+import type { ProductVariant } from '@/features/store-admin-local/shared/types/domain.models';
+import { useTRPC } from '@/features/trpc/trpc.context';
 
 const productsKey = (storeId: string) =>
 	['store-admin', 'products', storeId] as const;
@@ -12,20 +10,17 @@ const productsKey = (storeId: string) =>
 export function useProducts(storeId: string | null) {
 	const queryClient = useQueryClient();
 	const search = useProductsUiStore((state) => state.search);
+	const trpc = useTRPC();
 
 	const listQuery = useQuery({
-		queryKey: productsKey(storeId ?? 'none'),
-		queryFn: async () => {
-			if (!storeId) {
-				return [];
-			}
-			return productService.listByStore(storeId);
-		},
+		...trpc.storeAdminLocal.listMyStoreProducts.queryOptions({
+			storeId: storeId ?? '',
+		}),
 		enabled: Boolean(storeId),
 	});
 
 	const upsertMutation = useMutation({
-		mutationFn: (dto: ProductUpsertDto) => productService.upsert(dto),
+		...trpc.storeAdminLocal.upsertProduct.mutationOptions(),
 		onSuccess: async (_, variables) => {
 			await queryClient.invalidateQueries({
 				queryKey: productsKey(variables.storeId),
@@ -34,17 +29,16 @@ export function useProducts(storeId: string | null) {
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: ({ productId }: { productId: string; sId: string }) =>
-			productService.delete(productId),
+		...trpc.storeAdminLocal.deleteProduct.mutationOptions(),
 		onSuccess: async (_, variables) => {
 			await queryClient.invalidateQueries({
-				queryKey: productsKey(variables.sId),
+				queryKey: productsKey(variables.storeId),
 			});
 		},
 	});
 
 	const filtered = useMemo(() => {
-		const rows = listQuery.data ?? [];
+		const rows = listQuery.data?.products ?? [];
 		const term = search.trim().toLowerCase();
 		if (!term) {
 			return rows;
@@ -52,7 +46,7 @@ export function useProducts(storeId: string | null) {
 		return rows.filter(
 			(product) =>
 				product.name.toLowerCase().includes(term) ||
-				product.variants.some((variant) =>
+				product.variants.some((variant: ProductVariant) =>
 					variant.sku.toLowerCase().includes(term),
 				),
 		);
@@ -66,6 +60,7 @@ export function useProducts(storeId: string | null) {
 
 	return {
 		products: filtered,
+		allProducts: listQuery.data?.products ?? [],
 		listQuery,
 		upsertMutation,
 		deleteMutation,

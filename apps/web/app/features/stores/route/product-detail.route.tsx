@@ -10,6 +10,7 @@ import { Badge, Button, Card, CardContent, Skeleton } from '@mallhub/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { formatCop } from '@/features/shared/lib/format-cop.lib';
 import { GuestAuthDialog } from '@/features/stores/components/guest-auth-dialog';
 import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
@@ -19,15 +20,6 @@ import type { Route } from './+types/product-detail.route';
 export const meta = (_args: Route.MetaArgs) => [
 	{ title: m.stores_meta_title() },
 ];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatPrice(value: number): string {
-	return new Intl.NumberFormat(undefined, {
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2,
-	}).format(value);
-}
 
 type VariantGroup = { type: string; options: string[] };
 
@@ -146,7 +138,7 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 	}
 
 	const variantGroups = parseVariants(product?.variantsJson ?? null);
-	const inStock = (product?.stock ?? 0) > 0;
+	const inStock = (product?.stock ?? 0) > 0 && product?.isReservable !== false;
 	const storeId = product?.store.id;
 	const returnTo = localizeHref(`/products/${productId}`);
 
@@ -177,11 +169,19 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 			{/* Product card */}
 			<Card className="overflow-hidden">
 				{/* Image placeholder with favorites button */}
-				<div className="relative flex h-56 w-full items-center justify-center bg-muted sm:h-72">
-					<HugeiconsIcon
-						icon={ShoppingBag01Icon}
-						className="size-20 text-muted-foreground/20"
-					/>
+				<div className="relative flex h-56 w-full items-center justify-center overflow-hidden bg-muted sm:h-72">
+					{product?.images?.[0] ? (
+						<img
+							src={product.images[0]}
+							alt={product.name}
+							className="h-full w-full object-cover"
+						/>
+					) : (
+						<HugeiconsIcon
+							icon={ShoppingBag01Icon}
+							className="size-20 text-muted-foreground/20"
+						/>
+					)}
 					<Button
 						variant="ghost"
 						size="icon-sm"
@@ -244,15 +244,15 @@ export default function ProductDetailRoute({ params }: Route.ComponentProps) {
 							product?.priceDiscount !== undefined ? (
 								<>
 									<span className="text-2xl font-bold text-foreground">
-										{formatPrice(product.priceDiscount)}
+										{formatCop(product.priceDiscount)}
 									</span>
 									<span className="text-base text-muted-foreground line-through">
-										{formatPrice(product.priceOriginal ?? 0)}
+										{formatCop(product.priceOriginal ?? 0)}
 									</span>
 								</>
 							) : (
 								<span className="text-2xl font-bold text-foreground">
-									{formatPrice(product?.priceOriginal ?? 0)}
+									{formatCop(product?.priceOriginal ?? 0)}
 								</span>
 							)}
 						</div>
