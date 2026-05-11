@@ -1,7 +1,9 @@
 import {
+	Cancel01Icon,
+	Clock01Icon,
+	Location01Icon,
 	Search01Icon,
 	ShoppingBag01Icon,
-	Tag01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -12,7 +14,10 @@ import {
 	CardHeader,
 	Skeleton,
 } from '@mallhub/ui';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { useTRPC } from '@/features/trpc/trpc.context';
 import * as m from '@/paraglide/messages.js';
 import { localizeHref } from '@/paraglide/runtime.js';
 import type { Route } from './+types/stores.route';
@@ -22,19 +27,137 @@ export const meta = (_args: Route.MetaArgs) => [
 	{ name: 'description', content: m.stores_meta_description() },
 ];
 
-// TODO-MOCK: Replace with real data
-const PLACEHOLDER_STORES = [
-	{ id: '1', badge: 'Nuevo', hasPromo: true },
-	{ id: '2', badge: null, hasPromo: false },
-	{ id: '3', badge: null, hasPromo: true },
-	{ id: '4', badge: 'Destacado', hasPromo: false },
-	{ id: '5', badge: null, hasPromo: true },
-	{ id: '6', badge: null, hasPromo: false },
-	{ id: '7', badge: 'Nuevo', hasPromo: true },
-	{ id: '8', badge: null, hasPromo: false },
-] as const;
+const PLACEHOLDER_COUNT = 8;
+
+const CATEGORY_CHIPS: { label: string; test: (cat: string) => boolean }[] = [
+	'Moda y ropa',
+	'Calzado',
+	'Accesorios y joyería',
+	'Tecnología y electrónica',
+	'Celulares y telecomunicaciones',
+	'Videojuegos y entretenimiento',
+	'Hogar y decoración',
+	'Muebles',
+	'Electrodomésticos',
+	'Belleza y cuidado personal',
+	'Perfumería y cosméticos',
+	'Salud y farmacia',
+	'Ópticas',
+	'Librerías y papelerías',
+	'Jugueterías',
+	'Deportes y fitness',
+	'Mascotas',
+	'Supermercados y minimercados',
+	'Tiendas por departamento',
+	'Bancos y servicios financieros',
+	'Viajes y turismo',
+	'Restaurantes',
+	'Cafeterías',
+	'Heladerías y postres',
+	'Comida rápida',
+	'Gourmet y delicatessen',
+	'Entretenimiento infantil',
+	'Cine y entretenimiento',
+	'Servicios',
+	'Educación y capacitación',
+	'Arte y regalos',
+	'Relojería',
+	'Lencería',
+	'Moda infantil',
+	'Moda deportiva',
+	'Moda masculina',
+	'Moda femenina',
+	'Productos ecológicos y sostenibles',
+	'Artesanías',
+	'Automotriz y accesorios',
+	'Coworking y oficinas de servicio',
+	'Casinos y apuestas',
+	'Eventos y experiencias temporales',
+].map((label) => ({
+	label,
+	test: (cat: string) => cat.toLowerCase() === label.toLowerCase(),
+}));
+
+function isOpenNow(openHours: string | null): boolean {
+	if (!openHours) return false;
+	const match = openHours.match(/(\d{1,2}):(\d{2})[–\-–](\d{1,2}):(\d{2})/u);
+	if (!match) return false;
+	const [, oh, om, ch, cm] = match.map(Number);
+	const now = new Date();
+	const nowMins = now.getHours() * 60 + now.getMinutes();
+	return nowMins >= oh * 60 + om && nowMins < ch * 60 + cm;
+}
+
+function FilterChip({
+	label,
+	active,
+	onClick,
+}: {
+	label: string;
+	active: boolean;
+	onClick: () => void;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className={`inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+				active
+					? 'border-primary bg-primary text-primary-foreground'
+					: 'border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground'
+			}`}
+		>
+			{label}
+		</button>
+	);
+}
 
 export default function StoresRoute() {
+	const trpc = useTRPC();
+	const storesQuery = useQuery(
+		trpc.browse.listStores.queryOptions({ limit: 50 }),
+	);
+	const stores = storesQuery.data?.stores;
+	const isLoading = storesQuery.isPending;
+
+	const [activeCategory, setActiveCategory] = useState<string | null>(null);
+	const [activeFloor, setActiveFloor] = useState<string | null>(null);
+	const [openNow, setOpenNow] = useState(false);
+
+	const allFloors = useMemo(() => {
+		if (!stores) return [];
+		const seen = new Set<string>();
+		for (const s of stores) {
+			if (s.floor) seen.add(s.floor);
+		}
+		return [...seen].sort((a, b) =>
+			a.localeCompare(b, undefined, { numeric: true }),
+		);
+	}, [stores]);
+
+	const filteredStores = useMemo(() => {
+		if (!stores) return [];
+		return stores.filter((store) => {
+			if (activeCategory) {
+				const chip = CATEGORY_CHIPS.find((c) => c.label === activeCategory);
+				if (!chip || !store.category || !chip.test(store.category))
+					return false;
+			}
+			if (activeFloor && store.floor !== activeFloor) return false;
+			if (openNow && !isOpenNow(store.openHours)) return false;
+			return true;
+		});
+	}, [stores, activeCategory, activeFloor, openNow]);
+
+	const _hasActiveFilters =
+		activeCategory !== null || activeFloor !== null || openNow;
+
+	function clearFilters() {
+		setActiveCategory(null);
+		setActiveFloor(null);
+		setOpenNow(false);
+	}
+
 	return (
 		<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
 			<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -55,39 +178,167 @@ export default function StoresRoute() {
 				</Button>
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				{PLACEHOLDER_STORES.map((store) => (
-					<Card
-						key={store.id}
-						className="group overflow-hidden transition-shadow hover:shadow-md"
-					>
-						<div className="relative flex h-24 items-center justify-center bg-muted">
-							<HugeiconsIcon
-								icon={ShoppingBag01Icon}
-								className="size-10 text-muted-foreground/40"
+			{/* Filter chips */}
+			{!isLoading && stores && stores.length > 0 && (
+				<div className="mb-6 space-y-2">
+					<div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+						{CATEGORY_CHIPS.map((chip) => (
+							<FilterChip
+								key={chip.label}
+								label={chip.label}
+								active={activeCategory === chip.label}
+								onClick={() =>
+									setActiveCategory((prev) =>
+										prev === chip.label ? null : chip.label,
+									)
+								}
 							/>
-							{store.badge && (
-								<Badge variant="secondary" className="absolute top-2 right-2">
-									{store.badge}
-								</Badge>
-							)}
-							{store.hasPromo && (
-								<div className="absolute bottom-2 left-2">
-									<Badge variant="default" className="gap-1">
-										<HugeiconsIcon icon={Tag01Icon} className="size-3" />
-										Promo
-									</Badge>
-								</div>
-							)}
+						))}
+					</div>
+
+					<div className="flex flex-wrap gap-2">
+						{allFloors.map((floor) => (
+							<FilterChip
+								key={floor}
+								label={m.stores_floor({ floor })}
+								active={activeFloor === floor}
+								onClick={() =>
+									setActiveFloor((prev) => (prev === floor ? null : floor))
+								}
+							/>
+						))}
+						<FilterChip
+							label={m.stores_filter_open_now()}
+							active={openNow}
+							onClick={() => setOpenNow((prev) => !prev)}
+						/>
+					</div>
+				</div>
+			)}
+
+			{/* Store count */}
+			{!isLoading && stores && stores.length > 0 && (
+				<div className="mb-4">
+					<span className="text-sm text-muted-foreground">
+						{m.stores_store_count({ count: filteredStores.length })}
+					</span>
+				</div>
+			)}
+
+			{/* Empty — no stores at all */}
+			{!isLoading && stores?.length === 0 && (
+				<p className="py-16 text-center text-sm text-muted-foreground">
+					{m.stores_empty()}
+				</p>
+			)}
+
+			{/* Empty — filters produced no results */}
+			{!isLoading &&
+				stores &&
+				stores.length > 0 &&
+				filteredStores.length === 0 && (
+					<div className="flex flex-col items-center gap-4 py-16 text-center">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+							<HugeiconsIcon
+								icon={Cancel01Icon}
+								className="size-7 text-muted-foreground"
+							/>
 						</div>
-						<CardHeader className="pb-1 pt-3">
-							<Skeleton className="h-4 w-32" />
-						</CardHeader>
-						<CardContent className="pb-3">
-							<Skeleton className="h-3 w-20" />
-						</CardContent>
-					</Card>
-				))}
+						<p className="max-w-xs text-sm text-muted-foreground">
+							{m.stores_empty_filtered()}
+						</p>
+						<Button variant="outline" size="sm" onClick={clearFilters}>
+							{m.stores_filter_clear()}
+						</Button>
+					</div>
+				)}
+
+			{/* Grid */}
+			<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+				{isLoading
+					? Array.from(
+							{ length: PLACEHOLDER_COUNT },
+							(_, i) => `skeleton-${i}`,
+						).map((key) => (
+							<Card key={key} className="flex flex-col overflow-hidden">
+								<div className="flex h-24 shrink-0 items-center justify-center bg-muted">
+									<HugeiconsIcon
+										icon={ShoppingBag01Icon}
+										className="size-10 text-muted-foreground/30"
+									/>
+								</div>
+								<CardHeader className="pb-1 pt-3">
+									<Skeleton className="h-4 w-32" />
+								</CardHeader>
+								<CardContent className="flex flex-1 flex-col justify-between gap-1 pb-3">
+									<Skeleton className="h-3 w-20" />
+									<Skeleton className="h-3 w-16" />
+								</CardContent>
+							</Card>
+						))
+					: filteredStores.map((store) => (
+							<Link
+								key={store.id}
+								to={localizeHref(`/stores/${store.id}`)}
+								className="group flex h-full flex-col"
+							>
+								<Card className="flex h-full flex-col overflow-hidden transition-shadow group-hover:shadow-md">
+									<div className="relative flex h-24 shrink-0 items-center justify-center bg-muted">
+										{store.logoImageUrl ? (
+											<img
+												src={store.logoImageUrl}
+												alt={store.name}
+												className="h-full w-full object-cover"
+												loading="lazy"
+											/>
+										) : (
+											<HugeiconsIcon
+												icon={ShoppingBag01Icon}
+												className="size-10 text-muted-foreground/40"
+											/>
+										)}
+										{store.category && (
+											<Badge
+												variant="secondary"
+												className="absolute top-2 right-2 max-w-[6rem] truncate"
+											>
+												{store.category}
+											</Badge>
+										)}
+									</div>
+									<CardHeader className="pb-1 pt-3">
+										<span className="truncate text-sm font-semibold text-foreground">
+											{store.name}
+										</span>
+									</CardHeader>
+									<CardContent className="flex flex-1 flex-col justify-between gap-1 pb-3">
+										<span className="text-xs text-muted-foreground">
+											{store.mall.name} · {store.mall.city}
+										</span>
+										<div className="flex flex-wrap gap-x-2 gap-y-0.5">
+											{store.floor && (
+												<span className="flex items-center gap-1 text-xs text-muted-foreground">
+													<HugeiconsIcon
+														icon={Location01Icon}
+														className="size-3 shrink-0"
+													/>
+													{m.stores_floor({ floor: store.floor })}
+												</span>
+											)}
+											{store.openHours && (
+												<span className="flex items-center gap-1 text-xs text-muted-foreground">
+													<HugeiconsIcon
+														icon={Clock01Icon}
+														className="size-3 shrink-0"
+													/>
+													{store.openHours}
+												</span>
+											)}
+										</div>
+									</CardContent>
+								</Card>
+							</Link>
+						))}
 			</div>
 		</div>
 	);

@@ -1,5 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { getSensitiveAdminMutationTargetOrThrow } from '@/features/.server/admin-platform/users/admin-users-guards.lib';
+import {
+	auditEventActions,
+	writeAuditEventBestEffort,
+} from '@/features/.server/audit/audit-event.lib';
 import { auth } from '@/features/.server/auth/better-auth-server.lib';
 import { getLocaleFromAsyncStorage } from '@/features/.server/trpc/locale.context';
 import { procedures } from '@/features/.server/trpc/trpc.init';
@@ -18,6 +23,10 @@ export const banUserMutation = procedures.adminPlatform
 	.input(banUserInputSchema)
 	.mutation(async ({ ctx, input }) => {
 		const locale = getLocaleFromAsyncStorage();
+		const targetUser = await getSensitiveAdminMutationTargetOrThrow({
+			targetUserId: input.userId,
+			actorUserId: ctx.user.id,
+		});
 
 		try {
 			await auth.api.banUser({
@@ -26,6 +35,17 @@ export const banUserMutation = procedures.adminPlatform
 					banReason: input.banReason,
 				},
 				headers: ctx.headers,
+			});
+
+			await writeAuditEventBestEffort({
+				context: 'trpc.adminUsers.ban',
+				actorUserId: ctx.user.id,
+				action: auditEventActions.ADMIN_USER_BANNED,
+				targetType: 'User',
+				targetId: targetUser.id,
+				metadata: {
+					reason: input.banReason ?? null,
+				},
 			});
 
 			return { success: true };
@@ -44,11 +64,23 @@ export const unbanUserMutation = procedures.adminPlatform
 	.input(unbanUserInputSchema)
 	.mutation(async ({ ctx, input }) => {
 		const locale = getLocaleFromAsyncStorage();
+		const targetUser = await getSensitiveAdminMutationTargetOrThrow({
+			targetUserId: input.userId,
+			actorUserId: ctx.user.id,
+		});
 
 		try {
 			await auth.api.unbanUser({
 				body: { userId: input.userId },
 				headers: ctx.headers,
+			});
+
+			await writeAuditEventBestEffort({
+				context: 'trpc.adminUsers.unban',
+				actorUserId: ctx.user.id,
+				action: auditEventActions.ADMIN_USER_UNBANNED,
+				targetType: 'User',
+				targetId: targetUser.id,
 			});
 
 			return { success: true };

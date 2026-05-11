@@ -1,13 +1,19 @@
 import { z } from 'zod';
 import { prisma } from '@/features/.server/prisma/prisma.server';
 import { procedures } from '@/features/.server/trpc/trpc.init';
+import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 
 const listUsersInputSchema = z.object({
 	page: z.number().int().min(1).default(1),
 	pageSize: z.number().int().min(1).max(100).default(10),
 	search: z.string().trim().optional(),
 	roleFilter: z
-		.enum(['CUSTOMER', 'ADMIN_LOCAL', 'ADMIN_CC', 'ADMIN_PLATFORM'])
+		.enum([
+			appRoles.CUSTOMER,
+			appRoles.ADMIN_LOCAL,
+			appRoles.ADMIN_CC,
+			appRoles.ADMIN_PLATFORM,
+		])
 		.optional(),
 	sortBy: z.enum(['name', 'email', 'role', 'createdAt']).default('createdAt'),
 	sortDirection: z.enum(['asc', 'desc']).default('desc'),

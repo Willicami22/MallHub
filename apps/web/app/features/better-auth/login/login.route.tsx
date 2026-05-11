@@ -19,11 +19,12 @@ import {
 	Spinner,
 	toast,
 } from '@mallhub/ui';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { type FormEvent, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { loadGuestOnlyAuthRoute } from '@/features/.server/auth/auth-route-guard.lib';
+import { authReasons } from '@/features/better-auth/auth-reason.lib';
 import { signOut } from '@/features/better-auth/better-auth-client.lib';
 import { useAppSession } from '@/features/better-auth/better-auth-session.provider';
 import { AuthLayout } from '@/features/better-auth/components/auth-layout';
@@ -33,7 +34,7 @@ import {
 	useLoginForm,
 	withLoginForm,
 } from '@/features/better-auth/login/login.form';
-import { withReturnTo } from '@/features/better-auth/return-to.lib';
+
 import { useTRPC } from '@/features/trpc/trpc.context';
 import {
 	hasFieldErrors,
@@ -194,13 +195,12 @@ const LoginFormWithOptions = withLoginForm({
 export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const session = useAppSession();
+	const queryClient = useQueryClient();
 	const trpc = useTRPC();
 	const loginMutation = useMutation(trpc.auth.signInEmail.mutationOptions());
-	const postAuthHref = loaderData.returnTo ?? localizeHref('/');
-	const registerHref = withReturnTo(
-		localizeHref('/auth/register'),
-		loaderData.returnTo,
-	);
+	const postAuthHref = localizeHref('/');
+	const registerHref = localizeHref('/auth/register');
+	const forgotPasswordHref = localizeHref('/auth/reset-password');
 	const loginForm = useLoginForm({
 		...LOGIN_FORM_OPTIONS,
 		onSubmit: async ({ value, formApi }) => {
@@ -271,6 +271,7 @@ export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 							size="lg"
 							onClick={async () => {
 								await signOut();
+								queryClient.clear();
 							}}
 						>
 							{m.login_sign_out()}
@@ -293,9 +294,27 @@ export default function LoginRoute({ loaderData }: Route.ComponentProps) {
 					</p>
 				</div>
 
+				{loaderData.authReason === authReasons.ADMIN_SESSION_EXPIRED && (
+					<p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+						{m.login_admin_session_expired_notice()}
+					</p>
+				)}
+
 				<Separator />
 
 				<LoginFormWithOptions form={loginForm} />
+
+				<div className="text-center">
+					<Button
+						variant="link"
+						size="sm"
+						className="h-auto p-0"
+						nativeButton={false}
+						render={<Link to={forgotPasswordHref} />}
+					>
+						{m.login_forgot_password()}
+					</Button>
+				</div>
 
 				<p className="text-center text-sm text-muted-foreground">
 					{m.login_no_account()}{' '}

@@ -3,6 +3,10 @@ import {
 	auth,
 	type Session,
 } from '@/features/.server/auth/better-auth-server.lib';
+import {
+	AUTH_REASON_QUERY_PARAM,
+	toAuthReason,
+} from '@/features/better-auth/auth-reason.lib';
 import type { AppRole } from '@/features/better-auth/better-auth-access-control.lib';
 import { RETURN_TO_QUERY_PARAM } from '@/features/better-auth/return-to.lib';
 import {
@@ -14,7 +18,12 @@ import {
 } from '@/paraglide/runtime.js';
 
 const DUMMY_ORIGIN = 'http://localhost';
-const AUTH_PATHS = ['/auth/login', '/auth/register'] as const;
+const AUTH_PATHS = [
+	'/auth/login',
+	'/auth/register',
+	'/auth/reset-password',
+	'/auth/reset-password/confirm',
+] as const;
 
 type SessionData = Session | null;
 
@@ -89,6 +98,9 @@ const getValidatedReturnToFromRequest = (request: Request): string | null =>
 		new URL(request.url).searchParams.get(RETURN_TO_QUERY_PARAM),
 	);
 
+const getValidatedAuthReasonFromRequest = (request: Request) =>
+	toAuthReason(new URL(request.url).searchParams.get(AUTH_REASON_QUERY_PARAM));
+
 const getFallbackAuthenticatedHref = (request: Request): string =>
 	toLocalizedHref(request, '/');
 
@@ -112,6 +124,7 @@ export const loadGuestOnlyAuthRoute = async (request: Request) => {
 
 	return {
 		returnTo: getValidatedReturnToFromRequest(request),
+		authReason: getValidatedAuthReasonFromRequest(request),
 	};
 };
 

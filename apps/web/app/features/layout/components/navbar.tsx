@@ -10,6 +10,7 @@ import {
 	Settings01Icon,
 	ShoppingBag01Icon,
 	ShoppingCart01Icon,
+	Store02Icon,
 	SunIcon,
 	UserGroupIcon,
 	UserIcon,
@@ -21,6 +22,12 @@ import {
 	AvatarImage,
 	Button,
 	cn,
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
@@ -37,8 +44,11 @@ import {
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
+	toast,
 } from '@mallhub/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 import { signOut } from '@/features/better-auth/better-auth-client.lib';
@@ -59,6 +69,14 @@ function getInitials(name: string): string {
 
 function canAccessAdminPlatform(user: { role?: string | null }): boolean {
 	return user.role === appRoles.ADMIN_PLATFORM;
+}
+
+function canAccessAdminCc(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_CC;
+}
+
+function canAccessAdminLocal(user: { role?: string | null }): boolean {
+	return user.role === appRoles.ADMIN_LOCAL;
 }
 
 const NAV_LINKS = [
@@ -150,10 +168,60 @@ function NavLink({
 	);
 }
 
+function AdminPlatformSignOutDialog({
+	open,
+	onOpenChange,
+	isSubmitting,
+	onConfirm,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	isSubmitting: boolean;
+	onConfirm: () => Promise<void>;
+}) {
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-sm">
+				<DialogHeader>
+					<DialogTitle>{m.nav_admin_sign_out_title()}</DialogTitle>
+					<DialogDescription>
+						{m.nav_admin_sign_out_description()}
+					</DialogDescription>
+				</DialogHeader>
+				<DialogFooter>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onOpenChange(false)}
+						disabled={isSubmitting}
+					>
+						{m.nav_cancel()}
+					</Button>
+					<Button
+						type="button"
+						variant="destructive"
+						onClick={() => {
+							void onConfirm();
+						}}
+						disabled={isSubmitting}
+					>
+						{isSubmitting
+							? m.nav_signing_out()
+							: m.nav_admin_sign_out_confirm()}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function UserMenu() {
 	const session = useAppSession();
 	const location = useLocation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
+	const [isSigningOut, setIsSigningOut] = useState(false);
 	const returnTo = `${location.pathname}${location.search}${location.hash}`;
 	const signInHref = withReturnTo(localizeHref('/auth/login'), returnTo);
 	const signUpHref = withReturnTo(localizeHref('/auth/register'), returnTo);
@@ -182,176 +250,78 @@ function UserMenu() {
 
 	const user = session.data.user;
 	const initials = getInitials(user.name ?? user.email ?? '');
+	const isAdminPlatformUser = user.role === appRoles.ADMIN_PLATFORM;
+
+	const performSignOut = async () => {
+		setIsSigningOut(true);
+
+		try {
+			await signOut();
+			queryClient.clear();
+			navigate(localizeHref('/'));
+		} catch (error) {
+			console.error('[navbar.user-menu.sign-out] Error', { error });
+			toast.error(m.auth_unexpected_error());
+		} finally {
+			setIsSigningOut(false);
+			setIsSignOutDialogOpen(false);
+		}
+	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button
-						variant="ghost"
-						size="icon"
-						aria-label={m.nav_user_menu()}
-						className="rounded-full"
-					/>
-				}
-			>
-				<Avatar>
-					<AvatarImage src={user.image ?? ''} alt={user.name ?? ''} />
-					<AvatarFallback>{initials}</AvatarFallback>
-				</Avatar>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-56">
-				<DropdownMenuGroup>
-					<DropdownMenuLabel>
-						<div className="flex flex-col gap-0.5">
-							<span className="text-sm font-medium text-foreground">
-								{user.name}
-							</span>
-							<span className="text-xs text-muted-foreground truncate">
-								{user.email}
-							</span>
-						</div>
-					</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={() => navigate(localizeHref('/dashboard'))}
-					>
-						<HugeiconsIcon icon={UserIcon} className="size-4" />
-						{m.nav_my_profile()}
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => navigate(localizeHref('/dashboard'))}
-					>
-						<HugeiconsIcon icon={ShoppingCart01Icon} className="size-4" />
-						{m.nav_my_reservations()}
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => navigate(localizeHref('/dashboard'))}
-					>
-						<HugeiconsIcon icon={Settings01Icon} className="size-4" />
-						{m.nav_settings()}
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				{canAccessAdminPlatform(user) && (
-					<>
-						<DropdownMenuSeparator />
-						<DropdownMenuGroup>
-							<DropdownMenuItem
-								onClick={() => navigate(localizeHref('/admin/dashboard'))}
-							>
-								<HugeiconsIcon
-									icon={DashboardSquare01Icon}
-									className="size-4"
-								/>
-								{m.nav_admin_platform()}
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => navigate(localizeHref('/admin/users'))}
-							>
-								<HugeiconsIcon icon={UserGroupIcon} className="size-4" />
-								{m.admin_users_title()}
-							</DropdownMenuItem>
-						</DropdownMenuGroup>
-					</>
-				)}
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem
-						variant="destructive"
-						onClick={async () => {
-							await signOut();
-							navigate(localizeHref('/'));
-						}}
-					>
-						<HugeiconsIcon icon={Logout01Icon} className="size-4" />
-						{m.nav_sign_out()}
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-}
-
-function MobileMenuSheet() {
-	const session = useAppSession();
-	const location = useLocation();
-	const navigate = useNavigate();
-	const returnTo = `${location.pathname}${location.search}${location.hash}`;
-	const signInHref = withReturnTo(localizeHref('/auth/login'), returnTo);
-	const signUpHref = withReturnTo(localizeHref('/auth/register'), returnTo);
-
-	return (
-		<Sheet>
-			<SheetTrigger
-				render={
-					<Button
-						variant="ghost"
-						size="icon"
-						aria-label={m.nav_toggle_menu()}
-						className="lg:hidden"
-					/>
-				}
-			>
-				<HugeiconsIcon icon={Menu01Icon} className="size-5" />
-			</SheetTrigger>
-			<SheetContent side="left" className="w-72 p-0">
-				<SheetTitle className="sr-only">Navigation</SheetTitle>
-				<div className="flex items-center gap-3 border-b px-5 py-4">
-					<BrandLogo />
-				</div>
-				<nav className="flex flex-col gap-1 p-4">
-					{NAV_LINKS.map((link) => (
-						<NavLink key={link.href} {...link} />
-					))}
-				</nav>
-
-				<Separator />
-				{session.data ? (
-					<div className="flex flex-col gap-1 p-4">
-						<div className="mb-2 flex items-center gap-3 rounded-lg bg-muted px-3 py-2.5">
-							<Avatar size="sm">
-								<AvatarImage
-									src={session.data.user.image ?? ''}
-									alt={session.data.user.name ?? ''}
-								/>
-								<AvatarFallback>
-									{getInitials(
-										session.data.user.name ?? session.data.user.email ?? '',
-									)}
-								</AvatarFallback>
-							</Avatar>
-							<div className="flex flex-col gap-0.5 overflow-hidden">
-								<span className="truncate text-sm font-medium text-foreground">
-									{session.data.user.name}
-								</span>
-								<span className="truncate text-xs text-muted-foreground">
-									{session.data.user.email}
-								</span>
-							</div>
-						</div>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					render={
 						<Button
 							variant="ghost"
-							size="sm"
-							className="justify-start gap-2"
+							size="icon"
+							aria-label={m.nav_user_menu()}
+							className="rounded-full"
+						/>
+					}
+				>
+					<Avatar>
+						<AvatarImage src={user.image ?? ''} alt={user.name ?? ''} />
+						<AvatarFallback>{initials}</AvatarFallback>
+					</Avatar>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="w-56">
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>
+							<div className="flex flex-col gap-0.5">
+								<span className="text-sm font-medium text-foreground">
+									{user.name}
+								</span>
+								<span className="text-xs text-muted-foreground truncate">
+									{user.email}
+								</span>
+							</div>
+						</DropdownMenuLabel>
+						<DropdownMenuItem
 							onClick={() => navigate(localizeHref('/dashboard'))}
 						>
 							<HugeiconsIcon icon={UserIcon} className="size-4" />
 							{m.nav_my_profile()}
-						</Button>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="justify-start gap-2"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							onClick={() => navigate(localizeHref('/dashboard'))}
 						>
 							<HugeiconsIcon icon={ShoppingCart01Icon} className="size-4" />
 							{m.nav_my_reservations()}
-						</Button>
-						{canAccessAdminPlatform(session.data.user) && (
-							<>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="justify-start gap-2"
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => navigate(localizeHref('/dashboard'))}
+						>
+							<HugeiconsIcon icon={Settings01Icon} className="size-4" />
+							{m.nav_settings()}
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+					{canAccessAdminPlatform(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
 									onClick={() => navigate(localizeHref('/admin/dashboard'))}
 								>
 									<HugeiconsIcon
@@ -359,48 +329,264 @@ function MobileMenuSheet() {
 										className="size-4"
 									/>
 									{m.nav_admin_platform()}
-								</Button>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="justify-start gap-2"
+								</DropdownMenuItem>
+								<DropdownMenuItem
 									onClick={() => navigate(localizeHref('/admin/users'))}
 								>
 									<HugeiconsIcon icon={UserGroupIcon} className="size-4" />
 									{m.admin_users_title()}
-								</Button>
-							</>
-						)}
-						<Separator className="my-1" />
-						<Button
-							variant="ghost"
-							size="sm"
-							className="justify-start gap-2 text-destructive hover:text-destructive"
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
+					{canAccessAdminCc(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
+					{canAccessAdminLocal(user) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() =>
+										navigate(localizeHref('/store-local/dashboard'))
+									}
+								>
+									<HugeiconsIcon icon={Store02Icon} className="size-4" />
+									{m.nav_admin_local()}
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</>
+					)}
+					<DropdownMenuSeparator />
+					<DropdownMenuGroup>
+						<DropdownMenuItem
+							variant="destructive"
 							onClick={async () => {
-								await signOut();
-								navigate(localizeHref('/'));
+								if (isAdminPlatformUser) {
+									setIsSignOutDialogOpen(true);
+									return;
+								}
+
+								await performSignOut();
 							}}
 						>
 							<HugeiconsIcon icon={Logout01Icon} className="size-4" />
 							{m.nav_sign_out()}
-						</Button>
-					</div>
-				) : (
-					<div className="flex flex-col gap-2 p-4">
-						<Button nativeButton={false} render={<Link to={signInHref} />}>
-							{m.nav_sign_in()}
-						</Button>
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+				</DropdownMenuContent>
+			</DropdownMenu>
+			{isAdminPlatformUser && (
+				<AdminPlatformSignOutDialog
+					open={isSignOutDialogOpen}
+					onOpenChange={setIsSignOutDialogOpen}
+					isSubmitting={isSigningOut}
+					onConfirm={performSignOut}
+				/>
+			)}
+		</>
+	);
+}
+
+function MobileMenuSheet() {
+	const session = useAppSession();
+	const location = useLocation();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
+	const [isSigningOut, setIsSigningOut] = useState(false);
+	const returnTo = `${location.pathname}${location.search}${location.hash}`;
+	const signInHref = withReturnTo(localizeHref('/auth/login'), returnTo);
+	const signUpHref = withReturnTo(localizeHref('/auth/register'), returnTo);
+	const isAdminPlatformUser =
+		session.data?.user.role === appRoles.ADMIN_PLATFORM;
+
+	const performSignOut = async () => {
+		setIsSigningOut(true);
+
+		try {
+			await signOut();
+			queryClient.clear();
+			navigate(localizeHref('/'));
+		} catch (error) {
+			console.error('[navbar.mobile-menu.sign-out] Error', { error });
+			toast.error(m.auth_unexpected_error());
+		} finally {
+			setIsSigningOut(false);
+			setIsSignOutDialogOpen(false);
+		}
+	};
+
+	return (
+		<>
+			<Sheet>
+				<SheetTrigger
+					render={
 						<Button
-							variant="outline"
-							nativeButton={false}
-							render={<Link to={signUpHref} />}
-						>
-							{m.nav_sign_up()}
-						</Button>
+							variant="ghost"
+							size="icon"
+							aria-label={m.nav_toggle_menu()}
+							className="lg:hidden"
+						/>
+					}
+				>
+					<HugeiconsIcon icon={Menu01Icon} className="size-5" />
+				</SheetTrigger>
+				<SheetContent side="left" className="w-72 p-0">
+					<SheetTitle className="sr-only">Navigation</SheetTitle>
+					<div className="flex items-center gap-3 border-b px-5 py-4">
+						<BrandLogo />
 					</div>
-				)}
-			</SheetContent>
-		</Sheet>
+					<nav className="flex flex-col gap-1 p-4">
+						{NAV_LINKS.map((link) => (
+							<NavLink key={link.href} {...link} />
+						))}
+					</nav>
+
+					<Separator />
+					{session.data ? (
+						<div className="flex flex-col gap-1 p-4">
+							<div className="mb-2 flex items-center gap-3 rounded-lg bg-muted px-3 py-2.5">
+								<Avatar size="sm">
+									<AvatarImage
+										src={session.data.user.image ?? ''}
+										alt={session.data.user.name ?? ''}
+									/>
+									<AvatarFallback>
+										{getInitials(
+											session.data.user.name ?? session.data.user.email ?? '',
+										)}
+									</AvatarFallback>
+								</Avatar>
+								<div className="flex flex-col gap-0.5 overflow-hidden">
+									<span className="truncate text-sm font-medium text-foreground">
+										{session.data.user.name}
+									</span>
+									<span className="truncate text-xs text-muted-foreground">
+										{session.data.user.email}
+									</span>
+								</div>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="justify-start gap-2"
+								onClick={() => navigate(localizeHref('/dashboard'))}
+							>
+								<HugeiconsIcon icon={UserIcon} className="size-4" />
+								{m.nav_my_profile()}
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="justify-start gap-2"
+								onClick={() => navigate(localizeHref('/dashboard'))}
+							>
+								<HugeiconsIcon icon={ShoppingCart01Icon} className="size-4" />
+								{m.nav_my_reservations()}
+							</Button>
+							{canAccessAdminPlatform(session.data.user) && (
+								<>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="justify-start gap-2"
+										onClick={() => navigate(localizeHref('/admin/dashboard'))}
+									>
+										<HugeiconsIcon
+											icon={DashboardSquare01Icon}
+											className="size-4"
+										/>
+										{m.nav_admin_platform()}
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="justify-start gap-2"
+										onClick={() => navigate(localizeHref('/admin/users'))}
+									>
+										<HugeiconsIcon icon={UserGroupIcon} className="size-4" />
+										{m.admin_users_title()}
+									</Button>
+								</>
+							)}
+							{canAccessAdminCc(session.data.user) && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() => navigate(localizeHref('/admin-cc/dashboard'))}
+								>
+									<HugeiconsIcon icon={Building04Icon} className="size-4" />
+									{m.nav_admin_cc()}
+								</Button>
+							)}
+							{canAccessAdminLocal(session.data.user) && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="justify-start gap-2"
+									onClick={() =>
+										navigate(localizeHref('/store-local/dashboard'))
+									}
+								>
+									<HugeiconsIcon icon={Store02Icon} className="size-4" />
+									{m.nav_admin_local()}
+								</Button>
+							)}
+							<Separator className="my-1" />
+							<Button
+								variant="ghost"
+								size="sm"
+								className="justify-start gap-2 text-destructive hover:text-destructive"
+								onClick={async () => {
+									if (isAdminPlatformUser) {
+										setIsSignOutDialogOpen(true);
+										return;
+									}
+
+									await performSignOut();
+								}}
+							>
+								<HugeiconsIcon icon={Logout01Icon} className="size-4" />
+								{m.nav_sign_out()}
+							</Button>
+						</div>
+					) : (
+						<div className="flex flex-col gap-2 p-4">
+							<Button nativeButton={false} render={<Link to={signInHref} />}>
+								{m.nav_sign_in()}
+							</Button>
+							<Button
+								variant="outline"
+								nativeButton={false}
+								render={<Link to={signUpHref} />}
+							>
+								{m.nav_sign_up()}
+							</Button>
+						</div>
+					)}
+				</SheetContent>
+			</Sheet>
+			{isAdminPlatformUser && (
+				<AdminPlatformSignOutDialog
+					open={isSignOutDialogOpen}
+					onOpenChange={setIsSignOutDialogOpen}
+					isSubmitting={isSigningOut}
+					onConfirm={performSignOut}
+				/>
+			)}
+		</>
 	);
 }
 

@@ -4,16 +4,13 @@ import {
 	formOptions,
 } from '@tanstack/react-form';
 import { z } from 'zod';
+import { ADMIN_PLATFORM_CREATABLE_USER_ROLES } from '@/features/admin-platform/users/admin-users-policy.lib';
 import { appRoles } from '@/features/better-auth/better-auth-access-control.lib';
 import * as m from '@/paraglide/messages.js';
 
 export const { fieldContext, formContext } = createFormHookContexts();
 
-const createUserRoleSchema = z.enum([
-	appRoles.ADMIN_CC,
-	appRoles.ADMIN_LOCAL,
-	appRoles.CUSTOMER,
-]);
+const createUserRoleSchema = z.enum(ADMIN_PLATFORM_CREATABLE_USER_ROLES);
 
 const createUserFormState = z.object({
 	name: z.string(),
