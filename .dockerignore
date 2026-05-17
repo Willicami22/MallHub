@@ -1,0 +1,9 @@
+**/.git
+**/.react-router
+**/node_modules
+**/build
+**/.turbo
+**/.env
+**/.env.local
+**/.env.*.local
+**/dist

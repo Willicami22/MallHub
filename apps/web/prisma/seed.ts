@@ -814,4 +814,12 @@ async function seed() {
 	console.log('Database seeding completed.');
 }
 
-void seed();
+void seed()
+	.catch((e) => {
+		console.error('Seeding failed:', e);
+		process.exit(1);
+	})
+	.finally(async () => {
+		await prisma.$disconnect();
+		process.exit(0);
+	});

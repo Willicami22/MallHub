@@ -96,6 +96,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_APP_API_URL: "${VITE_APP_API_URL:-http://localhost:3000}"
     container_name: mallhub-app-local-prod
     restart: unless-stopped
     depends_on:
@@ -120,6 +122,7 @@ services:
       RESEND_API_KEY: "${RESEND_API_KEY:-re_change_me}"
       RESEND_FROM_EMAIL: "${RESEND_FROM_EMAIL:-onboarding@resend.dev}"
       RESEND_FROM_NAME: "${RESEND_FROM_NAME:-MallHub}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-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}"
       NOTIFICATIONS_WORKER_CONCURRENCY: "${NOTIFICATIONS_WORKER_CONCURRENCY:-5}"
       NOTIFICATIONS_WORKER_LIMIT_MAX: "${NOTIFICATIONS_WORKER_LIMIT_MAX:-60}"
       NOTIFICATIONS_WORKER_LIMIT_DURATION_MS: "${NOTIFICATIONS_WORKER_LIMIT_DURATION_MS:-60000}"

@@ -70,6 +70,7 @@ import { listPublicStoresQuery } from '@/features/.server/browse/list-public-sto
 import { listActiveCampaignsQuery } from '@/features/.server/campaigns/list-active-campaigns.query';
 import { trackCampaignInteractionMutation } from '@/features/.server/campaigns/track-campaign-interaction.mutation';
 import { createReservationMutation } from '@/features/.server/reservations/create-reservation.mutation';
+import { analyzeProductImagesMutation } from '@/features/.server/store-admin-local/analyze-product-images.mutation';
 import { createStorePromotionMutation } from '@/features/.server/store-admin-local/create-store-promotion.mutation';
 import { deleteProductMutation } from '@/features/.server/store-admin-local/delete-product.mutation';
 import { getDashboardMetricsQuery } from '@/features/.server/store-admin-local/get-dashboard-metrics.query';
@@ -202,6 +203,7 @@ export const appRouter = t.router({
 	}),
 	adminCc: adminCcRouter,
 	storeAdminLocal: t.router({
+		analyzeProductImages: analyzeProductImagesMutation,
 		getMyStore: getMyStoreQuery,
 		updateMyStore: updateMyStoreMutation,
 		submitForReview: submitStoreForReviewMutation,

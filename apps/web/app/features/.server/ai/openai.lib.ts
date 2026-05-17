@@ -1,6 +1,15 @@
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 
-type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+type TextPart = { type: 'text'; text: string };
+type ImagePart = {
+	type: 'image_url';
+	image_url: { url: string; detail?: 'low' | 'high' | 'auto' };
+};
+
+type ChatMessage = {
+	role: 'system' | 'user' | 'assistant';
+	content: string | Array<TextPart | ImagePart>;
+};
 
 type ChatOptions = {
 	messages: ChatMessage[];
