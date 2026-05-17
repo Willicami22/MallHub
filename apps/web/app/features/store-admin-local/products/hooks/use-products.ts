@@ -41,6 +41,10 @@ export function useProducts(storeId: string | null) {
 		...trpc.storeAdminLocal.getProductImageUploadUrl.mutationOptions(),
 	});
 
+	const analyzeImagesMutation = useMutation({
+		...trpc.storeAdminLocal.analyzeProductImages.mutationOptions(),
+	});
+
 	const filtered = useMemo(() => {
 		const rows = listQuery.data?.products ?? [];
 		const term = search.trim().toLowerCase();
@@ -69,6 +73,7 @@ export function useProducts(storeId: string | null) {
 		upsertMutation,
 		deleteMutation,
 		getImageUploadUrlMutation,
+		analyzeImagesMutation,
 		invalidate,
 	};
 }
