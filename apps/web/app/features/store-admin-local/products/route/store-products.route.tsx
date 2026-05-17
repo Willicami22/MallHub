@@ -1,5 +1,12 @@
+import { SparklesIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
+	Badge,
 	Button,
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
 	Input,
 	Select,
 	SelectContent,
@@ -10,6 +17,7 @@ import {
 } from '@mallhub/ui';
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router';
+import { ProductAiCreationDialog } from '@/features/store-admin-local/products/components/product-ai-creation-dialog';
 import { ProductFormDialog } from '@/features/store-admin-local/products/components/product-form-dialog';
 import { ProductsTable } from '@/features/store-admin-local/products/components/products-table';
 import { useProducts } from '@/features/store-admin-local/products/hooks/use-products';
@@ -42,13 +50,16 @@ export default function StoreProductsRoute(_props: Route.ComponentProps) {
 		upsertMutation,
 		deleteMutation,
 		getImageUploadUrlMutation,
+		analyzeImagesMutation,
 	} = useProducts(activeStoreId);
 	const [statusFilter, setStatusFilter] = useState<'all' | ProductStatus>(
 		'all',
 	);
 	const [categoryFilter, setCategoryFilter] = useState('all');
 
+	const [choiceDialogOpen, setChoiceDialogOpen] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const [aiDialogOpen, setAiDialogOpen] = useState(false);
 	const [editing, setEditing] = useState<Product | null>(null);
 
 	const categories = useMemo(
@@ -106,7 +117,7 @@ export default function StoreProductsRoute(_props: Route.ComponentProps) {
 
 	const openCreate = () => {
 		setEditing(null);
-		setDialogOpen(true);
+		setChoiceDialogOpen(true);
 	};
 
 	const openEdit = (product: Product) => {
@@ -313,23 +324,96 @@ export default function StoreProductsRoute(_props: Route.ComponentProps) {
 				)}
 			</ResourceBoundary>
 
+			{/* Diálogo de selección de método */}
+			<Dialog open={choiceDialogOpen} onOpenChange={setChoiceDialogOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Agregar producto</DialogTitle>
+						<p className="text-sm text-muted-foreground">
+							Elige cómo quieres crear tu producto.
+						</p>
+					</DialogHeader>
+					<div className="grid gap-3 py-2">
+						<button
+							type="button"
+							onClick={() => {
+								setChoiceDialogOpen(false);
+								setAiDialogOpen(true);
+							}}
+							className="relative flex flex-col gap-2 rounded-xl border-2 border-primary bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10"
+						>
+							<Badge
+								variant="default"
+								className="absolute right-3 top-3 text-xs"
+							>
+								Recomendado
+							</Badge>
+							<div className="flex items-center gap-2">
+								<HugeiconsIcon
+									icon={SparklesIcon}
+									className="size-5 text-primary"
+								/>
+								<span className="font-semibold">Crear con IA</span>
+							</div>
+							<p className="text-sm text-muted-foreground">
+								Sube fotos y la IA genera el nombre, descripción, categoría y
+								variantes automáticamente.
+							</p>
+						</button>
+
+						<button
+							type="button"
+							onClick={() => {
+								setChoiceDialogOpen(false);
+								setDialogOpen(true);
+							}}
+							className="flex flex-col gap-2 rounded-xl border p-4 text-left transition-colors hover:bg-muted/50"
+						>
+							<span className="font-semibold">Completar manualmente</span>
+							<p className="text-sm text-muted-foreground">
+								Ingresa el nombre, descripción y demás datos del producto de
+								forma manual.
+							</p>
+						</button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
 			{activeStoreId ? (
-				<ProductFormDialog
-					open={dialogOpen}
-					onOpenChange={setDialogOpen}
-					storeId={activeStoreId}
-					initial={editing}
-					isSubmitting={upsertMutation.isPending}
-					getImageUploadUrlMutation={getImageUploadUrlMutation}
-					onSubmit={async (dto) => {
-						try {
-							await upsertMutation.mutateAsync(dto);
-							toast.success('Producto guardado');
-						} catch {
-							toast.error('No se pudo guardar');
-						}
-					}}
-				/>
+				<>
+					<ProductFormDialog
+						open={dialogOpen}
+						onOpenChange={setDialogOpen}
+						storeId={activeStoreId}
+						initial={editing}
+						isSubmitting={upsertMutation.isPending}
+						getImageUploadUrlMutation={getImageUploadUrlMutation}
+						onSubmit={async (dto) => {
+							try {
+								await upsertMutation.mutateAsync(dto);
+								toast.success('Producto guardado');
+							} catch {
+								toast.error('No se pudo guardar');
+							}
+						}}
+					/>
+					<ProductAiCreationDialog
+						open={aiDialogOpen}
+						onOpenChange={setAiDialogOpen}
+						storeId={activeStoreId}
+						isSubmitting={upsertMutation.isPending}
+						getImageUploadUrlMutation={getImageUploadUrlMutation}
+						analyzeImagesMutation={analyzeImagesMutation}
+						onSubmit={async (dto) => {
+							try {
+								await upsertMutation.mutateAsync(dto);
+								toast.success('Producto guardado');
+							} catch {
+								toast.error('No se pudo guardar');
+							}
+						}}
+					/>
+				</>
 			) : null}
 		</div>
 	);
