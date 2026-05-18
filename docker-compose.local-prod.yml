@@ -97,7 +97,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_APP_API_URL: "${VITE_APP_API_URL:-http://localhost:3000}"
+        VITE_APP_API_URL: "${VITE_APP_API_URL:-http://mallhub.lat}"
     container_name: mallhub-app-local-prod
     restart: unless-stopped
     depends_on:
@@ -108,12 +108,13 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "${APP_HOST_PORT:-3000}:3000"
+      - "${APP_HOST_PORT:-80}:3000"
     environment:
       NODE_ENV: production
       PORT: "3000"
       BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:-CHANGE_ME_WITH_A_LONG_RANDOM_SECRET}"
-      BETTER_AUTH_URL: "${BETTER_AUTH_URL:-http://localhost:3000/api/auth}"
+      BETTER_AUTH_URL: "${BETTER_AUTH_URL:-http://mallhub.lat/api/auth}"
+      MINIO_PUBLIC_URL: "${MINIO_PUBLIC_URL:-http://mallhub.lat:9000}"
       DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mallhub}?schema=public"
       ADMIN_EMAIL: "${ADMIN_EMAIL:-root@mallhub.local}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
@@ -134,6 +135,10 @@ services:
       AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
       AWS_S3_SIGNED_URL_TTL_SECONDS: "${AWS_S3_SIGNED_URL_TTL_SECONDS:-900}"
       AWS_S3_MAX_UPLOAD_SIZE_BYTES: "${AWS_S3_MAX_UPLOAD_SIZE_BYTES:-26214400}"
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_SECRET_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      MINIO_BUCKET: "${AWS_S3_BUCKET:-mallhub-dev}"
     networks:
       - mallhub-local-prod
 
