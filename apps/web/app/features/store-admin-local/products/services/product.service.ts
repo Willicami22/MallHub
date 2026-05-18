@@ -3,6 +3,7 @@ import {
 	mockLatency,
 	shouldMockFail,
 } from '@/features/store-admin-local/shared/lib/mock-api.lib';
+import { generateId } from '@/features/store-admin-local/shared/lib/uuid.lib';
 import type {
 	Product,
 	ProductVariant,
@@ -36,7 +37,7 @@ const toVariant = (
 	productId: string,
 	variant: ProductUpsertVariantDto,
 ): ProductVariant => ({
-	id: variant.id ?? `var_${crypto.randomUUID()}`,
+	id: variant.id ?? `var_${generateId()}`,
 	productId,
 	sku: variant.sku,
 	label: variant.label,
@@ -63,7 +64,7 @@ export const productService = {
 			});
 		}
 
-		const id = dto.id ?? `prod_${crypto.randomUUID()}`;
+		const id = dto.id ?? `prod_${generateId()}`;
 		const product: Product = {
 			id,
 			storeId: dto.storeId,

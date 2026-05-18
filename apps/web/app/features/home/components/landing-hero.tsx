@@ -84,10 +84,10 @@ export function LandingHero() {
 				</div>
 
 				<div className="hidden lg:flex lg:items-center lg:justify-center">
-					{/* TODO: Replace with image about app mockup showing search results, active promo card, and QR reservation confirmation */}
-					<div
-						className="aspect-3/4 w-full max-w-sm rounded-3xl border bg-muted"
-						aria-hidden="true"
+					<img
+						src="/Demostration.png"
+						alt="MallHub app mockup"
+						className="w-full max-w-sm rounded-3xl object-cover shadow-xl"
 					/>
 				</div>
 			</div>

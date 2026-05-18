@@ -33,6 +33,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { ProductUpsertDto } from '@/features/store-admin-local/products/services/product.service';
+import { generateId } from '@/features/store-admin-local/shared/lib/uuid.lib';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILES = 5;
@@ -257,7 +258,7 @@ export function ProductAiCreationDialog({
 			return [
 				...prev,
 				...toAdd.map((file) => ({
-					id: crypto.randomUUID(),
+					id: generateId(),
 					file,
 					previewUrl: URL.createObjectURL(file),
 				})),
@@ -295,7 +296,7 @@ export function ProductAiCreationDialog({
 		setSelectedNameIndex(0);
 		setVariantChips(
 			result.variants.map((v) => ({
-				id: crypto.randomUUID(),
+				id: generateId(),
 				label: v.label,
 				active: true,
 			})),
@@ -383,7 +384,7 @@ export function ProductAiCreationDialog({
 		if (!label) return;
 		setVariantChips((prev) => [
 			...prev,
-			{ id: crypto.randomUUID(), label, active: true },
+			{ id: generateId(), label, active: true },
 		]);
 		setNewVariantInput('');
 	};
