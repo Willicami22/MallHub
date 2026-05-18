@@ -19,7 +19,10 @@ import { getLocale, localizeHref } from './paraglide/runtime.js';
 import { paraglideMiddleware } from './paraglide/server.js';
 import './app.css';
 
-export const links: Route.LinksFunction = () => [];
+export const links: Route.LinksFunction = () => [
+	{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+	{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+];
 
 export const middleware: MiddlewareFunction[] = [
 	(ctx, next) => {
