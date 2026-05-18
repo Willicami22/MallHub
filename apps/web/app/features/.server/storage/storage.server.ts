@@ -2,8 +2,10 @@ import {
 	CreateBucketCommand,
 	HeadBucketCommand,
 	PutBucketPolicyCommand,
+	PutObjectCommand,
 	S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { serverEnv } from '@/features/.server/env/server-env.lib';
 
 export const s3 = new S3Client({
@@ -48,4 +50,22 @@ export async function ensureBucket(): Promise<void> {
 	);
 
 	bucketReady = true;
+}
+
+export async function createUploadPresignedUrl(
+	key: string,
+	contentType: string,
+	expiresIn = 300,
+): Promise<string> {
+	const command = new PutObjectCommand({
+		Bucket: STORAGE_BUCKET,
+		Key: key,
+		ContentType: contentType,
+	});
+	const signedUrl = await getSignedUrl(s3, command, { expiresIn });
+	// Replace internal Docker endpoint with the public URL so the browser can reach MinIO directly
+	return signedUrl.replace(
+		serverEnv.MINIO_ENDPOINT,
+		serverEnv.MINIO_PUBLIC_URL,
+	);
 }

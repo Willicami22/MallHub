@@ -1,13 +1,11 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '@/features/.server/prisma/prisma.server';
 import {
+	createUploadPresignedUrl,
 	ensureBucket,
 	STORAGE_BUCKET,
 	STORAGE_PUBLIC_URL,
-	s3,
 } from '@/features/.server/storage/storage.server';
 import { procedures } from '@/features/.server/trpc/trpc.init';
 
@@ -54,13 +52,7 @@ export const getProductImageUploadUrlMutation = procedures.adminLocal
 		const ext = input.contentType.split('/')[1];
 		const key = `stores/${input.storeId}/products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-		const command = new PutObjectCommand({
-			Bucket: STORAGE_BUCKET,
-			Key: key,
-			ContentType: input.contentType,
-		});
-
-		const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+		const uploadUrl = await createUploadPresignedUrl(key, input.contentType);
 		const publicUrl = `${STORAGE_PUBLIC_URL}/${STORAGE_BUCKET}/${key}`;
 
 		return { uploadUrl, publicUrl, key };
